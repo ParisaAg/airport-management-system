@@ -1,0 +1,53 @@
+airport_ops/
+
+│
+├── config/
+│   ├── settings/
+│   │    ├── base.py
+│   │    ├── dev.py
+│   │    └── prod.py
+│   │
+│   ├── urls.py
+│   └── celery.py
+│
+├── apps/
+
+│   ├── accounts/
+│   │    Authentication
+│   │    Roles
+│   │
+│   ├── airports/
+│   │    Airport
+│   │    Terminal
+│   │    Gate
+│   │
+│   ├── airlines/
+│   │    Airlines
+│   │    Aircraft
+│   │
+│   ├── flights/
+│   │    Flights
+│   │    Schedule
+│   │    Delays
+│   │
+│   ├── operations/
+│   │    Ground Operations
+│   │    Incidents
+│   │
+│   ├── notifications/
+│   │    Email
+│   │    Logs
+│   │
+│   ├── reports/
+│   │    PDF
+│   │    Excel
+│
+├── media/
+│
+├── static/
+│
+├── requirements.txt
+│
+├── docker-compose.yml
+│
+└── manage.py
