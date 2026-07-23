@@ -1,5 +1,5 @@
 from django.db import models
-
+from django.core.exceptions import ValidationError
 
 class Flight(models.Model):
 
@@ -28,6 +28,17 @@ class Flight(models.Model):
         verbose_name_plural = "Flights"
         ordering = ['departure_time']
 
+    def clean(self):
+        super().clean()
 
+        if self.origin == self.destination:
+            raise ValidationError(
+                "Origin airport and destination airport cannot be the same."
+            )
+
+        if self.arrival_time <= self.departure_time:
+            raise ValidationError(
+                "Arrival time must be after departure time."
+            )
     def __str__(self):
         return f"{self.flight_number} - {self.origin.iata_code} to {self.destination.iata_code}"
