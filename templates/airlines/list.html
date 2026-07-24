@@ -1,0 +1,228 @@
+{% extends 'base.html' %}
+
+
+
+{% block title %}
+Airlines
+{% endblock %}
+
+
+
+
+{% block content %}
+
+
+
+<h1>
+    Airline Management
+</h1>
+
+
+
+
+{% if role == "ADMIN" %}
+
+<a href="{% url 'airline_create' %}" class="btn-primary">
+
+    + Add Airline
+
+</a>
+
+{% endif %}
+
+
+
+
+
+
+<table class="data-table">
+
+
+
+<thead>
+
+
+<tr>
+
+
+<th>
+Name
+</th>
+
+
+
+<th>
+IATA
+</th>
+
+
+
+<th>
+ICAO
+</th>
+
+
+
+<th>
+Country
+</th>
+
+
+
+<th>
+Status
+</th>
+
+
+
+<th>
+Actions
+</th>
+
+
+
+</tr>
+
+
+</thead>
+
+
+
+
+
+
+<tbody>
+
+
+
+
+{% for airline in airlines %}
+
+
+
+
+<tr>
+
+
+
+
+<td>
+{{ airline.name }}
+</td>
+
+
+
+
+<td>
+{{ airline.iata_code }}
+</td>
+
+
+
+
+<td>
+{{ airline.icao_code }}
+</td>
+
+
+
+
+<td>
+{{ airline.country }}
+</td>
+
+
+
+
+<td>
+
+
+
+{% if airline.is_active %}
+
+Active
+
+{% else %}
+
+Inactive
+
+{% endif %}
+
+
+
+</td>
+
+
+
+
+<td>
+
+
+
+
+{% if role == "ADMIN" %}
+
+
+
+<a href="{% url 'airline_edit' airline.id %}">
+
+Edit
+
+</a>
+
+
+
+{% endif %}
+
+
+
+
+
+</td>
+
+
+
+
+
+</tr>
+
+
+
+
+{% empty %}
+
+
+
+<tr>
+
+
+<td colspan="6">
+
+No airlines found
+
+</td>
+
+
+</tr>
+
+
+
+{% endfor %}
+
+
+
+
+
+</tbody>
+
+
+
+
+
+</table>
+
+
+
+
+
+{% endblock %}
