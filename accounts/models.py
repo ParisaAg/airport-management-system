@@ -13,25 +13,11 @@ class User(AbstractUser):
         ('PASSENGER_SERVICE', 'Passenger Service'),
     )
 
-    role = models.CharField(
-        max_length=30,
-        choices=ROLE_CHOICES,
-        default='GROUND_STAFF'
-    )
-
-    phone = models.CharField(
-        max_length=15,
-        blank=True,
-        null=True
-    )
-
-    created_at = models.DateTimeField(
-        auto_now_add=True
-    )
-
-    updated_at = models.DateTimeField(
-        auto_now=True
-    )
+    role = models.CharField(max_length=30,choices=ROLE_CHOICES,default='GROUND_STAFF')
+    phone = models.CharField(max_length=15,blank=True,null=True)
+    airline = models.ForeignKey('airlines.Airline',on_delete=models.SET_NULL,null=True,blank=True,related_name='operators',verbose_name='Airline')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
 
     def __str__(self):

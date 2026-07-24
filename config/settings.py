@@ -45,6 +45,11 @@ INSTALLED_APPS = [
     'airlines.apps.AirlinesConfig',
     'fleet.apps.FleetConfig',
     'flights.apps.FlightsConfig',
+    'operations.apps.OperationsConfig',
+    'notifications.apps.NotificationsConfig',
+    'security.apps.SecurityConfig',
+    'passenger_service.apps.PassengerServiceConfig',
+
 ]
 
 MIDDLEWARE = [

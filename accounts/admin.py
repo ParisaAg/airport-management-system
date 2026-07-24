@@ -15,15 +15,12 @@ class CustomUserAdmin(UserAdmin):
                 'fields': (
                     'role',
                     'phone',
+                    'airline',
+
                 )
             }
         ),
     )
 
-    list_display = (
-        'username',
-        'email',
-        'role',
-        'is_staff',
-        'is_active',
-    )
+    list_display = ('username','email','role','is_staff','is_active','airline',)
+    list_filter = ('role','airline','is_staff',)

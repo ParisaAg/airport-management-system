@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Airport, Terminal
+from .models import Airport, Terminal,Gate
 
 
 @admin.register(Airport)
@@ -15,3 +15,13 @@ class TerminalAdmin(admin.ModelAdmin):
 
     list_display = ('name', 'code', 'airport',)
     search_fields = ('name','code','airport__name',)
+
+
+
+@admin.register(Gate)
+class GateAdmin(admin.ModelAdmin):
+
+    list_display = ('code','name','terminal','is_active',)
+    search_fields = ('code','name',)
+    list_filter = ('is_active','terminal',)
+

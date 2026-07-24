@@ -57,3 +57,23 @@ class Terminal(models.Model):
 
     def __str__(self):
         return f"{self.airport.name} - {self.name}"
+    
+
+class Gate(models.Model):
+    terminal = models.ForeignKey(Terminal,on_delete=models.PROTECT,related_name='gates',verbose_name='Terminal')
+    name = models.CharField(max_length=50,verbose_name='Gate Name')
+
+    code = models.CharField(max_length=20,unique=True,db_index=True,verbose_name='Gate Code')
+    is_active = models.BooleanField(default=True,verbose_name='Active Status')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+
+    class Meta:
+        verbose_name = 'Gate'
+        verbose_name_plural = 'Gates'
+        ordering = ['code']
+
+
+    def __str__(self):
+        return f"{self.terminal.airport.name} - {self.code}"
