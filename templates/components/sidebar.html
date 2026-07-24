@@ -1,0 +1,123 @@
+{% load static %}
+
+
+<aside class="sidebar">
+
+
+    <div class="sidebar-logo">
+
+        <img 
+        src="{% static 'images/logo-mini.png' %}"
+        >
+
+    </div>
+
+
+
+    <ul class="sidebar-menu">
+
+
+        <li>
+            <a class="active" href="{% url 'dashboard' %}">
+                🏠 Dashboard
+            </a>
+        </li>
+
+
+
+        {% if role == "ADMIN" or role == "AIRLINE_OPERATOR" %}
+
+
+        <li>
+            <a href="{% url 'flight_list' %}">
+                ✈ Flights
+            </a>
+        </li>
+
+
+        <li>
+            <a href="#">
+                🏢 Airlines
+            </a>
+        </li>
+
+
+        <li>
+            <a href="#">
+                🛫 Airports
+            </a>
+        </li>
+
+
+        {% endif %}
+
+
+
+
+
+        {% if role == "ADMIN" or role == "AIRLINE_OPERATOR" %}
+
+
+        <li>
+            <a href="#">
+                ✈ My Flights
+            </a>
+        </li>
+
+
+        {% endif %}
+
+
+
+
+
+        {% if role == "ADMIN" or role == "GROUND_STAFF" %}
+
+
+        <li>
+            <a href="#">
+                🛠 Operations
+            </a>
+        </li>
+
+
+        {% endif %}
+
+
+
+
+
+        {% if role == "ADMIN" or role == "SECURITY_OFFICER" %}
+
+
+        <li>
+            <a href="#">
+                🔒 Security
+            </a>
+        </li>
+
+
+        {% endif %}
+
+
+
+
+
+        {% if role == "ADMIN" or role == "PASSENGER_SERVICE" %}
+
+
+        <li>
+            <a href="#">
+                🎫 Passenger Service
+            </a>
+        </li>
+
+
+        {% endif %}
+
+
+
+    </ul>
+
+
+</aside>

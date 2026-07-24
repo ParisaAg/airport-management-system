@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+
+{% block content %}
+
+
+<h1>
+Delete Flight
+</h1>
+
+
+<p>
+Are you sure you want to delete
+{{ flight.flight_number }} ?
+</p>
+
+
+
+<form method="post">
+
+{% csrf_token %}
+
+
+<button class="btn-primary">
+Confirm Delete
+</button>
+
+
+</form>
+
+
+{% endblock %}

@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+
+
+{% block title %}
+Notifications
+{% endblock %}
+
+
+
+{% block content %}
+
+
+<h1>
+Notifications
+</h1>
+
+
+{% for notification in notifications %}
+
+
+<div class="notification-card">
+
+
+<h3>
+{{ notification.title }}
+</h3>
+
+
+<p>
+{{ notification.message }}
+</p>
+
+
+<small>
+{{ notification.created_at }}
+</small>
+
+
+
+{% if not notification.is_read %}
+
+<br>
+
+<a href="{% url 'mark_as_read' notification.id %}">
+Mark as read
+</a>
+
+{% endif %}
+
+
+</div>
+
+
+{% empty %}
+
+<p>
+No notifications
+</p>
+
+
+{% endfor %}
+
+
+
+{% endblock %}

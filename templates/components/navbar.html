@@ -1,0 +1,109 @@
+{% load static %}
+<nav class="navbar">
+
+
+    <div class="navbar-brand">
+
+            <img src="{% static 'images/logo-mini.png' %}"class="logo-mini">
+
+    <span>
+        Airport Management System
+    </span>
+
+    </div>
+
+
+
+    <div class="navbar-actions">
+
+
+        <div class="notification-dropdown">
+
+
+            <a href="#" class="notification-btn">
+
+                🔔
+
+
+                {% if unread_notifications_count > 0 %}
+
+                <span class="badge">
+                    {{ unread_notifications_count }}
+                </span>
+
+                {% endif %}
+
+
+            </a>
+
+
+
+            <div class="notification-menu">
+
+
+                {% for notification in latest_notifications %}
+
+
+                <div class="notification-item {{ notification.notification_type|lower }}">
+
+
+                    <strong>
+                        {{ notification.title }}
+                    </strong>
+
+
+                    <p>
+                        {{ notification.message }}
+                    </p>
+
+
+                </div>
+
+
+                {% empty %}
+
+                <p>
+                    No notifications
+                </p>
+
+
+                {% endfor %}
+
+
+
+                <a href="{% url 'notifications' %}">
+                    View All
+                </a>
+
+
+            </div>
+
+
+        </div>
+
+
+
+
+        <div class="user-menu">
+
+
+            👤 {{ request.user.username }}
+
+
+            <a href="{% url 'profile' %}">
+                Profile
+            </a>
+
+
+            <a href="{% url 'logout' %}">
+                Logout
+            </a>
+
+
+        </div>
+
+
+    </div>
+
+
+</nav>

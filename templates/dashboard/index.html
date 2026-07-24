@@ -1,0 +1,293 @@
+{% extends 'base.html' %}
+
+
+{% block title %}
+Dashboard
+{% endblock %}
+
+
+
+{% block content %}
+
+
+
+<h1>
+    Airport Dashboard
+</h1>
+
+
+<p>
+Role:
+{{ role }}
+</p>
+
+
+<hr>
+
+
+
+<!-- Airline Operator Dashboard -->
+
+{% if role == "AIRLINE_OPERATOR" %}
+
+
+<h2>
+    Airline Flights
+</h2>
+
+
+<div class="cards">
+
+
+    {% include 'components/card.html' with title="My Airline Flights" value=airline_stats.total %}
+
+
+    {% include 'components/card.html' with title="Delayed Flights" value=airline_stats.delayed %}
+
+
+    {% include 'components/card.html' with title="Cancelled Flights" value=airline_stats.cancelled %}
+
+
+</div>
+
+
+<hr>
+
+
+{% endif %}
+
+
+
+
+
+
+<!-- Admin Flight Dashboard -->
+
+
+{% if role == "ADMIN" %}
+
+
+<h2>
+    Flights
+</h2>
+
+
+<div class="cards">
+
+
+    {% include 'components/card.html' with title="Total Flights" value=flight_stats.total %}
+
+
+    {% include 'components/card.html' with title="Scheduled Flights" value=flight_stats.scheduled %}
+
+
+    {% include 'components/card.html' with title="Boarding Flights" value=flight_stats.boarding %}
+
+
+    {% include 'components/card.html' with title="Delayed Flights" value=flight_stats.delayed %}
+
+
+    {% include 'components/card.html' with title="Cancelled Flights" value=flight_stats.cancelled %}
+
+
+</div>
+
+
+<hr>
+
+
+{% endif %}
+
+
+
+
+
+
+<!-- Ground Operations -->
+
+
+{% if role == "ADMIN" or role == "GROUND_STAFF" %}
+
+
+<h2>
+    Ground Operations
+</h2>
+
+
+<div class="cards">
+
+
+    {% include 'components/card.html' with title="Total Operations" value=operation_stats.total %}
+
+
+    {% include 'components/card.html' with title="Completed Operations" value=operation_stats.completed %}
+
+
+    {% include 'components/card.html' with title="In Progress" value=operation_stats.in_progress %}
+
+
+</div>
+
+
+<hr>
+
+
+{% endif %}
+
+
+
+
+
+
+
+<!-- Security -->
+
+
+{% if role == "ADMIN" or role == "SECURITY_OFFICER" %}
+
+
+<h2>
+    Security Reports
+</h2>
+
+
+<div class="cards">
+
+
+    {% include 'components/card.html' with title="Total Reports" value=security_stats.total %}
+
+
+    {% include 'components/card.html' with title="Critical Alerts" value=security_stats.critical %}
+
+
+    {% include 'components/card.html' with title="Open Reports" value=security_stats.open %}
+
+
+</div>
+
+
+<hr>
+
+
+{% endif %}
+
+
+
+
+
+
+
+<!-- Passenger Service -->
+
+
+{% if role == "ADMIN" or role == "PASSENGER_SERVICE" %}
+
+
+<h2>
+    Passenger Service
+</h2>
+
+
+<div class="cards">
+
+
+    {% include 'components/card.html' with title="Total Requests" value=passenger_stats.total %}
+
+
+    {% include 'components/card.html' with title="Urgent Requests" value=passenger_stats.urgent %}
+
+
+    {% include 'components/card.html' with title="Open Requests" value=passenger_stats.open %}
+
+
+</div>
+
+
+<hr>
+
+
+{% endif %}
+
+
+
+
+
+
+
+<!-- Charts Only Admin -->
+
+
+{% if role == "ADMIN" %}
+
+
+<div class="charts">
+
+
+    <div class="chart-box">
+
+
+        <h2>
+            Flight Status
+        </h2>
+
+
+        <canvas id="flightChart"></canvas>
+
+
+    </div>
+
+
+
+
+    <div class="chart-box">
+
+
+        <h2>
+            Operations Status
+        </h2>
+
+
+        <canvas id="operationChart"></canvas>
+
+
+    </div>
+
+
+</div>
+
+
+
+<script>
+
+
+const flightData = {
+
+    scheduled: {{ flight_stats.scheduled }},
+
+    boarding: {{ flight_stats.boarding }},
+
+    delayed: {{ flight_stats.delayed }},
+
+    cancelled: {{ flight_stats.cancelled }}
+
+};
+
+
+
+const operationData = {
+
+    completed: {{ operation_stats.completed }},
+
+    in_progress: {{ operation_stats.in_progress }}
+
+};
+
+
+</script>
+
+
+{% endif %}
+
+
+
+{% endblock %}

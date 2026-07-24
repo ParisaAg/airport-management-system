@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+
+
+{% block title %}
+Profile
+{% endblock %}
+
+
+
+{% block content %}
+
+
+<h1>
+User Profile
+</h1>
+
+
+<p>
+Username:
+{{ user.username }}
+</p>
+
+
+<p>
+Role:
+{{ user.get_role_display }}
+</p>
+
+
+
+<p>
+Email:
+{{ user.email }}
+</p>
+
+
+
+{% if user.airline %}
+
+<p>
+Airline:
+{{ user.airline.name }}
+</p>
+
+{% endif %}
+
+
+
+{% endblock %}
