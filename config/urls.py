@@ -24,4 +24,5 @@ urlpatterns = [
     path("accounts/",include("accounts.urls")),
     path("flights/",include("flights.urls")),
     path("airlines/",include("airlines.urls")),
+    path("fleet/",include("fleet.urls")),
 ]

@@ -8,6 +8,7 @@ class AircraftType(models.Model):
     model = models.CharField(max_length=100,verbose_name="Aircraft Model")
     passenger_capacity = models.PositiveIntegerField(verbose_name="Passenger Capacity")
     range_km = models.PositiveIntegerField(verbose_name="Range (KM)")
+    is_active = models.BooleanField(default=True,verbose_name="Active")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

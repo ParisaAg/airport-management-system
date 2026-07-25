@@ -1,0 +1,173 @@
+{% extends 'base.html' %}
+
+
+
+{% block title %}
+Aircraft Types
+{% endblock %}
+
+
+
+
+{% block content %}
+
+
+
+<h1>
+    Aircraft Types
+</h1>
+
+
+
+{% if role == "ADMIN" %}
+
+<a href="{% url 'aircraft_type_create' %}" class="btn-primary">
+
+    + Add Aircraft Type
+
+</a>
+
+{% endif %}
+
+
+
+
+
+
+<table class="data-table">
+
+
+
+<thead>
+
+
+<tr>
+
+
+<th>
+Manufacturer
+</th>
+
+
+<th>
+Model
+</th>
+
+
+<th>
+Passenger Capacity
+</th>
+
+
+<th>
+Range KM
+</th>
+
+
+<th>
+Actions
+</th>
+
+
+</tr>
+
+
+</thead>
+
+
+
+
+
+
+<tbody>
+
+
+
+{% for aircraft in aircraft_types %}
+
+
+
+<tr>
+
+
+
+<td>
+{{ aircraft.manufacturer }}
+</td>
+
+
+
+<td>
+{{ aircraft.model }}
+</td>
+
+
+
+<td>
+{{ aircraft.passenger_capacity }}
+</td>
+
+
+
+<td>
+{{ aircraft.range_km }}
+</td>
+
+
+
+
+<td>
+
+
+{% if role == "ADMIN" %}
+
+
+<a href="{% url 'aircraft_type_edit' aircraft.id %}">
+Edit
+</a>
+
+
+{% endif %}
+
+
+
+</td>
+
+
+
+
+</tr>
+
+
+
+
+{% empty %}
+
+
+<tr>
+
+<td colspan="5">
+
+No aircraft types found
+
+</td>
+
+</tr>
+
+
+
+{% endfor %}
+
+
+
+
+</tbody>
+
+
+
+</table>
+
+
+
+
+{% endblock %}
