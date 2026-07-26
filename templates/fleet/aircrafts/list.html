@@ -1,0 +1,249 @@
+{% extends 'base.html' %}
+
+
+
+{% block title %}
+Aircrafts
+{% endblock %}
+
+
+
+
+{% block content %}
+
+
+
+<h1>
+    Aircraft Management
+</h1>
+
+
+
+
+{% if role == "ADMIN" %}
+
+<a href="{% url 'aircraft_create' %}" class="btn-primary">
+
+    + Add Aircraft
+
+</a>
+
+{% endif %}
+
+
+
+
+
+<table class="data-table">
+
+
+
+<thead>
+
+
+<tr>
+
+
+<th>
+Registration Number
+</th>
+
+
+
+<th>
+Airline
+</th>
+
+
+
+<th>
+Aircraft Type
+</th>
+
+
+
+<th>
+Serial Number
+</th>
+
+
+
+<th>
+Manufacture Year
+</th>
+
+
+
+<th>
+Status
+</th>
+
+
+
+<th>
+Actions
+</th>
+
+
+
+</tr>
+
+
+</thead>
+
+
+
+
+
+
+
+<tbody>
+
+
+
+{% for aircraft in aircrafts %}
+
+
+
+<tr>
+
+
+
+
+<td>
+{{ aircraft.registration_number }}
+</td>
+
+
+
+
+
+<td>
+{{ aircraft.airline.name }}
+</td>
+
+
+
+
+
+<td>
+{{ aircraft.aircraft_type }}
+</td>
+
+
+
+
+
+<td>
+{{ aircraft.serial_number|default:"-" }}
+</td>
+
+
+
+
+
+<td>
+{{ aircraft.manufacture_year|default:"-" }}
+</td>
+
+
+
+
+
+<td>
+
+
+<span class="status {{ aircraft.status|lower }}">
+
+
+{{ aircraft.get_status_display }}
+
+
+</span>
+
+
+</td>
+
+
+
+
+
+
+<td>
+
+{% if role == "ADMIN" %}
+
+
+<a href="{% url 'aircraft_edit' aircraft.id %}">
+Edit
+</a>
+
+
+|
+
+
+<a href="{% url 'aircraft_change_status' aircraft.id %}">
+
+Change Status
+
+</a>
+
+
+{% endif %}
+
+
+</td>
+
+
+
+
+
+</tr>
+
+
+
+
+
+
+{% empty %}
+
+
+
+<tr>
+
+
+<td colspan="7">
+
+
+No aircraft found
+
+
+</td>
+
+
+</tr>
+
+
+
+
+{% endfor %}
+
+
+
+
+
+
+</tbody>
+
+
+
+
+
+</table>
+
+
+
+
+
+
+{% endblock %}
