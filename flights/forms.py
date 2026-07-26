@@ -1,5 +1,7 @@
 from django import forms
 from .models import Flight
+from fleet.models import Aircraft
+
 
 
 class FlightForm(forms.ModelForm):
@@ -20,7 +22,6 @@ class FlightForm(forms.ModelForm):
         ]
 
 
-
         widgets = {
 
             'departure_time': forms.DateTimeInput(
@@ -38,17 +39,30 @@ class FlightForm(forms.ModelForm):
 
         }
 
+
+
     def __init__(self, *args, user=None, **kwargs):
 
         super().__init__(*args, **kwargs)
 
 
+
         if user and user.role == "AIRLINE_OPERATOR":
+
 
             self.fields['airline'].queryset = (
                 self.fields['airline']
                 .queryset
                 .filter(
                     id=user.airline.id
+                )
+            )
+
+
+
+            self.fields['aircraft'].queryset = (
+                Aircraft.objects
+                .filter(
+                    airline=user.airline
                 )
             )
