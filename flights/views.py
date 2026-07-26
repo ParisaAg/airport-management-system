@@ -36,14 +36,7 @@ def flight_list(request):
 
 
 
-    return render(
-        request,
-        "flights/list.html",
-        {
-            "flights": flights,
-            "statuses": Flight.STATUS_CHOICES
-        }
-    )
+    return render(request,"flights/list.html",{"flights": flights,"statuses": Flight.STATUS_CHOICES})
 
 
 @login_required
@@ -55,9 +48,7 @@ def flight_create(request):
         "AIRLINE_OPERATOR"
     ]:
 
-        return redirect(
-            "flight_list"
-        )
+        return redirect("flight_list")
 
 
 
@@ -77,12 +68,8 @@ def flight_create(request):
 
 
             if request.user.role == "AIRLINE_OPERATOR":
-
                 flight.airline = request.user.airline
-
-
             flight.save()
-
 
             return redirect(
                 "flight_list"
@@ -95,14 +82,7 @@ def flight_create(request):
             user=request.user
         )
 
-
-    return render(
-        request,
-        "flights/create.html",
-        {
-            "form":form
-        }
-    )
+    return render(request,"flights/create.html",{"form":form})
 
 
 @login_required
@@ -130,56 +110,60 @@ def flight_edit(request, id):
         "ADMIN",
         "AIRLINE_OPERATOR"
     ]:
-
         return redirect(
             "flight_list"
         )
 
-
-
     if request.method == "POST":
-
-
-        form = FlightForm(
-            request.POST,
-            instance=flight,
-            user=request.user
-        )
-
+        form = FlightForm(request.POST,instance=flight,user=request.user)
 
         if form.is_valid():
-
-
             form.save()
-
-
             return redirect(
                 "flight_list"
             )
 
-
     else:
-
-
-        form = FlightForm(
-            instance=flight,
-            user=request.user
-        )
+        form = FlightForm(instance=flight,user=request.user)
 
 
 
-    return render(
-        request,
-        "flights/create.html",
-        {
-            "form":form,
-            "edit":True
-        }
-    )
+    return render(request,"flights/create.html",{"form":form,"edit":True})
 
 
 @login_required
 def flight_delete(request, id):
+
+    flight = get_object_or_404(
+        Flight,
+        id=id
+    )
+
+    if request.user.role != "ADMIN":
+
+        return redirect("flight_list")
+
+    if request.method == "POST":
+        flight.delete()
+
+        return redirect("flight_list")
+
+
+
+    return render(request,"flights/delete.html",{"flight":flight})
+
+@login_required
+def flight_detail(request, id):
+    flight = get_object_or_404(
+        Flight,
+        id=id
+    )
+    return render(request,"flights/detail.html",{"flight": flight})
+
+
+
+@login_required
+def flight_change_status(request, id):
 
 
     flight = get_object_or_404(
@@ -188,30 +172,36 @@ def flight_delete(request, id):
     )
 
 
-
     if request.user.role != "ADMIN":
 
         return redirect(
-            "flight_list"
+            "flight_detail",
+            id=id
         )
-
 
 
     if request.method == "POST":
 
-        flight.delete()
-
-
-        return redirect(
-            "flight_list"
+        new_status = request.POST.get(
+            "status"
         )
+
+
+        if new_status in dict(
+            Flight.STATUS_CHOICES
+        ):
+
+            flight.status = new_status
+
+            flight.save()
 
 
 
     return render(
         request,
-        "flights/delete.html",
+        "flights/detail.html",
         {
-            "flight":flight
+            "flight": flight,
+            "statuses": Flight.STATUS_CHOICES
         }
     )

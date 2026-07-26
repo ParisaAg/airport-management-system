@@ -1,0 +1,347 @@
+{% extends 'base.html' %}
+
+
+
+{% block title %}
+Flight Details
+{% endblock %}
+
+
+
+
+{% block content %}
+
+
+
+<h1>
+    Flight Details
+</h1>
+
+
+
+
+
+<div class="card">
+
+
+    <h2>
+        {{ flight.flight_number }}
+    </h2>
+
+
+
+    <p>
+        <strong>
+            Airline:
+        </strong>
+
+        {{ flight.airline.name }}
+
+    </p>
+
+
+
+
+    <p>
+        <strong>
+            Aircraft:
+        </strong>
+
+        {{ flight.aircraft }}
+
+    </p>
+
+
+
+
+    <p>
+        <strong>
+            Route:
+        </strong>
+
+        {{ flight.origin.iata_code }}
+
+        →
+
+        {{ flight.destination.iata_code }}
+
+    </p>
+
+
+
+
+    <p>
+        <strong>
+            Departure:
+        </strong>
+
+        {{ flight.departure_time }}
+
+    </p>
+
+
+
+
+    <p>
+        <strong>
+            Arrival:
+        </strong>
+
+        {{ flight.arrival_time }}
+
+    </p>
+
+
+
+
+    <p>
+        <strong>
+            Status:
+        </strong>
+
+
+        <span class="status {{ flight.status|lower }}">
+
+            {{ flight.get_status_display }}
+
+        </span>
+
+
+    </p>
+
+
+
+
+
+{% if role == "ADMIN" %}
+
+
+
+<hr>
+
+
+
+<h3>
+Change Flight Status
+</h3>
+
+
+
+
+<form method="post" 
+action="{% url 'flight_change_status' flight.id %}">
+
+
+{% csrf_token %}
+
+
+
+<select name="status">
+
+
+
+{% for key,value in statuses %}
+
+
+
+<option 
+value="{{ key }}"
+{% if flight.status == key %}
+selected
+{% endif %}
+>
+
+{{ value }}
+
+</option>
+
+
+
+{% endfor %}
+
+
+
+</select>
+
+
+
+
+<button class="btn-primary">
+
+Change Status
+
+</button>
+
+
+
+
+</form>
+
+
+
+
+{% endif %}
+
+
+
+</div>
+
+
+
+
+
+
+<hr>
+
+
+
+
+
+<h2>
+    Gate Assignments
+</h2>
+
+
+
+
+
+
+<table class="data-table">
+
+
+
+<thead>
+
+
+<tr>
+
+
+<th>
+Gate
+</th>
+
+
+<th>
+Status
+</th>
+
+
+<th>
+Assigned Time
+</th>
+
+
+<th>
+Released Time
+</th>
+
+
+
+</tr>
+
+
+</thead>
+
+
+
+
+
+
+<tbody>
+
+
+
+{% for assignment in flight.gate_assignments.all %}
+
+
+
+<tr>
+
+
+
+<td>
+{{ assignment.gate.code }}
+</td>
+
+
+
+<td>
+{{ assignment.get_status_display }}
+</td>
+
+
+
+<td>
+{{ assignment.assigned_time }}
+</td>
+
+
+
+<td>
+{{ assignment.released_time|default:"-" }}
+</td>
+
+
+
+</tr>
+
+
+
+
+{% empty %}
+
+
+
+
+<tr>
+
+
+<td colspan="4">
+
+No Gate Assignment
+
+</td>
+
+
+</tr>
+
+
+
+
+
+{% endfor %}
+
+
+
+
+</tbody>
+
+
+
+
+</table>
+
+
+
+
+
+
+
+<br>
+
+
+
+
+
+<a href="{% url 'flight_list' %}" class="btn-primary">
+
+Back to Flights
+
+</a>
+
+
+
+
+
+
+{% endblock %}

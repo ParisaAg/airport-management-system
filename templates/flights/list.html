@@ -10,16 +10,20 @@ Flights
 {% block content %}
 
 
+
 <h1>
     Flight Management
 </h1>
 
 
 
+
 {% if role == "ADMIN" or role == "AIRLINE_OPERATOR" %}
 
 <a href="{% url 'flight_create' %}" class="btn-primary">
+
     + Add Flight
+
 </a>
 
 {% endif %}
@@ -53,6 +57,7 @@ All Status
 
 {% for key,value in statuses %}
 
+
 <option 
 value="{{ key }}"
 {% if request.GET.status == key %}
@@ -68,12 +73,16 @@ selected
 {% endfor %}
 
 
+
 </select>
 
 
 
+
 <button type="submit">
+
 Search
+
 </button>
 
 
@@ -87,10 +96,13 @@ Search
 
 
 
+
+
 <table class="data-table">
 
 
 <thead>
+
 
 <tr>
 
@@ -100,9 +112,11 @@ Flight Number
 </th>
 
 
+
 <th>
 Airline
 </th>
+
 
 
 <th>
@@ -110,9 +124,11 @@ Route
 </th>
 
 
+
 <th>
 Departure
 </th>
+
 
 
 <th>
@@ -120,9 +136,11 @@ Arrival
 </th>
 
 
+
 <th>
 Status
 </th>
+
 
 
 <th>
@@ -132,13 +150,16 @@ Actions
 
 </tr>
 
+
 </thead>
 
 
 
 
 
+
 <tbody>
+
 
 
 {% for flight in flights %}
@@ -148,15 +169,18 @@ Actions
 <tr>
 
 
+
 <td>
 {{ flight.flight_number }}
 </td>
 
 
 
+
 <td>
 {{ flight.airline.name }}
 </td>
+
 
 
 
@@ -172,15 +196,18 @@ Actions
 
 
 
+
 <td>
 {{ flight.departure_time }}
 </td>
 
 
 
+
 <td>
 {{ flight.arrival_time }}
 </td>
+
 
 
 
@@ -204,9 +231,17 @@ Actions
 <td>
 
 
+<a href="{% url 'flight_detail' flight.id %}">
+View
+</a>
+
+
+
 
 {% if role == "ADMIN" or role == "AIRLINE_OPERATOR" %}
 
+
+|
 
 <a href="{% url 'flight_edit' flight.id %}">
 Edit
@@ -233,12 +268,16 @@ Delete
 
 
 
+
 </td>
 
 
 
 
+
 </tr>
+
+
 
 
 
@@ -248,11 +287,13 @@ Delete
 
 <tr>
 
+
 <td colspan="7">
 
 No flights found
 
 </td>
+
 
 </tr>
 
@@ -262,10 +303,13 @@ No flights found
 
 
 
+
 </tbody>
 
 
+
 </table>
+
 
 
 
