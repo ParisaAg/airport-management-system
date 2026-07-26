@@ -1,0 +1,58 @@
+{% extends 'base.html' %} {% block title %} Operation Types {% endblock %} 
+{%block content %}
+
+<h1>Operation Types</h1>
+
+{% if role == "ADMIN" %}
+
+<a href="{% url 'operation_type_create' %}" class="btn-primary">
+  + Add Operation Type
+</a>
+
+{% endif %}
+
+<table class="data-table">
+  <thead>
+    <tr>
+      <th>Name</th>
+
+      <th>Description</th>
+
+      <th>Status</th>
+
+      <th>Actions</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    {% for operation in operation_types %}
+
+    <tr>
+      <td>{{ operation.name }}</td>
+
+      <td>{{ operation.description|default:"-" }}</td>
+
+      <td>
+        {% if operation.is_active %} Active {% else %} Inactive {% endif %}
+      </td>
+
+      <td>
+        {% if role == "ADMIN" %}
+
+        <a href="{% url 'operation_type_edit' operation.id %}"> Edit </a>
+
+        {% endif %}
+      </td>
+    </tr>
+
+    {% empty %}
+
+    <tr>
+      <td colspan="4">No operation types found</td>
+    </tr>
+
+    {% endfor %}
+  </tbody>
+</table>
+
+{% endblock %}
