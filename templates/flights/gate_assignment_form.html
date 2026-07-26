@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+
+
+
+{% block title %}
+Assign Gate
+{% endblock %}
+
+
+
+
+{% block content %}
+
+
+
+<h1>
+Assign Gate
+</h1>
+
+
+
+<h3>
+Flight:
+{{ flight.flight_number }}
+</h3>
+
+
+
+
+<form method="post">
+
+{% csrf_token %}
+
+
+{{ form.as_p }}
+
+
+
+<button class="btn-primary">
+
+Assign
+
+</button>
+
+
+
+<a href="{% url 'flight_detail' flight.id %}">
+
+Cancel
+
+</a>
+
+
+
+</form>
+
+
+
+
+{% endblock %}

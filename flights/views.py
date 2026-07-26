@@ -5,7 +5,8 @@ from django.shortcuts import redirect
 from .forms import FlightForm
 from django.contrib import messages
 from django.shortcuts import get_object_or_404
-
+from .forms import FlightForm, GateAssignmentForm
+from .models import Flight, GateAssignment
 
 @login_required
 def flight_list(request):
@@ -197,11 +198,71 @@ def flight_change_status(request, id):
 
 
 
-    return render(
-        request,
-        "flights/detail.html",
-        {
-            "flight": flight,
-            "statuses": Flight.STATUS_CHOICES
-        }
+    return render(request,"flights/detail.html",{"flight": flight,"statuses": Flight.STATUS_CHOICES})
+
+
+@login_required
+def gate_assignment_create(request, id):
+    if request.user.role != "ADMIN":
+
+        return redirect(
+            "flight_detail",
+            id=id
+        )
+
+    flight = get_object_or_404(Flight,id=id)
+
+    if request.method == "POST":
+        form = GateAssignmentForm(request.POST)
+        if form.is_valid():
+            assignment = form.save(
+                commit=False
+            )
+            assignment.flight = flight
+            assignment.save()
+
+            return redirect(
+                "flight_detail",
+                id=id
+            )
+
+    else:
+        form = GateAssignmentForm()
+    return render(request,"flights/gate_assignment_form.html",{"form": form,"flight": flight})
+
+
+
+@login_required
+def gate_assignment_release(request, id):
+
+
+    if request.user.role != "ADMIN":
+
+        return redirect(
+            "flight_list"
+        )
+
+
+    assignment = get_object_or_404(
+        GateAssignment,
+        id=id
+    )
+
+
+    if request.method == "POST":
+
+        from django.utils import timezone
+
+
+        assignment.status = "RELEASED"
+
+        assignment.released_time = timezone.now()
+
+        assignment.save()
+
+
+
+    return redirect(
+        "flight_detail",
+        id=assignment.flight.id
     )
