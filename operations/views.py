@@ -135,3 +135,44 @@ def ground_operation_change_status(request, id):
                 operation.end_time = timezone.now()
             operation.save()
     return redirect("ground_operation_list")
+
+
+
+
+@login_required
+def ground_operation_create_for_flight(request, flight_id):
+    if request.user.role not in [
+        "ADMIN",
+        "GROUND_STAFF"
+    ]:
+
+        return redirect(
+            "flight_detail",
+            id=flight_id
+        )
+
+    flight = get_object_or_404(
+        Flight,
+        id=flight_id
+    )
+
+    if request.method == "POST":
+        form = GroundOperationForm(
+            request.POST
+        )
+
+        if form.is_valid():
+
+            operation = form.save(
+                commit=False
+            )
+            operation.flight = flight
+            operation.save()
+
+            return redirect(
+                "flight_detail",
+                id=flight.id
+            )
+    else:
+        form = GroundOperationForm()
+    return render(request,"operations/ground_operations/form.html",{"form": form,"title": "Create Ground Operation","flight": flight})

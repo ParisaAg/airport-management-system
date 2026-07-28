@@ -148,7 +148,17 @@
 <a href="{% url 'flight_list' %}" class="btn-primary"> Back to Flights </a>
 <hr>
 
+{% if role == "ADMIN" or role == "GROUND_STAFF" %}
 
+
+<a href="{% url 'ground_operation_create_for_flight' flight.id %}" class="btn-primary">
+
++ Add Ground Operation
+
+</a>
+
+
+{% endif %}
 <h2>
     Ground Operations
 </h2>
