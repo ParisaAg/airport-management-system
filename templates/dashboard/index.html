@@ -1,5 +1,7 @@
 {% extends 'base.html' %}
 
+{% load static %}
+
 
 {% block title %}
 Dashboard
@@ -11,89 +13,174 @@ Dashboard
 
 
 
-<h1>
-    Airport Dashboard
-</h1>
+<!-- ================= HEADER ================= -->
 
 
-<p>
-Role:
-{{ role }}
-</p>
+<div class="dashboard-header">
 
 
-<hr>
+    <div class="welcome-section">
+
+
+        <h1>
+            Airport Operations Center
+        </h1>
+
+
+        <p>
+            Welcome back,
+            <strong>
+                {{ request.user.username }}
+            </strong>
+        </p>
+
+
+    </div>
 
 
 
-<!-- Airline Operator Dashboard -->
 
-{% if role == "AIRLINE_OPERATOR" %}
+    <div class="system-status">
 
+        <span></span>
 
-<h2>
-    Airline Flights
-</h2>
+        System Online
 
+    </div>
 
-<div class="cards">
-
-
-    {% include 'components/card.html' with title="My Airline Flights" value=airline_stats.total %}
-
-
-    {% include 'components/card.html' with title="Delayed Flights" value=airline_stats.delayed %}
-
-
-    {% include 'components/card.html' with title="Cancelled Flights" value=airline_stats.cancelled %}
 
 
 </div>
 
 
-<hr>
-
-
-{% endif %}
 
 
 
-
-
-
-<!-- Admin Flight Dashboard -->
+<!-- ================= ADMIN OVERVIEW ================= -->
 
 
 {% if role == "ADMIN" %}
 
 
-<h2>
-    Flights
-</h2>
+
+<div class="system-overview">
 
 
-<div class="cards">
+    <div class="overview-card">
+
+        <div class="overview-icon">
+            ✈
+        </div>
+
+        <div>
+
+            <span>
+                Total Flights
+            </span>
+
+            <strong>
+                {{ flight_stats.total }}
+            </strong>
+
+        </div>
 
 
-    {% include 'components/card.html' with title="Total Flights" value=flight_stats.total %}
+    </div>
 
 
-    {% include 'components/card.html' with title="Scheduled Flights" value=flight_stats.scheduled %}
 
 
-    {% include 'components/card.html' with title="Boarding Flights" value=flight_stats.boarding %}
+
+    <div class="overview-card">
 
 
-    {% include 'components/card.html' with title="Delayed Flights" value=flight_stats.delayed %}
+        <div class="overview-icon">
+            🛠
+        </div>
 
 
-    {% include 'components/card.html' with title="Cancelled Flights" value=flight_stats.cancelled %}
+        <div>
+
+            <span>
+                Operations
+            </span>
+
+
+            <strong>
+                {{ operation_stats.total }}
+            </strong>
+
+        </div>
+
+
+    </div>
+
+
+
+
+
+
+
+    <div class="overview-card">
+
+
+        <div class="overview-icon">
+            🔒
+        </div>
+
+
+        <div>
+
+            <span>
+                Security Alerts
+            </span>
+
+
+            <strong>
+                {{ security_stats.critical }}
+            </strong>
+
+
+        </div>
+
+
+    </div>
+
+
+
+
+
+
+
+    <div class="overview-card">
+
+
+        <div class="overview-icon">
+            🎫
+        </div>
+
+
+        <div>
+
+            <span>
+                Passenger Requests
+            </span>
+
+
+            <strong>
+                {{ passenger_stats.total }}
+            </strong>
+
+
+        </div>
+
+
+    </div>
+
 
 
 </div>
 
-
-<hr>
 
 
 {% endif %}
@@ -103,33 +190,132 @@ Role:
 
 
 
-<!-- Ground Operations -->
+
+
+
+<!-- ================= AIRLINE OPERATOR ================= -->
+
+
+{% if role == "AIRLINE_OPERATOR" %}
+
+
+
+<div class="section-title">
+
+    My Airline Overview
+
+</div>
+
+
+
+
+<div class="cards">
+
+
+{% include 'components/card.html' with title="My Airline Flights" value=airline_stats.total %}
+
+
+{% include 'components/card.html' with title="Delayed Flights" value=airline_stats.delayed %}
+
+
+{% include 'components/card.html' with title="Cancelled Flights" value=airline_stats.cancelled %}
+
+
+
+</div>
+
+
+
+{% endif %}
+
+
+
+
+
+
+
+
+
+<!-- ================= ADMIN FLIGHTS ================= -->
+
+
+{% if role == "ADMIN" %}
+
+
+
+<div class="section-title">
+
+    Flight Intelligence
+
+</div>
+
+
+
+
+<div class="cards">
+
+
+{% include 'components/card.html' with title="Total Flights" value=flight_stats.total %}
+
+
+{% include 'components/card.html' with title="Scheduled Flights" value=flight_stats.scheduled %}
+
+
+{% include 'components/card.html' with title="Boarding" value=flight_stats.boarding %}
+
+
+{% include 'components/card.html' with title="Delayed" value=flight_stats.delayed %}
+
+
+{% include 'components/card.html' with title="Cancelled" value=flight_stats.cancelled %}
+
+
+
+</div>
+
+
+
+{% endif %}
+
+
+
+
+
+
+
+
+
+<!-- ================= OPERATIONS ================= -->
 
 
 {% if role == "ADMIN" or role == "GROUND_STAFF" %}
 
 
-<h2>
+
+<div class="section-title">
+
     Ground Operations
-</h2>
+
+</div>
+
+
 
 
 <div class="cards">
 
 
-    {% include 'components/card.html' with title="Total Operations" value=operation_stats.total %}
+{% include 'components/card.html' with title="Total Operations" value=operation_stats.total %}
 
 
-    {% include 'components/card.html' with title="Completed Operations" value=operation_stats.completed %}
+{% include 'components/card.html' with title="Completed" value=operation_stats.completed %}
 
 
-    {% include 'components/card.html' with title="In Progress" value=operation_stats.in_progress %}
+{% include 'components/card.html' with title="In Progress" value=operation_stats.in_progress %}
+
 
 
 </div>
 
-
-<hr>
 
 
 {% endif %}
@@ -140,33 +326,38 @@ Role:
 
 
 
-<!-- Security -->
+
+
+<!-- ================= SECURITY ================= -->
 
 
 {% if role == "ADMIN" or role == "SECURITY_OFFICER" %}
 
 
-<h2>
-    Security Reports
-</h2>
+
+<div class="section-title">
+
+    Security Intelligence
+
+</div>
+
 
 
 <div class="cards">
 
 
-    {% include 'components/card.html' with title="Total Reports" value=security_stats.total %}
+{% include 'components/card.html' with title="Total Reports" value=security_stats.total %}
 
 
-    {% include 'components/card.html' with title="Critical Alerts" value=security_stats.critical %}
+{% include 'components/card.html' with title="Critical Alerts" value=security_stats.critical %}
 
 
-    {% include 'components/card.html' with title="Open Reports" value=security_stats.open %}
+{% include 'components/card.html' with title="Open Reports" value=security_stats.open %}
+
 
 
 </div>
 
-
-<hr>
 
 
 {% endif %}
@@ -177,33 +368,39 @@ Role:
 
 
 
-<!-- Passenger Service -->
+
+
+<!-- ================= PASSENGER SERVICE ================= -->
 
 
 {% if role == "ADMIN" or role == "PASSENGER_SERVICE" %}
 
 
-<h2>
-    Passenger Service
-</h2>
+
+<div class="section-title">
+
+    Passenger Services
+
+</div>
+
+
 
 
 <div class="cards">
 
 
-    {% include 'components/card.html' with title="Total Requests" value=passenger_stats.total %}
+{% include 'components/card.html' with title="Total Requests" value=passenger_stats.total %}
 
 
-    {% include 'components/card.html' with title="Urgent Requests" value=passenger_stats.urgent %}
+{% include 'components/card.html' with title="Urgent Requests" value=passenger_stats.urgent %}
 
 
-    {% include 'components/card.html' with title="Open Requests" value=passenger_stats.open %}
+{% include 'components/card.html' with title="Open Requests" value=passenger_stats.open %}
+
 
 
 </div>
 
-
-<hr>
 
 
 {% endif %}
@@ -214,46 +411,262 @@ Role:
 
 
 
-<!-- Charts Only Admin -->
+
+
+<!-- ================= ACTIVITY ================= -->
+
+
+<div class="dashboard-bottom">
+
+
+
+<div class="activity-panel">
+
+
+<h2>
+Recent Activity
+</h2>
+
+
+
+{% for item in recent_notifications %}
+
+
+<div class="timeline-item">
+
+
+<span class="timeline-dot success"></span>
+
+
+<div>
+
+
+<strong>
+{{ item.title }}
+</strong>
+
+
+<p>
+{{ item.message }}
+</p>
+
+
+</div>
+
+
+</div>
+
+
+{% endfor %}
+
+
+
+
+
+
+{% for flight in recent_flights %}
+
+
+<div class="timeline-item">
+
+
+<span class="timeline-dot warning"></span>
+
+
+<div>
+
+
+<strong>
+Flight {{ flight.flight_number }}
+</strong>
+
+
+<p>
+
+{{ flight.origin }}
+
+→
+
+{{ flight.destination }}
+
+<br>
+
+{{ flight.get_status_display }}
+
+</p>
+
+
+</div>
+
+
+</div>
+
+
+{% endfor %}
+
+
+
+
+
+
+{% for operation in recent_operations %}
+
+
+<div class="timeline-item">
+
+
+<span class="timeline-dot danger"></span>
+
+
+<div>
+
+
+<strong>
+{{ operation.operation_type.name }}
+</strong>
+
+
+<p>
+
+Flight:
+
+{{ operation.flight.flight_number }}
+
+<br>
+
+{{ operation.get_status_display }}
+
+</p>
+
+
+</div>
+
+
+</div>
+
+
+{% endfor %}
+
+
+
+</div>
+
+
+
+
+
+
+
+<div class="quick-panel">
+
+
+<h2>
+Quick Actions
+</h2>
+
+
+
+{% if role == "ADMIN" or role == "AIRLINE_OPERATOR" %}
+
+
+<a href="{% url 'flight_create' %}">
++ Create Flight
+</a>
+
+
+{% endif %}
+
+
+
+
+
+{% if role == "ADMIN" or role == "GROUND_STAFF" %}
+
+
+<a href="{% url 'ground_operation_create' %}">
++ New Operation
+</a>
+
+
+{% endif %}
+
+
+
+
+
+<a href="{% url 'profile' %}">
+View Profile
+</a>
+
+
+
+</div>
+
+
+
+</div>
+
+
+
+
+
+
+
+
+<br>
+<!-- ================= CHARTS ================= -->
 
 
 {% if role == "ADMIN" %}
 
 
-<div class="charts">
 
-
-    <div class="chart-box">
-
-
-        <h2>
-            Flight Status
-        </h2>
-
-
-        <canvas id="flightChart"></canvas>
-
-
-    </div>
+<div class="dashboard-grid">
 
 
 
-
-    <div class="chart-box">
-
-
-        <h2>
-            Operations Status
-        </h2>
+<div class="chart-box">
 
 
-        <canvas id="operationChart"></canvas>
+<h2>
+Flight Status Analytics
+</h2>
 
 
-    </div>
+<canvas id="flightChart"></canvas>
 
 
 </div>
+
+
+
+
+
+<div class="chart-box">
+
+
+<h2>
+Operations Analytics
+</h2>
+
+
+<canvas id="operationChart"></canvas>
+
+
+</div>
+
+
+
+
+</div>
+
+
+
+{% endif %}
+
+
+
+
 
 
 
@@ -262,13 +675,10 @@ Role:
 
 const flightData = {
 
-    scheduled: {{ flight_stats.scheduled }},
-
-    boarding: {{ flight_stats.boarding }},
-
-    delayed: {{ flight_stats.delayed }},
-
-    cancelled: {{ flight_stats.cancelled }}
+    scheduled: {{ flight_stats.scheduled|default:0 }},
+    boarding: {{ flight_stats.boarding|default:0 }},
+    delayed: {{ flight_stats.delayed|default:0 }},
+    cancelled: {{ flight_stats.cancelled|default:0 }}
 
 };
 
@@ -276,9 +686,8 @@ const flightData = {
 
 const operationData = {
 
-    completed: {{ operation_stats.completed }},
-
-    in_progress: {{ operation_stats.in_progress }}
+    completed: {{ operation_stats.completed|default:0 }},
+    in_progress: {{ operation_stats.in_progress|default:0 }}
 
 };
 
@@ -286,7 +695,8 @@ const operationData = {
 </script>
 
 
-{% endif %}
+
+<script src="{% static 'js/dashboard.js' %}"></script>
 
 
 
