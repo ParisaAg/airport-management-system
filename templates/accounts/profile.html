@@ -1,5 +1,7 @@
 {% extends 'base.html' %}
 
+{% load static %}
+
 
 {% block title %}
 Profile
@@ -7,42 +9,128 @@ Profile
 
 
 
+{% block extra_css %}
+
+<link rel="stylesheet" href="{% static 'css/profile.css' %}">
+
+{% endblock %}
+
+
+
+
+
 {% block content %}
 
 
-<h1>
-User Profile
-</h1>
 
-
-<p>
-Username:
-{{ user.username }}
-</p>
-
-
-<p>
-Role:
-{{ user.get_role_display }}
-</p>
+<div class="profile-container">
 
 
 
-<p>
-Email:
-{{ user.email }}
-</p>
+    <div class="profile-card">
 
 
 
-{% if user.airline %}
+        <div class="profile-avatar">
 
-<p>
-Airline:
-{{ user.airline.name }}
-</p>
+            <i class="bi bi-person-circle"></i>
 
-{% endif %}
+        </div>
+
+
+
+
+        <h2>
+            {{ user.username }}
+        </h2>
+
+
+
+        <p class="profile-role">
+
+            {{ user.role }}
+
+        </p>
+
+
+
+
+
+        <div class="profile-info">
+
+
+
+            <div class="info-item">
+
+                <span>
+                    Email
+                </span>
+
+                <strong>
+                    {{ user.email|default:"-" }}
+                </strong>
+
+            </div>
+
+
+
+
+
+            <div class="info-item">
+
+                <span>
+                    Date Joined
+                </span>
+
+
+                <strong>
+                    {{ user.date_joined|date:"Y-m-d" }}
+                </strong>
+
+
+            </div>
+
+
+
+
+
+
+            {% if user.airline %}
+
+
+
+            <div class="info-item">
+
+                <span>
+                    Airline
+                </span>
+
+
+                <strong>
+                    {{ user.airline.name }}
+                </strong>
+
+
+            </div>
+
+
+
+
+            {% endif %}
+
+
+
+        </div>
+
+
+
+
+    </div>
+
+
+
+
+</div>
 
 
 
