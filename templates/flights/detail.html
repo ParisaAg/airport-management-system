@@ -146,5 +146,115 @@
 <br />
 
 <a href="{% url 'flight_list' %}" class="btn-primary"> Back to Flights </a>
+<hr>
 
+
+<h2>
+    Ground Operations
+</h2>
+
+
+
+<table class="data-table">
+
+
+<thead>
+
+<tr>
+
+<th>
+Operation
+</th>
+
+
+<th>
+Staff
+</th>
+
+
+<th>
+Status
+</th>
+
+
+<th>
+Start Time
+</th>
+
+
+<th>
+End Time
+</th>
+
+
+</tr>
+
+</thead>
+
+
+
+
+
+<tbody>
+
+
+{% for operation in ground_operations %}
+
+
+
+<tr>
+
+
+<td>
+{{ operation.operation_type.name }}
+</td>
+
+
+
+<td>
+{{ operation.assigned_staff.username }}
+</td>
+
+
+
+<td>
+
+<span class="status {{ operation.status|lower }}">
+
+{{ operation.get_status_display }}
+
+</span>
+
+</td>
+
+
+
+<td>
+{{ operation.start_time|default:"-" }}
+</td>
+
+
+
+<td>
+{{ operation.end_time|default:"-" }}
+</td>
+
+
+
+</tr>
+
+{% empty %}
+
+<tr>
+
+<td colspan="5">
+
+No Ground Operations
+
+</td>
+</tr>
+{% endfor %}
+
+</tbody>
+</table>
 {% endblock %}

@@ -155,11 +155,8 @@ def flight_delete(request, id):
 
 @login_required
 def flight_detail(request, id):
-    flight = get_object_or_404(
-        Flight,
-        id=id
-    )
-    return render(request,"flights/detail.html",{"flight": flight})
+    flight = get_object_or_404(Flight,id=id)
+    return render(request,"flights/detail.html",{"flight": flight, "ground_operations": flight.ground_operations.all()})
 
 
 
