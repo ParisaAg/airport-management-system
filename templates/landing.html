@@ -1,0 +1,1057 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>
+        Airport Management System
+    </title>
+
+
+    <link rel="stylesheet" href="{% static 'css/landing.css' %}">
+
+
+</head>
+
+
+<body>
+
+
+<!-- ================= HEADER ================= -->
+
+
+<header class="landing-header">
+
+
+    <div class="brand">
+
+
+        <img 
+        src="{% static 'images/logo-mini.png' %}"
+        alt="Airport Logo">
+
+
+        <span>
+            Airport Management System
+        </span>
+
+
+    </div>
+
+
+
+    <a href="{% url 'login' %}" class="nav-login">
+
+        Login
+
+    </a>
+
+
+
+</header>
+
+
+
+
+
+<!-- ================= HERO ================= -->
+
+
+<section class="hero">
+
+
+
+    <div class="hero-content">
+
+
+        <img 
+        class="hero-logo"
+        src="{% static 'images/logo.png' %}"
+        alt="Logo">
+
+
+
+        <h1>
+
+            The Future of Intelligent
+            Airport Operations
+
+        </h1>
+
+
+
+        <p>
+
+            A unified platform for managing
+            flights, airlines, ground operations,
+            security and passenger services.
+
+        </p>
+
+
+
+
+        <div class="hero-buttons">
+
+
+            <a href="{% url 'login' %}" class="primary-btn">
+
+                Enter Control Center
+
+            </a>
+
+
+
+            <a href="#features" class="secondary-btn">
+
+                Explore Platform
+
+            </a>
+
+
+
+        </div>
+
+
+
+    </div>
+
+
+
+
+
+
+    <!-- LIVE PANEL -->
+
+
+    <div class="status-panel">
+
+
+
+        <div class="status-header">
+
+            <span class="online-dot"></span>
+
+            LIVE AIRPORT STATUS
+
+
+        </div>
+
+
+
+
+
+        <div class="status-item">
+
+
+            <span>
+                Flights Today
+            </span>
+
+
+            <strong>
+                248
+            </strong>
+
+
+        </div>
+
+
+
+
+
+
+        <div class="status-item">
+
+
+            <span>
+                Active Operations
+            </span>
+
+
+            <strong>
+                64
+            </strong>
+
+
+        </div>
+
+
+
+
+
+
+        <div class="status-item">
+
+
+            <span>
+                Security Level
+            </span>
+
+
+            <strong>
+                99.8%
+            </strong>
+
+
+        </div>
+
+
+
+
+
+
+        <div class="status-item">
+
+
+            <span>
+                Weather
+            </span>
+
+
+            <strong>
+                Clear
+            </strong>
+
+
+        </div>
+
+
+
+
+    </div>
+<!-- Flight Route Animation -->
+
+<div class="flight-route">
+
+
+    <div class="airport-code">
+        IKA
+    </div>
+
+
+    <div class="route-line">
+
+        <div class="plane">
+            ✈
+        </div>
+
+    </div>
+
+
+    <div class="airport-code">
+        MHD
+    </div>
+
+
+</div>
+
+
+</section>
+
+
+
+
+
+
+
+<!-- ================= FEATURES ================= -->
+
+
+<section id="features" class="features">
+
+
+
+<h2>
+
+One Platform.
+Complete Airport Control.
+
+</h2>
+
+
+
+
+
+<div class="feature-grid">
+
+
+
+<div class="feature-card">
+
+
+<div class="icon">
+✈
+</div>
+
+
+<h3>
+
+Flight Intelligence
+
+</h3>
+
+
+<p>
+
+Scheduling, monitoring,
+gate assignment and flight control.
+
+</p>
+
+
+</div>
+
+
+
+
+
+
+
+
+<div class="feature-card">
+
+
+<div class="icon">
+🏢
+</div>
+
+
+<h3>
+
+Airline Management
+
+</h3>
+
+
+<p>
+
+Manage airlines,
+aircraft fleet and operators.
+
+</p>
+
+
+</div>
+
+
+
+
+
+
+
+
+
+<div class="feature-card">
+
+
+<div class="icon">
+🛠
+</div>
+
+
+<h3>
+
+Ground Operations
+
+</h3>
+
+
+<p>
+
+Fueling, boarding,
+baggage and airport services.
+
+</p>
+
+
+</div>
+
+
+
+
+
+
+
+
+
+<div class="feature-card">
+
+
+<div class="icon">
+🔒
+</div>
+
+
+<h3>
+
+Security Control
+
+</h3>
+
+
+<p>
+
+Monitor alerts,
+reports and security workflow.
+
+</p>
+
+
+</div>
+
+
+
+
+
+</div>
+
+
+</section>
+
+
+
+
+
+
+
+
+<!-- ================= WORKFLOW ================= -->
+
+
+<section class="workflow">
+
+
+
+<h2>
+
+Airport Operational Workflow
+
+</h2>
+
+
+
+
+<div class="workflow-line">
+
+
+
+<div>
+
+Aircraft Arrival
+
+</div>
+
+
+
+<div>
+
+Gate Assignment
+
+</div>
+
+
+
+<div>
+
+Ground Operations
+
+</div>
+
+
+
+<div>
+
+Security Check
+
+</div>
+
+
+
+<div>
+
+Passenger Service
+
+</div>
+
+
+
+<div>
+
+Departure
+
+</div>
+
+
+
+</div>
+
+
+
+</section>
+
+
+
+
+
+
+
+<!-- ================= DASHBOARD PREVIEW ================= -->
+
+
+<section class="dashboard-preview">
+
+
+    <h2>
+        Airport Control Center
+    </h2>
+
+
+    <p class="section-desc">
+
+        Real-time monitoring and intelligent airport operations dashboard.
+
+    </p>
+
+
+
+
+
+    <div class="dashboard-window">
+
+
+
+        <div class="dashboard-header">
+
+
+            <span>
+                Airport Operations Console
+            </span>
+
+
+            <div class="dashboard-status">
+
+                <span></span>
+                System Online
+
+            </div>
+
+
+        </div>
+
+
+
+
+
+        <div class="dashboard-body">
+
+
+
+            <div class="mini-card">
+
+
+                <span>
+                    Total Flights
+                </span>
+
+
+                <strong class="counter" data-target="248">
+                0
+                </strong>
+
+
+            </div>
+
+
+
+
+
+            <div class="mini-card">
+
+
+                <span>
+                    Active Operations
+                </span>
+
+
+                <strong class="counter" data-target="248">
+                0
+                </strong>
+
+
+            </div>
+
+
+
+
+
+            <div class="mini-card">
+
+
+                <span>
+                    Security Alerts
+                </span>
+
+
+                <strong class="counter" data-target="248">
+                0
+                </strong>
+
+
+            </div>
+
+
+
+        </div>
+
+
+
+
+
+
+        <div class="activity-box">
+
+
+            <h3>
+                Recent Activities
+            </h3>
+
+
+
+            <div class="activity">
+
+
+                <span class="green"></span>
+
+
+                IRB8019
+
+                <small>
+                    IKA → MHD
+                </small>
+
+
+                <b>
+                    Boarding
+                </b>
+
+
+            </div>
+
+
+
+
+
+            <div class="activity">
+
+
+                <span class="gold"></span>
+
+
+                Ground Service
+
+
+                <small>
+                    Fueling Completed
+                </small>
+
+
+                <b>
+                    Completed
+                </b>
+
+
+            </div>
+
+
+
+
+
+
+            <div class="activity">
+
+
+                <span class="blue"></span>
+
+
+                Security Check
+
+
+                <small>
+                    Terminal 1
+                </small>
+
+
+                <b>
+                    Active
+                </b>
+
+
+            </div>
+
+
+
+        </div>
+
+
+
+
+    </div>
+
+
+
+</section>
+<!-- ================= GLOBAL NETWORK ================= -->
+
+
+<section class="network-section">
+
+
+    <h2>
+        Global Airport Network
+    </h2>
+
+
+    <p class="section-desc">
+
+        Connecting airports through intelligent
+        operational management.
+
+    </p>
+
+
+
+
+    <div class="network-map">
+
+
+
+        <div class="airport-node node-ika">
+
+
+            <span></span>
+
+            IKA
+
+            <small>
+                Tehran
+            </small>
+
+
+        </div>
+
+
+
+
+
+        <div class="airport-node node-mhd">
+
+
+            <span></span>
+
+            MHD
+
+            <small>
+                Mashhad
+            </small>
+
+
+        </div>
+
+
+
+
+
+        <div class="airport-node node-dxb">
+
+
+            <span></span>
+
+            DXB
+
+            <small>
+                Dubai
+            </small>
+
+
+        </div>
+
+
+
+
+
+        <div class="airport-node node-ist">
+
+
+            <span></span>
+
+            IST
+
+            <small>
+                Istanbul
+            </small>
+
+
+        </div>
+
+
+
+
+
+        <div class="network-plane">
+
+            ✈
+
+        </div>
+
+
+
+
+    </div>
+
+
+
+
+
+</section>
+<!-- ================= WHY CHOOSE ================= -->
+
+
+<section class="why-section">
+
+
+    <h2>
+        Why Choose Our Platform
+    </h2>
+
+
+    <p class="section-desc">
+
+        Built for modern airports with
+        intelligent operations and secure management.
+
+    </p>
+
+
+
+
+    <div class="why-grid">
+
+
+
+        <div class="why-card">
+
+
+            <div class="number">
+                01
+            </div>
+
+
+            <h3>
+                Unified Operations
+            </h3>
+
+
+            <p>
+
+                Connect flights, airlines,
+                ground services and passenger
+                operations in one platform.
+
+            </p>
+
+
+        </div>
+
+
+
+
+
+        <div class="why-card">
+
+
+            <div class="number">
+                02
+            </div>
+
+
+            <h3>
+                Role Based Security
+            </h3>
+
+
+            <p>
+
+                Advanced permission management
+                for different airport teams.
+
+            </p>
+
+
+        </div>
+
+
+
+
+
+
+        <div class="why-card">
+
+
+            <div class="number">
+                03
+            </div>
+
+
+            <h3>
+                Real-Time Visibility
+            </h3>
+
+
+            <p>
+
+                Monitor flights, activities
+                and operational status instantly.
+
+            </p>
+
+
+        </div>
+
+
+
+
+
+
+
+        <div class="why-card">
+
+
+            <div class="number">
+                04
+            </div>
+
+
+            <h3>
+                Scalable Architecture
+            </h3>
+
+
+            <p>
+
+                Designed for future expansion
+                and integrations.
+
+            </p>
+
+
+        </div>
+
+
+
+    </div>
+
+
+
+</section>
+
+<!-- ================= TECHNOLOGY ================= -->
+
+
+<section class="technology">
+
+
+
+<h2>
+
+Enterprise Architecture
+
+</h2>
+
+
+
+
+<div class="tech-grid">
+
+
+<div>
+Python
+</div>
+
+
+<div>
+Django
+</div>
+
+
+<div>
+PostgreSQL
+</div>
+
+
+<div>
+RBAC Security
+</div>
+
+
+<div>
+REST API
+</div>
+
+
+
+</div>
+
+
+</section>
+
+
+
+
+
+
+
+
+
+<!-- ================= FOOTER ================= -->
+
+
+<footer>
+
+
+<img 
+src="{% static 'images/logo-mini.png' %}"
+>
+
+
+
+<p>
+
+Airport Management System
+
+</p>
+
+
+<span>
+
+Digital Infrastructure For Future Airports
+
+</span>
+
+
+
+</footer>
+
+
+
+
+<script src="{% static 'js/landing.js' %}"></script>
+</body>
+
+</html>

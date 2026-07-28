@@ -16,8 +16,11 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path,include
+from dashboard.views import landing_page
 
 urlpatterns = [
+    path("", landing_page, name="landing"),
+
     path('admin/', admin.site.urls),
     path("dashboard/",include("dashboard.urls")),
     path("notifications/",include("notifications.urls")),
@@ -26,4 +29,5 @@ urlpatterns = [
     path("airlines/",include("airlines.urls")),
     path("fleet/",include("fleet.urls")),
     path("operations/",include("operations.urls")),
+
 ]

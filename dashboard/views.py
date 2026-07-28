@@ -2,6 +2,7 @@ from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from .services import DashboardService
 
+
 @login_required
 def dashboard_view(request):
     user = request.user
@@ -38,3 +39,8 @@ def dashboard_view(request):
         "dashboard/index.html",
         context
     )
+
+
+
+def landing_page(request):
+    return render(request,"landing.html")
