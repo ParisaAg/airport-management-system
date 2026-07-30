@@ -28,3 +28,7 @@ Thumbs.db
 
 # PostgreSQL
 *.dump
+
+
+structure.txt
+docs
