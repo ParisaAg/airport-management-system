@@ -107,7 +107,23 @@ h2 {
     text-decoration:none;
 
 }
+.logout-form {
+    margin: 0;
+}
 
+.nav-link-button {
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: white;
+    cursor: pointer;
+    font: inherit;
+}
+
+.nav-link-button:hover,
+.user-menu a:hover {
+    color: #d4af37;
+}
 
 /* ================= Layout ================= */
 
