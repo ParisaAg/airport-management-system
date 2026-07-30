@@ -41,9 +41,12 @@ Notifications
 
 <br>
 
-<a href="{% url 'mark_as_read' notification.id %}">
-Mark as read
-</a>
+<form method="post"action="{% url 'mark_as_read' notification.id %}">
+    {% csrf_token %}
+    <button type="submit">
+        Mark as read
+    </button>
+</form>
 
 {% endif %}
 
