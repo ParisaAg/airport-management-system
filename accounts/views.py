@@ -34,7 +34,10 @@ def login_view(request):
 @login_required
 @require_POST
 def logout_view(request):
+    list(messages.get_messages(request))
+
     logout(request)
+
     return redirect("landing")
 
 

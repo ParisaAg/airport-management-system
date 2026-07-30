@@ -55,18 +55,14 @@ href="{% static 'css/login.css' %}">
 
 
         {% if messages %}
-
             {% for message in messages %}
-
-            <div class="error-message">
-
-                {{ message }}
-
-            </div>
-
+                {% if message.tags == "error" %}
+                    <div class="error-message" role="alert">
+                        {{ message }}
+                    </div>
+                {% endif %}
             {% endfor %}
-
-        {% endif %}
+        {% endif %} 
 
 
 
