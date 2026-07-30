@@ -169,7 +169,21 @@ Inactive
 Edit
 
 </a>
+<form
+    method="post"
+    action="{% url 'airline_toggle_status' airline.id %}"
+    style="display: inline;"
+>
+    {% csrf_token %}
 
+    <button type="submit">
+        {% if airline.is_active %}
+            Deactivate
+        {% else %}
+            Activate
+        {% endif %}
+    </button>
+</form>
 
 
 {% endif %}
