@@ -1,287 +1,199 @@
-from django.shortcuts import render
-from django.contrib.auth.decorators import login_required
-from .models import AircraftType, Aircraft
-from django.shortcuts import redirect
 from django.contrib import messages
-from .forms import AircraftTypeForm
-from django.shortcuts import get_object_or_404
-from .forms import AircraftForm
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import get_object_or_404, redirect, render
+from django.views.decorators.http import require_POST
+
+from accounts.permissions import ADMIN, role_required
+
+from .forms import AircraftForm, AircraftTypeForm
+from .models import Aircraft, AircraftType
+
+
 @login_required
 def aircraft_type_list(request):
-
     aircraft_types = AircraftType.objects.all()
-
 
     return render(
         request,
         "fleet/aircraft_types/list.html",
-        {
-            "aircraft_types": aircraft_types
-        }
+        {"aircraft_types": aircraft_types},
     )
 
 
 @login_required
+@role_required(ADMIN)
 def aircraft_type_create(request):
-
-
-    if request.user.role != "ADMIN":
-
-        return redirect(
-            "aircraft_type_list"
-        )
-
-
-
     if request.method == "POST":
-
-
-        form = AircraftTypeForm(
-            request.POST
-        )
-
+        form = AircraftTypeForm(request.POST)
 
         if form.is_valid():
-
             form.save()
-
 
             messages.success(
                 request,
-                "Aircraft type created successfully"
+                "Aircraft type created successfully.",
             )
 
-
-            return redirect(
-                "aircraft_type_list"
-            )
-
-
+            return redirect("aircraft_type_list")
     else:
-
-
         form = AircraftTypeForm()
-
-
 
     return render(
         request,
         "fleet/aircraft_types/form.html",
         {
             "form": form,
-            "title": "Create Aircraft Type"
-        }
+            "title": "Create Aircraft Type",
+        },
     )
 
 
 @login_required
+@role_required(ADMIN)
 def aircraft_type_edit(request, id):
-
-
-    if request.user.role != "ADMIN":
-
-        return redirect(
-            "aircraft_type_list"
-        )
-
-
-
     aircraft_type = get_object_or_404(
         AircraftType,
-        id=id
+        id=id,
     )
 
-
-
     if request.method == "POST":
-
-
         form = AircraftTypeForm(
             request.POST,
-            instance=aircraft_type
+            instance=aircraft_type,
         )
-
 
         if form.is_valid():
-
             form.save()
 
-
-            return redirect(
-                "aircraft_type_list"
+            messages.success(
+                request,
+                "Aircraft type updated successfully.",
             )
 
-
+            return redirect("aircraft_type_list")
     else:
-
-
         form = AircraftTypeForm(
-            instance=aircraft_type
+            instance=aircraft_type,
         )
-
-
 
     return render(
         request,
         "fleet/aircraft_types/form.html",
         {
             "form": form,
-            "title": f"Edit {aircraft_type}"
-        }
+            "title": f"Edit {aircraft_type}",
+        },
     )
+
 
 @login_required
 def aircraft_list(request):
-
-    aircrafts = Aircraft.objects.select_related(
-        "airline",
-        "aircraft_type"
-    ).all()
-
+    aircrafts = (
+        Aircraft.objects
+        .select_related(
+            "airline",
+            "aircraft_type",
+        )
+        .all()
+    )
 
     return render(
         request,
         "fleet/aircrafts/list.html",
-        {
-            "aircrafts": aircrafts
-        }
+        {"aircrafts": aircrafts},
     )
 
 
 @login_required
+@role_required(ADMIN)
 def aircraft_create(request):
-
-
-    if request.user.role != "ADMIN":
-
-        return redirect(
-            "aircraft_list"
-        )
-
-
-
     if request.method == "POST":
-
-
-        form = AircraftForm(
-            request.POST
-        )
-
+        form = AircraftForm(request.POST)
 
         if form.is_valid():
-
             form.save()
 
-
-            return redirect(
-                "aircraft_list"
+            messages.success(
+                request,
+                "Aircraft created successfully.",
             )
 
-
-
+            return redirect("aircraft_list")
     else:
-
-
         form = AircraftForm()
-
-
-
-    return render(request,"fleet/aircrafts/form.html",{"form": form,"title": "Create Aircraft"})
-
-
-@login_required
-def aircraft_edit(request, id):
-
-
-    if request.user.role != "ADMIN":
-
-        return redirect(
-            "aircraft_list"
-        )
-
-
-
-    aircraft = get_object_or_404(
-        Aircraft,
-        id=id
-    )
-
-
-
-    if request.method == "POST":
-
-
-        form = AircraftForm(
-            request.POST,
-            instance=aircraft
-        )
-
-
-        if form.is_valid():
-
-            form.save()
-
-
-            return redirect(
-                "aircraft_list"
-            )
-
-
-
-    else:
-
-
-        form = AircraftForm(
-            instance=aircraft
-        )
-
-
 
     return render(
         request,
         "fleet/aircrafts/form.html",
         {
             "form": form,
-            "title": f"Edit {aircraft.registration_number}"
-        }
+            "title": "Create Aircraft",
+        },
     )
-
 
 
 @login_required
-def aircraft_change_status(request, id):
-
-
-    if request.user.role != "ADMIN":
-
-        return redirect(
-            "aircraft_list"
-        )
-
-
+@role_required(ADMIN)
+def aircraft_edit(request, id):
     aircraft = get_object_or_404(
         Aircraft,
-        id=id
+        id=id,
     )
 
+    if request.method == "POST":
+        form = AircraftForm(
+            request.POST,
+            instance=aircraft,
+        )
 
-    if aircraft.status == "ACTIVE":
+        if form.is_valid():
+            form.save()
 
-        aircraft.status = "MAINTENANCE"
+            messages.success(
+                request,
+                "Aircraft updated successfully.",
+            )
 
-    elif aircraft.status == "MAINTENANCE":
-
-        aircraft.status = "RETIRED"
-
+            return redirect("aircraft_list")
     else:
+        form = AircraftForm(instance=aircraft)
 
-        aircraft.status = "ACTIVE"
-
-
-
-    aircraft.save()
-
-
-    return redirect(
-        "aircraft_list"
+    return render(
+        request,
+        "fleet/aircrafts/form.html",
+        {
+            "form": form,
+            "title": (
+                f"Edit {aircraft.registration_number}"
+            ),
+        },
     )
+
+
+@login_required
+@require_POST
+@role_required(ADMIN)
+def aircraft_change_status(request, id):
+    aircraft = get_object_or_404(
+        Aircraft,
+        id=id,
+    )
+
+    status_flow = {
+        "ACTIVE": "MAINTENANCE",
+        "MAINTENANCE": "RETIRED",
+        "RETIRED": "ACTIVE",
+    }
+
+    aircraft.status = status_flow[aircraft.status]
+    aircraft.save(update_fields=["status"])
+
+    messages.success(
+        request,
+        (
+            f"{aircraft.registration_number} status "
+            f"changed to {aircraft.get_status_display()}."
+        ),
+    )
+
+    return redirect("aircraft_list")

@@ -182,11 +182,20 @@ Edit
 |
 
 
-<a href="{% url 'aircraft_change_status' aircraft.id %}">
+<form
+    method="post"
+    action="{% url 'aircraft_change_status' aircraft.id %}"
+    class="table-action-form"
+>
+    {% csrf_token %}
 
-Change Status
-
-</a>
+    <button
+        type="submit"
+        class="action-button action-button-primary"
+    >
+        Change Status
+    </button>
+</form>
 
 
 {% endif %}
