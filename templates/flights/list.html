@@ -1,316 +1,268 @@
-{% extends 'base.html' %}
-
+{% extends "base.html" %}
+{% load static %}
 
 {% block title %}
-Flights
+Flights | Airport Operations
 {% endblock %}
 
-
+{% block extra_css %}
+<link
+    rel="stylesheet"
+    href="{% static 'css/management.css' %}"
+>
+<link
+    rel="stylesheet"
+    href="{% static 'css/flights.css' %}"
+>
+{% endblock %}
 
 {% block content %}
 
+<div class="module-page">
 
+    <header class="module-header">
+        <div>
+            <span class="module-eyebrow">
+                FLIGHT OPERATIONS
+            </span>
 
-<h1>
-    Flight Management
-</h1>
+            <h1>Flight Management</h1>
 
+            <p>
+                Monitor scheduled services, operational status
+                and airport routes in one control view.
+            </p>
+        </div>
 
+        {% if role == "ADMIN" or role == "AIRLINE_OPERATOR" %}
+            <a
+                href="{% url 'flight_create' %}"
+                class="primary-action"
+            >
+                <span class="action-icon">+</span>
+                Add flight
+            </a>
+        {% endif %}
+    </header>
 
+    <section class="summary-tile">
+        <div class="summary-icon">✈</div>
 
-{% if role == "ADMIN" or role == "AIRLINE_OPERATOR" %}
+        <div class="summary-content">
+            <span class="summary-label">
+                Visible flights
+            </span>
 
-<a href="{% url 'flight_create' %}" class="btn-primary">
+            <strong class="summary-value">
+                {{ flights|length }}
+            </strong>
+        </div>
+    </section>
 
-    + Add Flight
+    <section class="data-card">
 
-</a>
+        <header class="data-card-header">
+            <h2>Operational flight board</h2>
 
-{% endif %}
+            <p>
+                Search routes and monitor current flight status.
+            </p>
+        </header>
 
+        <form method="get" class="flight-filters">
 
+            <div class="flight-search">
+                <span class="search-symbol">⌕</span>
 
+                <input
+                    type="search"
+                    name="search"
+                    placeholder="Search flight number..."
+                    value="{{ request.GET.search|default:'' }}"
+                >
+            </div>
 
-<div class="filter-box">
+            <select
+                name="status"
+                class="flight-status-filter"
+                aria-label="Filter by status"
+            >
+                <option value="">All statuses</option>
 
+                {% for key, value in statuses %}
+                    <option
+                        value="{{ key }}"
+                        {% if request.GET.status == key %}
+                            selected
+                        {% endif %}
+                    >
+                        {{ value }}
+                    </option>
+                {% endfor %}
+            </select>
 
-<form method="get">
+            <button type="submit" class="filter-submit">
+                Apply filters
+            </button>
 
+            {% if request.GET.search or request.GET.status %}
+                <a
+                    href="{% url 'flight_list' %}"
+                    class="filter-reset"
+                >
+                    Clear
+                </a>
+            {% endif %}
 
-<input 
-type="text"
-name="search"
-placeholder="Search Flight Number..."
-value="{{ request.GET.search }}"
->
+        </form>
 
+        <div class="table-scroll">
 
+            <table class="module-table">
 
-<select name="status">
+                <thead>
+                    <tr>
+                        <th>Flight</th>
+                        <th>Airline</th>
+                        <th>Route</th>
+                        <th>Departure</th>
+                        <th>Arrival</th>
+                        <th>Status</th>
+                        <th class="actions-heading">Actions</th>
+                    </tr>
+                </thead>
 
+                <tbody>
 
-<option value="">
-All Status
-</option>
+                    {% for flight in flights %}
 
+                        <tr>
+                            <td>
+                                <div class="flight-number-cell">
+                                    <span class="flight-number">
+                                        {{ flight.flight_number }}
+                                    </span>
 
+                                    <span class="flight-carrier-code">
+                                        {{ flight.aircraft.registration_number }}
+                                    </span>
+                                </div>
+                            </td>
 
-{% for key,value in statuses %}
+                            <td>
+                                <div class="carrier-cell">
+                                    <strong>
+                                        {{ flight.airline.name }}
+                                    </strong>
 
+                                    <span>
+                                        {{ flight.airline.iata_code }}
+                                    </span>
+                                </div>
+                            </td>
 
-<option 
-value="{{ key }}"
-{% if request.GET.status == key %}
-selected
-{% endif %}
->
+                            <td>
+                                <div class="route-cell">
+                                    <span class="airport-code">
+                                        {{ flight.origin.iata_code }}
+                                    </span>
 
-{{ value }}
+                                    <span class="route-line">
+                                        <span class="route-plane">✈</span>
+                                    </span>
 
-</option>
+                                    <span class="airport-code">
+                                        {{ flight.destination.iata_code }}
+                                    </span>
+                                </div>
+                            </td>
 
+                            <td>
+                                <div class="time-cell">
+                                    <span class="flight-time">
+                                        {{ flight.departure_time|date:"H:i" }}
+                                    </span>
 
-{% endfor %}
+                                    <span class="flight-date">
+                                        {{ flight.departure_time|date:"d M Y" }}
+                                    </span>
+                                </div>
+                            </td>
 
+                            <td>
+                                <div class="time-cell">
+                                    <span class="flight-time">
+                                        {{ flight.arrival_time|date:"H:i" }}
+                                    </span>
 
+                                    <span class="flight-date">
+                                        {{ flight.arrival_time|date:"d M Y" }}
+                                    </span>
+                                </div>
+                            </td>
 
-</select>
+                            <td>
+                                <span class="flight-status {{ flight.status|lower }}">
+                                    <span class="status-dot"></span>
+                                    {{ flight.get_status_display }}
+                                </span>
+                            </td>
 
+                            <td>
+                                <div class="row-actions">
 
+                                    <a
+                                        href="{% url 'flight_detail' flight.id %}"
+                                        class="flight-action view"
+                                    >
+                                        View
+                                    </a>
 
+                                    {% if role == "ADMIN" or role == "AIRLINE_OPERATOR" %}
+                                        <a
+                                            href="{% url 'flight_edit' flight.id %}"
+                                            class="flight-action edit"
+                                        >
+                                            Edit
+                                        </a>
+                                    {% endif %}
 
-<button type="submit">
+                                    {% if role == "ADMIN" %}
+                                        <a
+                                            href="{% url 'flight_delete' flight.id %}"
+                                            class="flight-action delete"
+                                        >
+                                            Delete
+                                        </a>
+                                    {% endif %}
 
-Search
+                                </div>
+                            </td>
+                        </tr>
 
-</button>
+                    {% empty %}
 
+                        <tr>
+                            <td colspan="7" class="empty-state">
+                                <div class="empty-state-icon">✈</div>
+                                <h3>No flights found</h3>
+                                <p>
+                                    Try changing the filters or add
+                                    a new scheduled flight.
+                                </p>
+                            </td>
+                        </tr>
 
+                    {% endfor %}
 
-</form>
+                </tbody>
 
+            </table>
+
+        </div>
+
+    </section>
 
 </div>
-
-
-
-
-
-
-
-<table class="data-table">
-
-
-<thead>
-
-
-<tr>
-
-
-<th>
-Flight Number
-</th>
-
-
-
-<th>
-Airline
-</th>
-
-
-
-<th>
-Route
-</th>
-
-
-
-<th>
-Departure
-</th>
-
-
-
-<th>
-Arrival
-</th>
-
-
-
-<th>
-Status
-</th>
-
-
-
-<th>
-Actions
-</th>
-
-
-</tr>
-
-
-</thead>
-
-
-
-
-
-
-<tbody>
-
-
-
-{% for flight in flights %}
-
-
-
-<tr>
-
-
-
-<td>
-{{ flight.flight_number }}
-</td>
-
-
-
-
-<td>
-{{ flight.airline.name }}
-</td>
-
-
-
-
-<td>
-
-{{ flight.origin.iata_code }}
-
--
-
-{{ flight.destination.iata_code }}
-
-</td>
-
-
-
-
-<td>
-{{ flight.departure_time }}
-</td>
-
-
-
-
-<td>
-{{ flight.arrival_time }}
-</td>
-
-
-
-
-
-<td>
-
-
-<span class="status {{ flight.status|lower }}">
-
-{{ flight.get_status_display }}
-
-</span>
-
-
-</td>
-
-
-
-
-
-<td>
-
-
-<a href="{% url 'flight_detail' flight.id %}">
-View
-</a>
-
-
-
-
-{% if role == "ADMIN" or role == "AIRLINE_OPERATOR" %}
-
-
-|
-
-<a href="{% url 'flight_edit' flight.id %}">
-Edit
-</a>
-
-
-{% endif %}
-
-
-
-
-
-{% if role == "ADMIN" %}
-
-
-|
-
-<a href="{% url 'flight_delete' flight.id %}">
-Delete
-</a>
-
-
-{% endif %}
-
-
-
-
-</td>
-
-
-
-
-
-</tr>
-
-
-
-
-
-{% empty %}
-
-
-
-<tr>
-
-
-<td colspan="7">
-
-No flights found
-
-</td>
-
-
-</tr>
-
-
-
-{% endfor %}
-
-
-
-
-</tbody>
-
-
-
-</table>
-
-
-
 
 {% endblock %}
