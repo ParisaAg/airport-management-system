@@ -1,291 +1,315 @@
-{% extends 'base.html' %}
-
+{% extends "base.html" %}
+{% load static %}
 
 {% block title %}
-Ground Operations
+Ground Operations | Airport Operations
 {% endblock %}
 
-
+{% block extra_css %}
+<link
+    rel="stylesheet"
+    href="{% static 'css/management.css' %}"
+>
+<link
+    rel="stylesheet"
+    href="{% static 'css/operations.css' %}"
+>
+{% endblock %}
 
 {% block content %}
 
-
-
-<h1>
-    Ground Operations
-</h1>
-
-
-
-
-{% if role == "ADMIN" or role == "GROUND_STAFF" %}
-
-
-<a href="{% url 'ground_operation_create' %}" class="btn-primary">
-
-    + Add Operation
-
-</a>
-
-
-{% endif %}
-
-
-
-
-
-<table class="data-table">
-
-
-<thead>
-
-<tr>
-
-<th>
-Flight
-</th>
-
-
-<th>
-Operation
-</th>
-
-
-<th>
-Staff
-</th>
-
-
-<th>
-Status
-</th>
-
-
-<th>
-Start Time
-</th>
-
-
-<th>
-End Time
-</th>
-
-
-<th>
-Actions
-</th>
-
-
-</tr>
-
-</thead>
-
-
-
-
-
-<tbody>
-
-
-
-{% for operation in operations %}
-
-
-
-<tr>
-
-
-
-<td>
-{{ operation.flight.flight_number }}
-</td>
-
-
-
-<td>
-{{ operation.operation_type.name }}
-</td>
-
-
-
-<td>
-{{ operation.assigned_staff.username }}
-</td>
-
-
-
-<td>
-
-<span class="status {{ operation.status|lower }}">
-
-{{ operation.get_status_display }}
-
-</span>
-
-</td>
-
-
-
-<td>
-{{ operation.start_time|default:"-" }}
-</td>
-
-
-
-<td>
-{{ operation.end_time|default:"-" }}
-</td>
-
-
-
-
-<td>
-
-
-
-{% if role == "ADMIN" or role == "GROUND_STAFF" %}
-
-
-
-<a href="{% url 'ground_operation_edit' operation.id %}">
-
-Edit
-
-</a>
-
-
-<br><br>
-
-
-
-
-{% if operation.status == "PENDING" %}
-
-
-
-<form method="post"
-action="{% url 'ground_operation_change_status' operation.id %}">
-
-
-{% csrf_token %}
-
-
-<input type="hidden" name="status" value="IN_PROGRESS">
-
-
-<button class="btn-primary">
-
-Start
-
-</button>
-
-
-</form>
-
-
-
-
-{% elif operation.status == "IN_PROGRESS" %}
-
-
-
-
-<form method="post"
-action="{% url 'ground_operation_change_status' operation.id %}">
-
-
-{% csrf_token %}
-
-
-<input type="hidden" name="status" value="COMPLETED">
-
-
-<button class="btn-primary">
-
-Complete
-
-</button>
-
-
-</form>
-
-
-
-
-{% endif %}
-
-
-
-
-
-
-
-{% if operation.status != "COMPLETED" and operation.status != "CANCELLED" %}
-
-
-
-
-<form method="post"
-action="{% url 'ground_operation_change_status' operation.id %}">
-
-
-{% csrf_token %}
-
-
-<input type="hidden" name="status" value="CANCELLED">
-
-
-<button class="btn-primary">
-
-Cancel
-
-</button>
-
-
-</form>
-
-
-
-
-{% endif %}
-
-
-
-
-
-
-{% endif %}
-
-
-
-</td>
-
-
-
-</tr>
-
-
-
-
-{% empty %}
-
-
-
-<tr>
-
-<td colspan="7">
-
-No operations found
-
-</td>
-
-</tr>
-
-{% endfor %}
-
-</tbody>
-
-
-</table>
+<div class="module-page">
+
+    <header class="module-header">
+        <div>
+            <span class="module-eyebrow">
+                RAMP CONTROL
+            </span>
+
+            <h1>Ground Operations</h1>
+
+            <p>
+                Coordinate turnaround activities, assigned staff
+                and operational task progress.
+            </p>
+        </div>
+
+        {% if role == "ADMIN" or role == "AIRPORT_MANAGER" %}
+            <a
+                href="{% url 'ground_operation_create' %}"
+                class="primary-action"
+            >
+                <span class="action-icon">+</span>
+                Add operation
+            </a>
+        {% endif %}
+    </header>
+
+    <section class="summary-tile">
+        <div class="summary-icon">⚙</div>
+
+        <div class="summary-content">
+            <span class="summary-label">
+                Visible operations
+            </span>
+
+            <strong class="summary-value">
+                {{ operations|length }}
+            </strong>
+        </div>
+    </section>
+
+    <section class="data-card">
+
+        <header class="data-card-header">
+            <h2>Operations board</h2>
+
+            <p>
+                Live ground handling tasks connected
+                to scheduled flights.
+            </p>
+        </header>
+
+        <form method="get" class="operations-toolbar">
+
+            <select
+                name="status"
+                class="operations-filter"
+                aria-label="Filter by operation status"
+            >
+                <option value="">All statuses</option>
+
+                {% for key, value in statuses %}
+                    <option
+                        value="{{ key }}"
+                        {% if request.GET.status == key %}
+                            selected
+                        {% endif %}
+                    >
+                        {{ value }}
+                    </option>
+                {% endfor %}
+            </select>
+
+            <button
+                type="submit"
+                class="operations-filter-button"
+            >
+                Apply filter
+            </button>
+
+            {% if request.GET.status %}
+                <a
+                    href="{% url 'ground_operation_list' %}"
+                    class="operations-filter-reset"
+                >
+                    Clear
+                </a>
+            {% endif %}
+
+        </form>
+
+        <div class="table-scroll">
+
+            <table class="module-table">
+
+                <thead>
+                    <tr>
+                        <th>Flight</th>
+                        <th>Operation</th>
+                        <th>Assigned staff</th>
+                        <th>Status</th>
+                        <th>Start time</th>
+                        <th>End time</th>
+                        <th class="actions-heading">Actions</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for operation in operations %}
+
+                        <tr>
+                            <td>
+                                <span class="flight-reference">
+                                    {{ operation.flight.flight_number }}
+                                </span>
+                            </td>
+
+                            <td>
+                                <div class="operation-identity">
+                                    <strong>
+                                        {{ operation.operation_type.name }}
+                                    </strong>
+
+                                    <span>
+                                        Ground handling task
+                                    </span>
+                                </div>
+                            </td>
+
+                            <td>
+                                <div class="staff-cell">
+                                    <span class="staff-avatar">
+                                        {{ operation.assigned_staff.username|slice:":1" }}
+                                    </span>
+
+                                    <span class="staff-name">
+                                        {{ operation.assigned_staff.username }}
+                                    </span>
+                                </div>
+                            </td>
+
+                            <td>
+                                <span class="operation-status {{ operation.status|lower }}">
+                                    <span class="status-dot"></span>
+                                    {{ operation.get_status_display }}
+                                </span>
+                            </td>
+
+                            <td>
+                                {% if operation.start_time %}
+                                    <div class="operation-time">
+                                        <strong>
+                                            {{ operation.start_time|date:"H:i" }}
+                                        </strong>
+
+                                        <span>
+                                            {{ operation.start_time|date:"d M Y" }}
+                                        </span>
+                                    </div>
+                                {% else %}
+                                    <span class="no-action">—</span>
+                                {% endif %}
+                            </td>
+
+                            <td>
+                                {% if operation.end_time %}
+                                    <div class="operation-time">
+                                        <strong>
+                                            {{ operation.end_time|date:"H:i" }}
+                                        </strong>
+
+                                        <span>
+                                            {{ operation.end_time|date:"d M Y" }}
+                                        </span>
+                                    </div>
+                                {% else %}
+                                    <span class="no-action">—</span>
+                                {% endif %}
+                            </td>
+
+                            <td>
+                                <div class="operation-actions">
+
+                                    {% if role == "ADMIN" or role == "AIRPORT_MANAGER" %}
+                                        <a
+                                            href="{% url 'ground_operation_edit' operation.id %}"
+                                            class="operation-action edit"
+                                        >
+                                            Edit
+                                        </a>
+                                    {% endif %}
+
+                                    {% if operation.status == "PENDING" %}
+                                        <form
+                                            method="post"
+                                            action="{% url 'ground_operation_change_status' operation.id %}"
+                                        >
+                                            {% csrf_token %}
+
+                                            <input
+                                                type="hidden"
+                                                name="status"
+                                                value="IN_PROGRESS"
+                                            >
+
+                                            <button
+                                                type="submit"
+                                                class="operation-action start"
+                                            >
+                                                Start
+                                            </button>
+                                        </form>
+                                    {% elif operation.status == "IN_PROGRESS" %}
+                                        <form
+                                            method="post"
+                                            action="{% url 'ground_operation_change_status' operation.id %}"
+                                        >
+                                            {% csrf_token %}
+
+                                            <input
+                                                type="hidden"
+                                                name="status"
+                                                value="COMPLETED"
+                                            >
+
+                                            <button
+                                                type="submit"
+                                                class="operation-action complete"
+                                            >
+                                                Complete
+                                            </button>
+                                        </form>
+                                    {% endif %}
+
+                                    {% if operation.status == "PENDING" or operation.status == "IN_PROGRESS" %}
+                                        <form
+                                            method="post"
+                                            action="{% url 'ground_operation_change_status' operation.id %}"
+                                        >
+                                            {% csrf_token %}
+
+                                            <input
+                                                type="hidden"
+                                                name="status"
+                                                value="CANCELLED"
+                                            >
+
+                                            <button
+                                                type="submit"
+                                                class="operation-action cancel"
+                                            >
+                                                Cancel
+                                            </button>
+                                        </form>
+                                    {% endif %}
+
+                                    {% if operation.status == "COMPLETED" or operation.status == "CANCELLED" %}
+                                        {% if role != "ADMIN" and role != "AIRPORT_MANAGER" %}
+                                            <span class="no-action">—</span>
+                                        {% endif %}
+                                    {% endif %}
+
+                                </div>
+                            </td>
+                        </tr>
+
+                    {% empty %}
+
+                        <tr>
+                            <td colspan="7" class="empty-state">
+                                <div class="empty-state-icon">⚙</div>
+
+                                <h3>No operations found</h3>
+
+                                <p>
+                                    No ground operations match
+                                    the selected filter.
+                                </p>
+                            </td>
+                        </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </section>
+
+</div>
 
 {% endblock %}

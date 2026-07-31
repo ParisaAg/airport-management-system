@@ -1,58 +1,181 @@
-{% extends 'base.html' %} {% block title %} Operation Types {% endblock %} 
-{%block content %}
+{% extends "base.html" %}
+{% load static %}
 
-<h1>Operation Types</h1>
+{% block title %}
+Operation Types | Airport Operations
+{% endblock %}
 
-{% if role == "ADMIN" %}
+{% block extra_css %}
+<link
+    rel="stylesheet"
+    href="{% static 'css/management.css' %}"
+>
+<link
+    rel="stylesheet"
+    href="{% static 'css/operations.css' %}"
+>
+{% endblock %}
 
-<a href="{% url 'operation_type_create' %}" class="btn-primary">
-  + Add Operation Type
-</a>
+{% block content %}
 
-{% endif %}
+<div class="module-page">
 
-<table class="data-table">
-  <thead>
-    <tr>
-      <th>Name</th>
+    <header class="module-header">
+        <div>
+            <span class="module-eyebrow">
+                OPERATIONS CONFIGURATION
+            </span>
 
-      <th>Description</th>
+            <h1>Operation Types</h1>
 
-      <th>Status</th>
+            <p>
+                Configure reusable ground handling tasks
+                for aircraft turnaround operations.
+            </p>
+        </div>
 
-      <th>Actions</th>
-    </tr>
-  </thead>
-
-  <tbody>
-    {% for operation in operation_types %}
-
-    <tr>
-      <td>{{ operation.name }}</td>
-
-      <td>{{ operation.description|default:"-" }}</td>
-
-      <td>
-        {% if operation.is_active %} Active {% else %} Inactive {% endif %}
-      </td>
-
-      <td>
         {% if role == "ADMIN" %}
-
-        <a href="{% url 'operation_type_edit' operation.id %}"> Edit </a>
-
+            <a
+                href="{% url 'operation_type_create' %}"
+                class="primary-action"
+            >
+                <span class="action-icon">+</span>
+                Add operation type
+            </a>
         {% endif %}
-      </td>
-    </tr>
+    </header>
 
-    {% empty %}
+    <section class="summary-tile">
+        <div class="summary-icon">⚙</div>
 
-    <tr>
-      <td colspan="4">No operation types found</td>
-    </tr>
+        <div class="summary-content">
+            <span class="summary-label">
+                Configured types
+            </span>
 
-    {% endfor %}
-  </tbody>
-</table>
+            <strong class="summary-value">
+                {{ operation_types|length }}
+            </strong>
+        </div>
+    </section>
+
+    <section class="data-card">
+
+        <header class="data-card-header">
+            <h2>Operations catalogue</h2>
+
+            <p>
+                Ground handling categories available
+                throughout the airport platform.
+            </p>
+        </header>
+
+        <div class="table-scroll">
+
+            <table class="module-table">
+
+                <thead>
+                    <tr>
+                        <th>Operation</th>
+                        <th>Description</th>
+                        <th>Status</th>
+
+                        {% if role == "ADMIN" %}
+                            <th class="actions-heading">
+                                Actions
+                            </th>
+                        {% endif %}
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for operation in operation_types %}
+
+                        <tr>
+                            <td>
+                                <div class="item-identity">
+                                    <div class="item-mark">
+                                        {{ operation.name|slice:":1" }}
+                                    </div>
+
+                                    <div class="item-details">
+                                        <strong>
+                                            {{ operation.name }}
+                                        </strong>
+
+                                        <span>
+                                            Ground operation type
+                                        </span>
+                                    </div>
+                                </div>
+                            </td>
+
+                            <td>
+                                {% if operation.description %}
+                                    <p class="operation-description">
+                                        {{ operation.description|truncatechars:90 }}
+                                    </p>
+                                {% else %}
+                                    <span class="no-action">
+                                        No description
+                                    </span>
+                                {% endif %}
+                            </td>
+
+                            <td>
+                                {% if operation.is_active %}
+                                    <span class="status-pill active">
+                                        <span class="status-dot"></span>
+                                        Active
+                                    </span>
+                                {% else %}
+                                    <span class="status-pill inactive">
+                                        <span class="status-dot"></span>
+                                        Inactive
+                                    </span>
+                                {% endif %}
+                            </td>
+
+                            {% if role == "ADMIN" %}
+                                <td>
+                                    <div class="row-actions">
+                                        <a
+                                            href="{% url 'operation_type_edit' operation.id %}"
+                                            class="secondary-action"
+                                        >
+                                            Edit
+                                        </a>
+                                    </div>
+                                </td>
+                            {% endif %}
+                        </tr>
+
+                    {% empty %}
+
+                        <tr>
+                            <td colspan="4" class="empty-state">
+                                <div class="empty-state-icon">⚙</div>
+
+                                <h3>No operation types configured</h3>
+
+                                <p>
+                                    Add the first operation type
+                                    to configure ground handling tasks.
+                                </p>
+                            </td>
+                        </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </section>
+
+</div>
 
 {% endblock %}

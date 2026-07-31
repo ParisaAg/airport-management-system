@@ -1,0 +1,251 @@
+.operations-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 18px 22px;
+    border-bottom: 1px solid #e2e8f0;
+    background: #ffffff;
+}
+
+.operations-filter {
+    height: 42px;
+    min-width: 190px;
+    padding: 0 36px 0 13px;
+    border: 1px solid #cbd5e1;
+    border-radius: 10px;
+    outline: none;
+    background: #f8fafc;
+    color: #334155;
+    font: inherit;
+    font-size: 13px;
+}
+
+.operations-filter:focus {
+    border-color: #d4af37;
+    background: #ffffff;
+    box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.14);
+}
+
+.operations-filter-button {
+    height: 42px;
+    padding: 0 18px;
+    border: 1px solid #0b1f3a;
+    border-radius: 10px;
+    background: #0b1f3a;
+    color: #ffffff;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.operations-filter-button:hover {
+    border-color: #d4af37;
+    background: #d4af37;
+    color: #081426;
+}
+
+.operations-filter-reset {
+    color: #64748b;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.operation-identity {
+    display: grid;
+    gap: 4px;
+}
+
+.operation-identity strong {
+    color: #0b1f3a;
+    font-size: 14px;
+}
+
+.operation-identity span {
+    color: #64748b;
+    font-size: 11px;
+}
+
+.flight-reference {
+    display: inline-flex;
+    min-height: 32px;
+    align-items: center;
+    padding: 0 10px;
+    border-radius: 8px;
+    background: #0b1f3a;
+    color: #d4af37;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.03em;
+}
+
+.staff-cell {
+    display: flex;
+    min-width: 150px;
+    align-items: center;
+    gap: 9px;
+}
+
+.staff-avatar {
+    display: grid;
+    width: 34px;
+    height: 34px;
+    flex: 0 0 34px;
+    place-items: center;
+    border-radius: 50%;
+    background: #eef2ff;
+    color: #3730a3;
+    font-size: 12px;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.staff-name {
+    color: #334155;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.operation-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 6px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.operation-status.pending {
+    background: #f1f5f9;
+    color: #475569;
+}
+
+.operation-status.in_progress {
+    background: #fffbeb;
+    color: #92400e;
+}
+
+.operation-status.completed {
+    background: #ecfdf3;
+    color: #166534;
+}
+
+.operation-status.cancelled {
+    background: #fef2f2;
+    color: #b91c1c;
+}
+
+.operation-time {
+    display: grid;
+    min-width: 120px;
+    gap: 3px;
+}
+
+.operation-time strong {
+    color: #0b1f3a;
+    font-size: 12px;
+}
+
+.operation-time span {
+    color: #64748b;
+    font-size: 11px;
+}
+
+.operation-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 7px;
+}
+
+.operation-actions form {
+    margin: 0;
+}
+
+.operation-action {
+    display: inline-flex;
+    min-height: 34px;
+    align-items: center;
+    justify-content: center;
+    padding: 0 11px;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    font: inherit;
+    font-size: 12px;
+    font-weight: 700;
+    text-decoration: none;
+    cursor: pointer;
+    transition: 150ms ease;
+}
+
+.operation-action.edit {
+    border-color: #cbd5e1;
+    background: #ffffff;
+    color: #17385f;
+}
+
+.operation-action.edit:hover {
+    border-color: #17385f;
+    background: #f1f5f9;
+}
+
+.operation-action.start {
+    border-color: #bfdbfe;
+    background: #eff6ff;
+    color: #1d4ed8;
+}
+
+.operation-action.start:hover {
+    background: #dbeafe;
+}
+
+.operation-action.complete {
+    border-color: #bbf7d0;
+    background: #f0fdf4;
+    color: #166534;
+}
+
+.operation-action.complete:hover {
+    background: #dcfce7;
+}
+
+.operation-action.cancel {
+    border-color: #fecaca;
+    background: #fff7f7;
+    color: #b42318;
+}
+
+.operation-action.cancel:hover {
+    background: #fee2e2;
+}
+
+.no-action {
+    color: #94a3b8;
+}
+
+@media (max-width: 760px) {
+    .operations-toolbar {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .operations-filter,
+    .operations-filter-button {
+        width: 100%;
+    }
+
+    .operations-filter-reset {
+        text-align: center;
+    }
+}
+
+
+.operation-description {
+    max-width: 520px;
+    margin: 0;
+    color: #475569;
+    font-size: 13px;
+    line-height: 1.6;
+}

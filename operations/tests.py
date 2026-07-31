@@ -9,7 +9,7 @@ from airlines.models import Airline
 from airports.models import Airport
 from fleet.models import Aircraft, AircraftType
 from flights.models import Flight
-
+from .forms import GroundOperationForm
 from .models import GroundOperation, OperationType
 from .services import (
     InvalidOperationTransition,
@@ -308,4 +308,53 @@ class GroundOperationAuthorizationTests(
         self.assertEqual(
             self.operation.status,
             "IN_PROGRESS",
+        )
+
+class GroundOperationFormTests(
+    GroundOperationTestData
+):
+    def test_workflow_fields_are_not_user_editable(self):
+        form = GroundOperationForm()
+
+        self.assertNotIn(
+            "status",
+            form.fields,
+        )
+
+        self.assertNotIn(
+            "start_time",
+            form.fields,
+        )
+
+        self.assertNotIn(
+            "end_time",
+            form.fields,
+        )
+
+    def test_only_ground_staff_can_be_assigned(self):
+        form = GroundOperationForm()
+
+        assigned_users = (
+            form.fields["assigned_staff"]
+            .queryset
+        )
+
+        self.assertIn(
+            self.ground_staff,
+            assigned_users,
+        )
+
+        self.assertIn(
+            self.other_ground_staff,
+            assigned_users,
+        )
+
+        self.assertNotIn(
+            self.admin,
+            assigned_users,
+        )
+
+        self.assertNotIn(
+            self.manager,
+            assigned_users,
         )
