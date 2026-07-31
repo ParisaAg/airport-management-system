@@ -38,7 +38,15 @@
     <section class="content">
 
         {% block content %}
-
+            {% if messages %}
+                <div class="system-messages">
+                    {% for message in messages %}
+                        <divclass="system-message system-message-{{ message.tags|default:'info' }}"role="alert">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
         {% endblock %}
 
     </section>

@@ -1,270 +1,422 @@
-{% extends 'base.html' %} {% block title %} Flight Details {% endblock %} 
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}
+{{ flight.flight_number }} | Flight Operations
+{% endblock %}
+
+{% block extra_css %}
+<link
+    rel="stylesheet"
+    href="{% static 'css/management.css' %}"
+>
+<link
+    rel="stylesheet"
+    href="{% static 'css/flights.css' %}"
+>
+{% endblock %}
+
 {% block content %}
 
-<h1>Flight Details</h1>
+<div class="module-page flight-detail-page">
 
-<div class="card">
-  <h2>{{ flight.flight_number }}</h2>
+    <a href="{% url 'flight_list' %}" class="back-link">
+        ← Back to flights
+    </a>
 
-  <p>
-    <strong> Airline: </strong>
+    <section class="flight-hero">
 
-    {{ flight.airline.name }}
-  </p>
+        <div class="flight-hero-top">
 
-  <p>
-    <strong> Aircraft: </strong>
+            <div>
+                <span class="module-eyebrow">
+                    FLIGHT OPERATIONS
+                </span>
 
-    {{ flight.aircraft }}
-  </p>
+                <div class="flight-title-row">
+                    <h1>{{ flight.flight_number }}</h1>
 
-  <p>
-    <strong> Route: </strong>
+                    <span class="flight-status {{ flight.status|lower }}">
+                        <span class="status-dot"></span>
+                        {{ flight.get_status_display }}
+                    </span>
+                </div>
 
-    {{ flight.origin.iata_code }} → {{ flight.destination.iata_code }}
-  </p>
+                <p>
+                    {{ flight.airline.name }}
+                    ·
+                    {{ flight.aircraft.registration_number }}
+                </p>
+            </div>
 
-  <p>
-    <strong> Departure: </strong>
+            {% if role == "ADMIN" or role == "AIRLINE_OPERATOR" %}
+                <a
+                    href="{% url 'flight_edit' flight.id %}"
+                    class="secondary-action"
+                >
+                    Edit flight
+                </a>
+            {% endif %}
 
-    {{ flight.departure_time }}
-  </p>
+        </div>
 
-  <p>
-    <strong> Arrival: </strong>
+        <div class="route-overview">
 
-    {{ flight.arrival_time }}
-  </p>
+            <div class="airport-point">
+                <span class="airport-label">Origin</span>
 
-  <p>
-    <strong> Status: </strong>
+                <strong>{{ flight.origin.iata_code }}</strong>
 
-    <span class="status {{ flight.status|lower }}">
-      {{ flight.get_status_display }}
-    </span>
-  </p>
+                <span>
+                    {{ flight.origin.city }}
+                </span>
 
-  {% if role == "ADMIN" %}
+                <time>
+                    {{ flight.departure_time|date:"H:i" }}
+                </time>
 
-  <hr />
+                <small>
+                    {{ flight.departure_time|date:"d M Y" }}
+                </small>
+            </div>
 
-  <h3>Change Flight Status</h3>
+            <div class="route-progress">
+                <span class="route-progress-line"></span>
+                <span class="route-progress-plane">✈</span>
+                <span class="route-progress-line"></span>
+            </div>
 
-  <form method="post" action="{% url 'flight_change_status' flight.id %}">
-    {% csrf_token %}
+            <div class="airport-point destination">
+                <span class="airport-label">Destination</span>
 
-    <select name="status">
-      {% for key,value in statuses %}
+                <strong>{{ flight.destination.iata_code }}</strong>
 
-      <option
-        value="{{ key }}"
-        {%
-        if
-        flight.status=""
-        ="key"
-        %}
-        selected
-        {%
-        endif
-        %}
-      >
-        {{ value }}
-      </option>
+                <span>
+                    {{ flight.destination.city }}
+                </span>
 
-      {% endfor %}
-    </select>
+                <time>
+                    {{ flight.arrival_time|date:"H:i" }}
+                </time>
 
-    <button class="btn-primary">Change Status</button>
-  </form>
+                <small>
+                    {{ flight.arrival_time|date:"d M Y" }}
+                </small>
+            </div>
 
-  <br />
+        </div>
 
-  <a href="{% url 'gate_assignment_create' flight.id %}" class="btn-primary">
-    + Assign Gate
-  </a>
+        <div class="flight-information-grid">
 
-  {% endif %}
+            <div class="information-item">
+                <span>Airline</span>
+                <strong>{{ flight.airline.name }}</strong>
+            </div>
+
+            <div class="information-item">
+                <span>Aircraft type</span>
+                <strong>
+                    {{ flight.aircraft.aircraft_type }}
+                </strong>
+            </div>
+
+            <div class="information-item">
+                <span>Registration</span>
+                <strong>
+                    {{ flight.aircraft.registration_number }}
+                </strong>
+            </div>
+
+            <div class="information-item">
+                <span>Current status</span>
+                <strong>
+                    {{ flight.get_status_display }}
+                </strong>
+            </div>
+
+        </div>
+
+    </section>
+
+    {% if role == "ADMIN" %}
+        <section class="operations-control-card">
+
+            <div>
+                <h2>Operations control</h2>
+
+                <p>
+                    Update flight status or assign an operational gate.
+                </p>
+            </div>
+
+            <div class="control-actions">
+
+                <form
+                    method="post"
+                    action="{% url 'flight_change_status' flight.id %}"
+                    class="status-update-form"
+                >
+                    {% csrf_token %}
+
+                    <select name="status" aria-label="Flight status">
+                        {% for key, value in statuses %}
+                            <option
+                                value="{{ key }}"
+                                {% if flight.status == key %}
+                                    selected
+                                {% endif %}
+                            >
+                                {{ value }}
+                            </option>
+                        {% endfor %}
+                    </select>
+
+                    <button type="submit">
+                        Update status
+                    </button>
+                </form>
+
+                <a
+                    href="{% url 'gate_assignment_create' flight.id %}"
+                    class="primary-action"
+                >
+                    + Assign gate
+                </a>
+
+            </div>
+
+        </section>
+    {% endif %}
+
+    <section class="data-card detail-section">
+
+        <header class="data-card-header detail-section-header">
+            <div>
+                <h2>Gate assignments</h2>
+
+                <p>
+                    Gate allocation history for this flight.
+                </p>
+            </div>
+        </header>
+
+        <div class="table-scroll">
+
+            <table class="module-table">
+
+                <thead>
+                    <tr>
+                        <th>Gate</th>
+                        <th>Terminal</th>
+                        <th>Status</th>
+                        <th>Assigned</th>
+                        <th>Released</th>
+
+                        {% if role == "ADMIN" %}
+                            <th class="actions-heading">
+                                Actions
+                            </th>
+                        {% endif %}
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for assignment in gate_assignments %}
+
+                        <tr>
+                            <td>
+                                <span class="gate-code">
+                                    {{ assignment.gate.code }}
+                                </span>
+                            </td>
+
+                            <td>
+                                {{ assignment.gate.terminal.name }}
+                            </td>
+
+                            <td>
+                                <span class="assignment-status {{ assignment.status|lower }}">
+                                    <span class="status-dot"></span>
+                                    {{ assignment.get_status_display }}
+                                </span>
+                            </td>
+
+                            <td>
+                                <div class="time-cell">
+                                    <span class="flight-time">
+                                        {{ assignment.assigned_time|date:"H:i" }}
+                                    </span>
+
+                                    <span class="flight-date">
+                                        {{ assignment.assigned_time|date:"d M Y" }}
+                                    </span>
+                                </div>
+                            </td>
+
+                            <td>
+                                {% if assignment.released_time %}
+                                    <div class="time-cell">
+                                        <span class="flight-time">
+                                            {{ assignment.released_time|date:"H:i" }}
+                                        </span>
+
+                                        <span class="flight-date">
+                                            {{ assignment.released_time|date:"d M Y" }}
+                                        </span>
+                                    </div>
+                                {% else %}
+                                    <span class="not-available">—</span>
+                                {% endif %}
+                            </td>
+
+                            {% if role == "ADMIN" %}
+                                <td>
+                                    <div class="row-actions">
+
+                                        {% if assignment.status == "ACTIVE" %}
+                                            <form
+                                                method="post"
+                                                action="{% url 'gate_assignment_release' assignment.id %}"
+                                                class="inline-action-form"
+                                            >
+                                                {% csrf_token %}
+
+                                                <button
+                                                    type="submit"
+                                                    class="release-action"
+                                                >
+                                                    Release
+                                                </button>
+                                            </form>
+                                        {% else %}
+                                            <span class="not-available">—</span>
+                                        {% endif %}
+
+                                    </div>
+                                </td>
+                            {% endif %}
+                        </tr>
+
+                    {% empty %}
+
+                        <tr>
+                            <td colspan="6" class="empty-state">
+                                <div class="empty-state-icon">▣</div>
+                                <h3>No gate assigned</h3>
+                                <p>
+                                    This flight has no gate assignment yet.
+                                </p>
+                            </td>
+                        </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </section>
+
+    <section class="data-card detail-section">
+
+        <header class="data-card-header detail-section-header">
+            <div>
+                <h2>Ground operations</h2>
+
+                <p>
+                    Operational tasks connected to this flight.
+                </p>
+            </div>
+
+            {% if role == "ADMIN" or role == "GROUND_STAFF" %}
+                <a
+                    href="{% url 'ground_operation_create_for_flight' flight.id %}"
+                    class="primary-action compact"
+                >
+                    + Add operation
+                </a>
+            {% endif %}
+        </header>
+
+        <div class="table-scroll">
+
+            <table class="module-table">
+
+                <thead>
+                    <tr>
+                        <th>Operation</th>
+                        <th>Assigned staff</th>
+                        <th>Status</th>
+                        <th>Start time</th>
+                        <th>End time</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for operation in ground_operations %}
+
+                        <tr>
+                            <td>
+                                <strong class="operation-name">
+                                    {{ operation.operation_type.name }}
+                                </strong>
+                            </td>
+
+                            <td>
+                                {{ operation.assigned_staff.username }}
+                            </td>
+
+                            <td>
+                                <span class="operation-status {{ operation.status|lower }}">
+                                    <span class="status-dot"></span>
+                                    {{ operation.get_status_display }}
+                                </span>
+                            </td>
+
+                            <td>
+                                {% if operation.start_time %}
+                                    {{ operation.start_time|date:"d M Y, H:i" }}
+                                {% else %}
+                                    <span class="not-available">—</span>
+                                {% endif %}
+                            </td>
+
+                            <td>
+                                {% if operation.end_time %}
+                                    {{ operation.end_time|date:"d M Y, H:i" }}
+                                {% else %}
+                                    <span class="not-available">—</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+
+                    {% empty %}
+
+                        <tr>
+                            <td colspan="5" class="empty-state">
+                                <div class="empty-state-icon">⚙</div>
+                                <h3>No ground operations</h3>
+                                <p>
+                                    No operational tasks are attached
+                                    to this flight.
+                                </p>
+                            </td>
+                        </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </section>
+
 </div>
 
-<hr />
-
-<h2>Gate Assignments</h2>
-
-<table class="data-table">
-  <thead>
-    <tr>
-      <th>Gate</th>
-
-      <th>Status</th>
-
-      <th>Assigned Time</th>
-
-      <th>Released Time</th>
-
-      <th>Actions</th>
-    </tr>
-  </thead>
-
-  <tbody>
-    {% for assignment in flight.gate_assignments.all %}
-
-    <tr>
-      <td>{{ assignment.gate.code }}</td>
-
-      <td>{{ assignment.get_status_display }}</td>
-
-      <td>{{ assignment.assigned_time }}</td>
-
-      <td>{{ assignment.released_time|default:"-" }}</td>
-
-      <td>
-        {% if role == "ADMIN" and assignment.status == "ACTIVE" %}
-
-        <form
-          method="post"
-          action="{% url 'gate_assignment_release' assignment.id %}"
-        >
-          {% csrf_token %}
-
-          <button class="btn-primary">Release</button>
-        </form>
-
-        {% else %} - {% endif %}
-      </td>
-    </tr>
-
-    {% empty %}
-
-    <tr>
-      <td colspan="5">No Gate Assignment</td>
-    </tr>
-
-    {% endfor %}
-  </tbody>
-</table>
-
-<br />
-
-<a href="{% url 'flight_list' %}" class="btn-primary"> Back to Flights </a>
-<hr>
-
-{% if role == "ADMIN" or role == "GROUND_STAFF" %}
-
-
-<a href="{% url 'ground_operation_create_for_flight' flight.id %}" class="btn-primary">
-
-+ Add Ground Operation
-
-</a>
-
-
-{% endif %}
-<h2>
-    Ground Operations
-</h2>
-
-
-
-<table class="data-table">
-
-
-<thead>
-
-<tr>
-
-<th>
-Operation
-</th>
-
-
-<th>
-Staff
-</th>
-
-
-<th>
-Status
-</th>
-
-
-<th>
-Start Time
-</th>
-
-
-<th>
-End Time
-</th>
-
-
-</tr>
-
-</thead>
-
-
-
-
-
-<tbody>
-
-
-{% for operation in ground_operations %}
-
-
-
-<tr>
-
-
-<td>
-{{ operation.operation_type.name }}
-</td>
-
-
-
-<td>
-{{ operation.assigned_staff.username }}
-</td>
-
-
-
-<td>
-
-<span class="status {{ operation.status|lower }}">
-
-{{ operation.get_status_display }}
-
-</span>
-
-</td>
-
-
-
-<td>
-{{ operation.start_time|default:"-" }}
-</td>
-
-
-
-<td>
-{{ operation.end_time|default:"-" }}
-</td>
-
-
-
-</tr>
-
-{% empty %}
-
-<tr>
-
-<td colspan="5">
-
-No Ground Operations
-
-</td>
-</tr>
-{% endfor %}
-
-</tbody>
-</table>
 {% endblock %}

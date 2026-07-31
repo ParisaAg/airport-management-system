@@ -1,173 +1,192 @@
-{% extends 'base.html' %}
-
-
+{% extends "base.html" %}
+{% load static %}
 
 {% block title %}
-Aircraft Types
+Aircraft Types | Airport Operations
 {% endblock %}
 
-
-
+{% block extra_css %}
+<link
+    rel="stylesheet"
+    href="{% static 'css/management.css' %}"
+>
+{% endblock %}
 
 {% block content %}
 
-
-
-<h1>
-    Aircraft Types
-</h1>
-
-
-
-{% if role == "ADMIN" %}
-
-<a href="{% url 'aircraft_type_create' %}" class="btn-primary">
-
-    + Add Aircraft Type
-
-</a>
-
-{% endif %}
-
-
-
-
-
-
-<table class="data-table">
-
-
-
-<thead>
-
-
-<tr>
-
-
-<th>
-Manufacturer
-</th>
-
-
-<th>
-Model
-</th>
-
-
-<th>
-Passenger Capacity
-</th>
-
-
-<th>
-Range KM
-</th>
-
-
-<th>
-Actions
-</th>
-
-
-</tr>
-
-
-</thead>
-
-
-
-
-
-
-<tbody>
-
-
-
-{% for aircraft in aircraft_types %}
-
-
-
-<tr>
-
-
-
-<td>
-{{ aircraft.manufacturer }}
-</td>
-
-
-
-<td>
-{{ aircraft.model }}
-</td>
-
-
-
-<td>
-{{ aircraft.passenger_capacity }}
-</td>
-
-
-
-<td>
-{{ aircraft.range_km }}
-</td>
-
-
-
-
-<td>
-
-
-{% if role == "ADMIN" %}
-
-
-<a href="{% url 'aircraft_type_edit' aircraft.id %}">
-Edit
-</a>
-
-
-{% endif %}
-
-
-
-</td>
-
-
-
-
-</tr>
-
-
-
-
-{% empty %}
-
-
-<tr>
-
-<td colspan="5">
-
-No aircraft types found
-
-</td>
-
-</tr>
-
-
-
-{% endfor %}
-
-
-
-
-</tbody>
-
-
-
-</table>
-
-
-
+<div class="module-page">
+
+    <header class="module-header">
+        <div>
+            <span class="module-eyebrow">
+                FLEET CONFIGURATION
+            </span>
+
+            <h1>Aircraft Types</h1>
+
+            <p>
+                Manage aircraft models, passenger capacity
+                and operational range specifications.
+            </p>
+        </div>
+
+        {% if role == "ADMIN" %}
+            <a
+                href="{% url 'aircraft_type_create' %}"
+                class="primary-action"
+            >
+                <span class="action-icon">+</span>
+                Add aircraft type
+            </a>
+        {% endif %}
+    </header>
+
+    <section class="summary-tile">
+        <div class="summary-icon">✈</div>
+
+        <div class="summary-content">
+            <span class="summary-label">
+                Registered types
+            </span>
+
+            <strong class="summary-value">
+                {{ aircraft_types|length }}
+            </strong>
+        </div>
+    </section>
+
+    <section class="data-card">
+
+        <header class="data-card-header">
+            <h2>Aircraft catalogue</h2>
+
+            <p>
+                Technical specifications of supported
+                aircraft models.
+            </p>
+        </header>
+
+        <div class="table-scroll">
+
+            <table class="module-table">
+
+                <thead>
+                    <tr>
+                        <th>Aircraft</th>
+                        <th>Manufacturer</th>
+                        <th>Capacity</th>
+                        <th>Range</th>
+                        <th>Status</th>
+
+                        {% if role == "ADMIN" %}
+                            <th class="actions-heading">
+                                Actions
+                            </th>
+                        {% endif %}
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for aircraft in aircraft_types %}
+
+                        <tr>
+                            <td>
+                                <div class="item-identity">
+                                    <div class="item-mark">
+                                        {{ aircraft.manufacturer|slice:":1" }}
+                                    </div>
+
+                                    <div class="item-details">
+                                        <strong>
+                                            {{ aircraft.model }}
+                                        </strong>
+
+                                        <span>
+                                            {{ aircraft.manufacturer }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </td>
+
+                            <td>{{ aircraft.manufacturer }}</td>
+
+                            <td>
+                                <span class="metric-value">
+                                    {{ aircraft.passenger_capacity }}
+                                </span>
+
+                                <span class="metric-unit">
+                                    passengers
+                                </span>
+                            </td>
+
+                            <td>
+                                <span class="metric-value">
+                                    {{ aircraft.range_km }}
+                                </span>
+
+                                <span class="metric-unit">
+                                    km
+                                </span>
+                            </td>
+
+                            <td>
+                                {% if aircraft.is_active %}
+                                    <span class="status-pill active">
+                                        <span class="status-dot"></span>
+                                        Active
+                                    </span>
+                                {% else %}
+                                    <span class="status-pill inactive">
+                                        <span class="status-dot"></span>
+                                        Inactive
+                                    </span>
+                                {% endif %}
+                            </td>
+
+                            {% if role == "ADMIN" %}
+                                <td>
+                                    <div class="row-actions">
+                                        <a
+                                            href="{% url 'aircraft_type_edit' aircraft.id %}"
+                                            class="secondary-action"
+                                        >
+                                            Edit
+                                        </a>
+                                    </div>
+                                </td>
+                            {% endif %}
+                        </tr>
+
+                    {% empty %}
+
+                        <tr>
+                            <td
+                                colspan="6"
+                                class="empty-state"
+                            >
+                                <div class="empty-state-icon">✈</div>
+
+                                <h3>No aircraft types found</h3>
+
+                                <p>
+                                    Add the first aircraft type
+                                    to build your fleet catalogue.
+                                </p>
+                            </td>
+                        </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </section>
+
+</div>
 
 {% endblock %}

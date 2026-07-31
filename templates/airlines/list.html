@@ -1,228 +1,202 @@
-{% extends 'base.html' %}
-
-
+{% extends "base.html" %}
+{% load static %}
 
 {% block title %}
-Airlines
+Airlines | Airport Operations
 {% endblock %}
 
-
-
+{% block extra_css %}
+<link
+    rel="stylesheet"
+    href="{% static 'css/airlines.css' %}"
+>
+{% endblock %}
 
 {% block content %}
 
-
-
-<h1>
-    Airline Management
-</h1>
-
-
-
-
-{% if role == "ADMIN" %}
-
-<a href="{% url 'airline_create' %}" class="btn-primary">
-
-    + Add Airline
-
-</a>
-
-{% endif %}
-
-
-
-
-
-
-<table class="data-table">
-
-
-
-<thead>
-
-
-<tr>
-
-
-<th>
-Name
-</th>
-
-
-
-<th>
-IATA
-</th>
-
-
-
-<th>
-ICAO
-</th>
-
-
-
-<th>
-Country
-</th>
-
-
-
-<th>
-Status
-</th>
-
-
-
-<th>
-Actions
-</th>
-
-
-
-</tr>
-
-
-</thead>
-
-
-
-
-
-
-<tbody>
-
-
-
-
-{% for airline in airlines %}
-
-
-
-
-<tr>
-
-
-
-
-<td>
-{{ airline.name }}
-</td>
-
-
-
-
-<td>
-{{ airline.iata_code }}
-</td>
-
-
-
-
-<td>
-{{ airline.icao_code }}
-</td>
-
-
-
-
-<td>
-{{ airline.country }}
-</td>
-
-
-
-
-<td>
-
-
-
-{% if airline.is_active %}
-
-Active
-
-{% else %}
-
-Inactive
-
-{% endif %}
-
-
-
-</td>
-
-
-
-
-<td>
-
-
-
-
-{% if role == "ADMIN" %}
-
-
-
-<a href="{% url 'airline_edit' airline.id %}">
-
-Edit
-
-</a>
-
-
-
-{% endif %}
-
-
-
-
-
-</td>
-
-
-
-
-
-</tr>
-
-
-
-
-{% empty %}
-
-
-
-<tr>
-
-
-<td colspan="6">
-
-No airlines found
-
-</td>
-
-
-</tr>
-
-
-
-{% endfor %}
-
-
-
-
-
-</tbody>
-
-
-
-
-
-</table>
-
-
-
-
+<div class="airlines-page">
+
+    <header class="page-header">
+        <div>
+            <span class="page-eyebrow">
+                NETWORK MANAGEMENT
+            </span>
+
+            <h1>Airline Directory</h1>
+
+            <p>
+                Manage airline partners, operational status
+                and carrier information.
+            </p>
+        </div>
+
+        {% if role == "ADMIN" %}
+            <a
+                href="{% url 'airline_create' %}"
+                class="add-airline-button"
+            >
+                <span class="button-icon">+</span>
+                Add airline
+            </a>
+        {% endif %}
+    </header>
+
+    <section class="airline-summary">
+        <div class="summary-icon">✈</div>
+
+        <div>
+            <span class="summary-label">
+                Registered airlines
+            </span>
+
+            <strong>{{ airlines|length }}</strong>
+        </div>
+    </section>
+
+    <section class="airline-card">
+
+        <div class="card-header">
+            <div>
+                <h2>Airline partners</h2>
+
+                <p>
+                    Current carriers registered in the
+                    airport operations platform.
+                </p>
+            </div>
+        </div>
+
+        <div class="table-wrapper">
+
+            <table class="airline-table">
+
+                <thead>
+                    <tr>
+                        <th>Airline</th>
+                        <th>IATA</th>
+                        <th>ICAO</th>
+                        <th>Country</th>
+                        <th>Status</th>
+
+                        {% if role == "ADMIN" %}
+                            <th class="actions-heading">
+                                Actions
+                            </th>
+                        {% endif %}
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for airline in airlines %}
+
+                        <tr>
+                            <td>
+                                <div class="airline-identity">
+                                    <div class="airline-avatar">
+                                        {{ airline.iata_code }}
+                                    </div>
+
+                                    <div>
+                                        <strong>
+                                            {{ airline.name }}
+                                        </strong>
+
+                                        <span>
+                                            {{ airline.icao_code }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </td>
+
+                            <td>
+                                <span class="code-badge">
+                                    {{ airline.iata_code }}
+                                </span>
+                            </td>
+
+                            <td>
+                                <span class="code-badge">
+                                    {{ airline.icao_code }}
+                                </span>
+                            </td>
+
+                            <td>{{ airline.country }}</td>
+
+                            <td>
+                                {% if airline.is_active %}
+                                    <span class="status-pill active">
+                                        <span class="status-dot"></span>
+                                        Active
+                                    </span>
+                                {% else %}
+                                    <span class="status-pill inactive">
+                                        <span class="status-dot"></span>
+                                        Inactive
+                                    </span>
+                                {% endif %}
+                            </td>
+
+                            {% if role == "ADMIN" %}
+                                <td>
+                                    <div class="row-actions">
+
+                                        <a
+                                            href="{% url 'airline_edit' airline.id %}"
+                                            class="edit-action"
+                                        >
+                                            Edit
+                                        </a>
+
+                                        <form
+                                            method="post"
+                                            action="{% url 'airline_toggle_status' airline.id %}"
+                                        >
+                                            {% csrf_token %}
+
+                                            <button
+                                                type="submit"
+                                                class="status-action {% if airline.is_active %}deactivate{% else %}activate{% endif %}"
+                                            >
+                                                {% if airline.is_active %}
+                                                    Deactivate
+                                                {% else %}
+                                                    Activate
+                                                {% endif %}
+                                            </button>
+                                        </form>
+
+                                    </div>
+                                </td>
+                            {% endif %}
+                        </tr>
+
+                    {% empty %}
+
+                        <tr>
+                            <td
+                                colspan="6"
+                                class="empty-state"
+                            >
+                                <div class="empty-icon">✈</div>
+                                <h3>No airlines registered</h3>
+                                <p>
+                                    Add the first airline to begin
+                                    managing airport operations.
+                                </p>
+                            </td>
+                        </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </section>
+
+</div>
 
 {% endblock %}
