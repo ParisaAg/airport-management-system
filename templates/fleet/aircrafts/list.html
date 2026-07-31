@@ -1,258 +1,209 @@
-{% extends 'base.html' %}
-
-
+{% extends "base.html" %}
+{% load static %}
 
 {% block title %}
-Aircrafts
+Aircraft Fleet | Airport Operations
 {% endblock %}
 
-
-
+{% block extra_css %}
+<link
+    rel="stylesheet"
+    href="{% static 'css/fleet.css' %}"
+>
+{% endblock %}
 
 {% block content %}
 
-
-
-<h1>
-    Aircraft Management
-</h1>
-
-
-
-
-{% if role == "ADMIN" %}
-
-<a href="{% url 'aircraft_create' %}" class="btn-primary">
-
-    + Add Aircraft
-
-</a>
-
-{% endif %}
-
-
-
-
-
-<table class="data-table">
-
-
-
-<thead>
-
-
-<tr>
-
-
-<th>
-Registration Number
-</th>
-
-
-
-<th>
-Airline
-</th>
-
-
-
-<th>
-Aircraft Type
-</th>
-
-
-
-<th>
-Serial Number
-</th>
-
-
-
-<th>
-Manufacture Year
-</th>
-
-
-
-<th>
-Status
-</th>
-
-
-
-<th>
-Actions
-</th>
-
-
-
-</tr>
-
-
-</thead>
-
-
-
-
-
-
-
-<tbody>
-
-
-
-{% for aircraft in aircrafts %}
-
-
-
-<tr>
-
-
-
-
-<td>
-{{ aircraft.registration_number }}
-</td>
-
-
-
-
-
-<td>
-{{ aircraft.airline.name }}
-</td>
-
-
-
-
-
-<td>
-{{ aircraft.aircraft_type }}
-</td>
-
-
-
-
-
-<td>
-{{ aircraft.serial_number|default:"-" }}
-</td>
-
-
-
-
-
-<td>
-{{ aircraft.manufacture_year|default:"-" }}
-</td>
-
-
-
-
-
-<td>
-
-
-<span class="status {{ aircraft.status|lower }}">
-
-
-{{ aircraft.get_status_display }}
-
-
-</span>
-
-
-</td>
-
-
-
-
-
-
-<td>
-
-{% if role == "ADMIN" %}
-
-
-<a href="{% url 'aircraft_edit' aircraft.id %}">
-Edit
-</a>
-
-
-|
-
-
-<form
-    method="post"
-    action="{% url 'aircraft_change_status' aircraft.id %}"
-    class="table-action-form"
->
-    {% csrf_token %}
-
-    <button
-        type="submit"
-        class="action-button action-button-primary"
-    >
-        Change Status
-    </button>
-</form>
-
-
-{% endif %}
-
-
-</td>
-
-
-
-
-
-</tr>
-
-
-
-
-
-
-{% empty %}
-
-
-
-<tr>
-
-
-<td colspan="7">
-
-
-No aircraft found
-
-
-</td>
-
-
-</tr>
-
-
-
-
-{% endfor %}
-
-
-
-
-
-
-</tbody>
-
-
-
-
-
-</table>
-
-
-
-
-
+<div class="module-page">
+
+    <header class="module-header">
+        <div>
+            <span class="module-eyebrow">
+                FLEET OPERATIONS
+            </span>
+
+            <h1>Aircraft Fleet</h1>
+
+            <p>
+                Monitor registered aircraft, carrier ownership
+                and operational availability.
+            </p>
+        </div>
+
+        {% if role == "ADMIN" %}
+            <a
+                href="{% url 'aircraft_create' %}"
+                class="primary-action"
+            >
+                <span class="action-icon">+</span>
+                Add aircraft
+            </a>
+        {% endif %}
+    </header>
+
+    <section class="summary-tile">
+        <div class="summary-icon">✈</div>
+
+        <div class="summary-content">
+            <span class="summary-label">
+                Registered aircraft
+            </span>
+
+            <strong class="summary-value">
+                {{ aircrafts|length }}
+            </strong>
+        </div>
+    </section>
+
+    <section class="data-card">
+
+        <header class="data-card-header">
+            <h2>Fleet registry</h2>
+
+            <p>
+                Operational and technical details of aircraft
+                registered in the system.
+            </p>
+        </header>
+
+        <div class="table-scroll">
+
+            <table class="module-table">
+
+                <thead>
+                    <tr>
+                        <th>Aircraft</th>
+                        <th>Airline</th>
+                        <th>Aircraft type</th>
+                        <th>Serial number</th>
+                        <th>Year</th>
+                        <th>Status</th>
+
+                        {% if role == "ADMIN" %}
+                            <th class="actions-heading">
+                                Actions
+                            </th>
+                        {% endif %}
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for aircraft in aircrafts %}
+
+                        <tr>
+                            <td>
+                                <div class="item-identity">
+                                    <div class="item-mark">
+                                        {{ aircraft.registration_number|slice:":2" }}
+                                    </div>
+
+                                    <div class="item-details">
+                                        <strong>
+                                            {{ aircraft.registration_number }}
+                                        </strong>
+
+                                        <span>
+                                            Registration
+                                        </span>
+                                    </div>
+                                </div>
+                            </td>
+
+                            <td>
+                                <div class="carrier-cell">
+                                    <strong>
+                                        {{ aircraft.airline.name }}
+                                    </strong>
+
+                                    <span>
+                                        {{ aircraft.airline.iata_code }}
+                                    </span>
+                                </div>
+                            </td>
+
+                            <td>
+                                <strong class="aircraft-model">
+                                    {{ aircraft.aircraft_type }}
+                                </strong>
+                            </td>
+
+                            <td>
+                                <span class="serial-code">
+                                    {{ aircraft.serial_number|default:"Not assigned" }}
+                                </span>
+                            </td>
+
+                            <td>
+                                {{ aircraft.manufacture_year|default:"—" }}
+                            </td>
+
+                            <td>
+                                <span class="fleet-status {{ aircraft.status|lower }}">
+                                    <span class="status-dot"></span>
+                                    {{ aircraft.get_status_display }}
+                                </span>
+                            </td>
+
+                            {% if role == "ADMIN" %}
+                                <td>
+                                    <div class="row-actions">
+
+                                        <a
+                                            href="{% url 'aircraft_edit' aircraft.id %}"
+                                            class="secondary-action"
+                                        >
+                                            Edit
+                                        </a>
+
+                                        <form
+                                            method="post"
+                                            action="{% url 'aircraft_change_status' aircraft.id %}"
+                                            class="inline-action-form"
+                                        >
+                                            {% csrf_token %}
+
+                                            <button
+                                                type="submit"
+                                                class="status-cycle-action"
+                                            >
+                                                Change status
+                                            </button>
+                                        </form>
+
+                                    </div>
+                                </td>
+                            {% endif %}
+                        </tr>
+
+                    {% empty %}
+
+                        <tr>
+                            <td
+                                colspan="7"
+                                class="empty-state"
+                            >
+                                <div class="empty-state-icon">✈</div>
+
+                                <h3>No aircraft registered</h3>
+
+                                <p>
+                                    Add the first aircraft to begin
+                                    managing fleet operations.
+                                </p>
+                            </td>
+                        </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </section>
+
+</div>
 
 {% endblock %}
