@@ -155,8 +155,46 @@ def flight_delete(request, id):
 
 @login_required
 def flight_detail(request, id):
-    flight = get_object_or_404(Flight,id=id)
-    return render(request,"flights/detail.html",{"flight": flight, "ground_operations": flight.ground_operations.all()})
+    flight = get_object_or_404(
+        Flight.objects.select_related(
+            "airline",
+            "aircraft",
+            "aircraft__aircraft_type",
+            "origin",
+            "destination",
+        ),
+        id=id,
+    )
+
+    gate_assignments = (
+        flight.gate_assignments
+        .select_related(
+            "gate",
+            "gate__terminal",
+            "gate__terminal__airport",
+        )
+        .all()
+    )
+
+    ground_operations = (
+        flight.ground_operations
+        .select_related(
+            "operation_type",
+            "assigned_staff",
+        )
+        .all()
+    )
+
+    return render(
+        request,
+        "flights/detail.html",
+        {
+            "flight": flight,
+            "statuses": Flight.STATUS_CHOICES,
+            "gate_assignments": gate_assignments,
+            "ground_operations": ground_operations,
+        },
+    )
 
 
 

@@ -245,6 +245,344 @@
 .flight-action.delete:hover {
     background: #fee2e2;
 }
+.flight-detail-page {
+    display: grid;
+    gap: 22px;
+}
+
+.back-link {
+    width: fit-content;
+    color: #64748b;
+    font-size: 13px;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.back-link:hover {
+    color: #0b1f3a;
+}
+
+.flight-hero {
+    overflow: hidden;
+    border: 1px solid #e2e8f0;
+    border-radius: 18px;
+    background: #ffffff;
+    box-shadow: 0 16px 40px rgba(15, 23, 42, 0.07);
+}
+
+.flight-hero-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 26px;
+}
+
+.flight-title-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.flight-title-row h1 {
+    margin: 0;
+    color: #081426;
+    font-size: 32px;
+    letter-spacing: -0.03em;
+}
+
+.flight-hero-top p {
+    margin: 8px 0 0;
+    color: #64748b;
+    font-size: 14px;
+}
+
+.route-overview {
+    display: grid;
+    grid-template-columns: minmax(140px, 1fr) minmax(180px, 2fr) minmax(140px, 1fr);
+    align-items: center;
+    gap: 24px;
+    padding: 32px 42px;
+    border-top: 1px solid #e2e8f0;
+    border-bottom: 1px solid #e2e8f0;
+    background: #f8fafc;
+}
+
+.airport-point {
+    display: grid;
+    gap: 4px;
+}
+
+.airport-point.destination {
+    text-align: right;
+}
+
+.airport-label {
+    color: #64748b;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.airport-point strong {
+    color: #081426;
+    font-size: 38px;
+    line-height: 1;
+}
+
+.airport-point > span:not(.airport-label) {
+    color: #64748b;
+    font-size: 12px;
+}
+
+.airport-point time {
+    margin-top: 8px;
+    color: #0b1f3a;
+    font-size: 18px;
+    font-weight: 800;
+}
+
+.airport-point small {
+    color: #64748b;
+}
+
+.route-progress {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #d4af37;
+}
+
+.route-progress-line {
+    height: 1px;
+    flex: 1;
+    background: #cbd5e1;
+}
+
+.route-progress-plane {
+    font-size: 22px;
+}
+
+.flight-information-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+}
+
+.information-item {
+    display: grid;
+    gap: 5px;
+    padding: 20px 26px;
+    border-right: 1px solid #e2e8f0;
+}
+
+.information-item:last-child {
+    border-right: 0;
+}
+
+.information-item span {
+    color: #64748b;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.information-item strong {
+    color: #0b1f3a;
+    font-size: 14px;
+}
+
+.operations-control-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    padding: 22px 24px;
+    border: 1px solid #e6d28b;
+    border-radius: 16px;
+    background: #fffdf5;
+}
+
+.operations-control-card h2 {
+    margin: 0;
+    color: #081426;
+    font-size: 17px;
+}
+
+.operations-control-card p {
+    margin: 5px 0 0;
+    color: #64748b;
+    font-size: 13px;
+}
+
+.control-actions,
+.status-update-form {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.status-update-form {
+    margin: 0;
+}
+
+.status-update-form select {
+    height: 42px;
+    min-width: 150px;
+    padding: 0 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 9px;
+    background: #ffffff;
+    color: #334155;
+    font: inherit;
+    font-size: 13px;
+}
+
+.status-update-form button,
+.release-action {
+    min-height: 42px;
+    padding: 0 14px;
+    border: 1px solid #d4af37;
+    border-radius: 9px;
+    background: #d4af37;
+    color: #081426;
+    font: inherit;
+    font-size: 12px;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.primary-action.compact {
+    min-height: 38px;
+    padding: 0 14px;
+    font-size: 12px;
+}
+
+.detail-section {
+    margin-top: 0;
+}
+
+.detail-section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.gate-code {
+    display: inline-grid;
+    min-width: 42px;
+    height: 34px;
+    place-items: center;
+    border-radius: 8px;
+    background: #0b1f3a;
+    color: #d4af37;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.assignment-status,
+.operation-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 6px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.assignment-status.active,
+.operation-status.completed {
+    background: #ecfdf3;
+    color: #166534;
+}
+
+.assignment-status.released {
+    background: #eff6ff;
+    color: #1d4ed8;
+}
+
+.assignment-status.cancelled,
+.operation-status.cancelled {
+    background: #fef2f2;
+    color: #b91c1c;
+}
+
+.operation-status.pending {
+    background: #f1f5f9;
+    color: #475569;
+}
+
+.operation-status.in_progress {
+    background: #fffbeb;
+    color: #92400e;
+}
+
+.release-action {
+    min-height: 34px;
+    background: #fbf5dc;
+}
+
+.operation-name {
+    color: #0b1f3a;
+}
+
+.not-available {
+    color: #94a3b8;
+}
+
+@media (max-width: 900px) {
+    .route-overview {
+        padding-right: 24px;
+        padding-left: 24px;
+    }
+
+    .flight-information-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .operations-control-card,
+    .control-actions {
+        align-items: stretch;
+        flex-direction: column;
+    }
+}
+
+@media (max-width: 600px) {
+    .flight-hero-top,
+    .detail-section-header {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .route-overview {
+        grid-template-columns: 1fr;
+    }
+
+    .airport-point,
+    .airport-point.destination {
+        text-align: center;
+    }
+
+    .route-progress {
+        transform: rotate(90deg);
+    }
+
+    .flight-information-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .information-item {
+        border-right: 0;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .status-update-form {
+        align-items: stretch;
+        flex-direction: column;
+    }
+}
 
 @media (max-width: 760px) {
     .flight-filters {
