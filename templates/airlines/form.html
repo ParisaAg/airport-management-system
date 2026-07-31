@@ -1,44 +1,179 @@
-{% extends 'base.html' %}
-
-
+{% extends "base.html" %}
+{% load static %}
 
 {% block title %}
-{{ title }}
+{{ title }} | Airport Operations
 {% endblock %}
 
-
+{% block extra_css %}
+<link
+    rel="stylesheet"
+    href="{% static 'css/forms.css' %}"
+>
+{% endblock %}
 
 {% block content %}
 
+<div class="form-page">
 
-<h1>
-{{ title }}
-</h1>
+    <header class="form-page-header">
+        <a
+            href="{% url 'airline_list' %}"
+            class="form-back-link"
+        >
+            ← Back to airlines
+        </a>
 
+        <h1>{{ title }}</h1>
 
+        <p>
+            Configure carrier identification,
+            contact information and availability.
+        </p>
+    </header>
 
-<form method="post">
+    <form method="post" class="management-form-card">
+        {% csrf_token %}
 
-{% csrf_token %}
+        <header class="form-card-header">
+            <h2>Airline information</h2>
 
+            <p>
+                Enter official airline and operational
+                contact details.
+            </p>
+        </header>
 
-{{ form.as_p }}
+        <div class="form-body">
 
+            {% if form.non_field_errors %}
+                <ul class="form-error-list">
+                    {% for error in form.non_field_errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
 
-<button class="btn-primary">
+            <div class="form-grid">
 
-Save
+                <div class="form-field form-grid-full">
+                    <label for="{{ form.name.id_for_label }}">
+                        Airline name
+                        <span class="form-required">*</span>
+                    </label>
 
-</button>
+                    {{ form.name }}
 
+                    {% for error in form.name.errors %}
+                        <p class="form-error">{{ error }}</p>
+                    {% endfor %}
+                </div>
 
-<a href="{% url 'airline_list' %}">
-Cancel
-</a>
+                <div class="form-field">
+                    <label for="{{ form.iata_code.id_for_label }}">
+                        IATA code
+                        <span class="form-required">*</span>
+                    </label>
 
+                    {{ form.iata_code }}
 
-</form>
+                    <p class="form-help">
+                        Two-character commercial airline code.
+                    </p>
 
+                    {% for error in form.iata_code.errors %}
+                        <p class="form-error">{{ error }}</p>
+                    {% endfor %}
+                </div>
 
+                <div class="form-field">
+                    <label for="{{ form.icao_code.id_for_label }}">
+                        ICAO code
+                        <span class="form-required">*</span>
+                    </label>
+
+                    {{ form.icao_code }}
+
+                    <p class="form-help">
+                        Three-character operational airline code.
+                    </p>
+
+                    {% for error in form.icao_code.errors %}
+                        <p class="form-error">{{ error }}</p>
+                    {% endfor %}
+                </div>
+
+                <div class="form-field">
+                    <label for="{{ form.country.id_for_label }}">
+                        Country
+                        <span class="form-required">*</span>
+                    </label>
+
+                    {{ form.country }}
+
+                    {% for error in form.country.errors %}
+                        <p class="form-error">{{ error }}</p>
+                    {% endfor %}
+                </div>
+
+                <div class="form-field">
+                    <label for="{{ form.contact_email.id_for_label }}">
+                        Contact email
+                    </label>
+
+                    {{ form.contact_email }}
+
+                    {% for error in form.contact_email.errors %}
+                        <p class="form-error">{{ error }}</p>
+                    {% endfor %}
+                </div>
+
+                <div class="form-field form-grid-full">
+                    <label for="{{ form.website.id_for_label }}">
+                        Website
+                    </label>
+
+                    {{ form.website }}
+
+                    {% for error in form.website.errors %}
+                        <p class="form-error">{{ error }}</p>
+                    {% endfor %}
+                </div>
+
+                <div class="checkbox-field form-grid-full">
+                    {{ form.is_active }}
+
+                    <div class="checkbox-content">
+                        <label for="{{ form.is_active.id_for_label }}">
+                            Active airline
+                        </label>
+
+                        <span>
+                            Available for aircraft and
+                            flight assignments.
+                        </span>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+        <footer class="form-actions">
+            <a
+                href="{% url 'airline_list' %}"
+                class="form-cancel"
+            >
+                Cancel
+            </a>
+
+            <button type="submit" class="form-submit">
+                Save airline
+            </button>
+        </footer>
+
+    </form>
+
+</div>
 
 {% endblock %}

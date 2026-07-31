@@ -211,6 +211,32 @@ textarea.form-control {
     border-color: #64748b;
     color: #0b1f3a;
 }
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+}
+
+.form-grid-full {
+    grid-column: 1 / -1;
+}
+
+.code-input {
+    font-family: Consolas, monospace;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+@media (max-width: 700px) {
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .form-grid-full {
+        grid-column: auto;
+    }
+}
 
 @media (max-width: 600px) {
     .form-page-header h1 {
@@ -229,3 +255,4 @@ textarea.form-control {
         flex-direction: column-reverse;
     }
 }
+
