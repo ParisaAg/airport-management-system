@@ -237,7 +237,43 @@ textarea.form-control {
         grid-column: auto;
     }
 }
+.form-context-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    margin-bottom: 22px;
+    padding: 18px 20px;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    background: #ffffff;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
+}
 
+.context-label {
+    display: block;
+    margin-bottom: 5px;
+    color: #64748b;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.context-flight {
+    color: #0b1f3a;
+    font-size: 20px;
+    font-weight: 800;
+}
+
+.context-route {
+    color: #64748b;
+    font-size: 13px;
+}
+
+.context-route strong {
+    color: #0b1f3a;
+}
 @media (max-width: 600px) {
     .form-page-header h1 {
         font-size: 28px;
