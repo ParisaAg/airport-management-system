@@ -1,9 +1,9 @@
 from datetime import timedelta
-
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.utils import timezone
-
+from django.urls import reverse
+from .models import Flight
 from airlines.models import Airline
 from airports.models import Airport, Gate, Terminal
 from fleet.models import Aircraft, AircraftType
@@ -236,4 +236,227 @@ class GateAssignmentFormTests(TestCase):
         self.assertNotIn(
             self.inactive_gate,
             gate_queryset,
+        )
+
+class FlightAuthorizationTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.airline = Airline.objects.create(
+            name="Resume Air",
+            iata_code="RA",
+            icao_code="RSA",
+            country="Iran",
+        )
+
+        cls.other_airline = Airline.objects.create(
+            name="Other Air",
+            iata_code="OA",
+            icao_code="OTA",
+            country="Iran",
+        )
+
+        aircraft_type = AircraftType.objects.create(
+            manufacturer="Airbus",
+            model="A320",
+            passenger_capacity=180,
+            range_km=6100,
+        )
+
+        cls.aircraft = Aircraft.objects.create(
+            airline=cls.airline,
+            aircraft_type=aircraft_type,
+            registration_number="EP-RSM",
+        )
+
+        cls.other_aircraft = Aircraft.objects.create(
+            airline=cls.other_airline,
+            aircraft_type=aircraft_type,
+            registration_number="EP-OTH",
+        )
+
+        origin = Airport.objects.create(
+            name="Imam Khomeini International Airport",
+            icao_code="OIIE",
+            iata_code="IKA",
+            country="Iran",
+            city="Tehran",
+        )
+
+        destination = Airport.objects.create(
+            name="Mashhad International Airport",
+            icao_code="OIMM",
+            iata_code="MHD",
+            country="Iran",
+            city="Mashhad",
+        )
+
+        departure_time = (
+            timezone.now() + timedelta(days=1)
+        )
+
+        cls.flight = Flight.objects.create(
+            flight_number="RA100",
+            airline=cls.airline,
+            aircraft=cls.aircraft,
+            origin=origin,
+            destination=destination,
+            departure_time=departure_time,
+            arrival_time=(
+                departure_time + timedelta(hours=1)
+            ),
+        )
+
+        cls.other_flight = Flight.objects.create(
+            flight_number="OA200",
+            airline=cls.other_airline,
+            aircraft=cls.other_aircraft,
+            origin=origin,
+            destination=destination,
+            departure_time=departure_time,
+            arrival_time=(
+                departure_time + timedelta(hours=1)
+            ),
+        )
+
+        cls.operator = User.objects.create_user(
+            username="airline-operator",
+            password="test-password",
+            role="AIRLINE_OPERATOR",
+            airline=cls.airline,
+        )
+
+        cls.operator_without_airline = (
+            User.objects.create_user(
+                username="unassigned-operator",
+                password="test-password",
+                role="AIRLINE_OPERATOR",
+            )
+        )
+
+        cls.ground_staff = User.objects.create_user(
+            username="ground-staff",
+            password="test-password",
+            role="GROUND_STAFF",
+        )
+
+        cls.admin = User.objects.create_user(
+            username="airport-admin",
+            password="test-password",
+            role="ADMIN",
+        )
+
+    def test_operator_only_sees_own_airline_flights(self):
+        self.client.force_login(
+            self.operator
+        )
+
+        response = self.client.get(
+            reverse("flight_list")
+        )
+
+        self.assertContains(
+            response,
+            self.flight.flight_number,
+        )
+
+        self.assertNotContains(
+            response,
+            self.other_flight.flight_number,
+        )
+
+    def test_operator_cannot_open_other_airline_flight(self):
+        self.client.force_login(
+            self.operator
+        )
+
+        response = self.client.get(
+            reverse(
+                "flight_detail",
+                args=[self.other_flight.id],
+            )
+        )
+
+        self.assertEqual(
+            response.status_code,
+            404,
+        )
+
+    def test_unassigned_operator_sees_no_flights(self):
+        self.client.force_login(
+            self.operator_without_airline
+        )
+
+        response = self.client.get(
+            reverse("flight_list")
+        )
+
+        self.assertNotContains(
+            response,
+            self.flight.flight_number,
+        )
+
+        self.assertNotContains(
+            response,
+            self.other_flight.flight_number,
+        )
+
+    def test_ground_staff_cannot_create_flight(self):
+        self.client.force_login(
+            self.ground_staff
+        )
+
+        response = self.client.get(
+            reverse("flight_create")
+        )
+
+        self.assertEqual(
+            response.status_code,
+            403,
+        )
+
+    def test_status_change_rejects_get_request(self):
+        self.client.force_login(
+            self.admin
+        )
+
+        response = self.client.get(
+            reverse(
+                "flight_change_status",
+                args=[self.flight.id],
+            )
+        )
+
+        self.assertEqual(
+            response.status_code,
+            405,
+        )
+
+    def test_admin_can_change_flight_status(self):
+        self.client.force_login(
+            self.admin
+        )
+
+        response = self.client.post(
+            reverse(
+                "flight_change_status",
+                args=[self.flight.id],
+            ),
+            {
+                "status": "DELAYED",
+            },
+        )
+
+        self.assertRedirects(
+            response,
+            reverse(
+                "flight_detail",
+                args=[self.flight.id],
+            ),
+        )
+
+        self.flight.refresh_from_db()
+
+        self.assertEqual(
+            self.flight.status,
+            "DELAYED",
         )
