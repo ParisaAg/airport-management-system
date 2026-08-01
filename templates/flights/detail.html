@@ -158,22 +158,35 @@
                 >
                     {% csrf_token %}
 
-                    <select name="status" aria-label="Flight status">
-                        {% for key, value in statuses %}
-                            <option
-                                value="{{ key }}"
-                                {% if flight.status == key %}
-                                    selected
-                                {% endif %}
-                            >
-                                {{ value }}
-                            </option>
-                        {% endfor %}
-                    </select>
+                    {% if allowed_statuses %}
 
-                    <button type="submit">
-                        Update status
-                    </button>
+                        <select
+                            name="status"
+                            aria-label="Next flight status"
+                            required
+                        >
+                            <option value="" selected disabled>
+                                Select next status
+                            </option>
+
+                            {% for key, value in allowed_statuses %}
+                                <option value="{{ key }}">
+                                    {{ value }}
+                                </option>
+                            {% endfor %}
+                        </select>
+
+                        <button type="submit">
+                            Update status
+                        </button>
+
+                    {% else %}
+
+                        <span class="terminal-status">
+                            No further status transitions
+                        </span>
+
+                    {% endif %}
                 </form>
 
                 <a

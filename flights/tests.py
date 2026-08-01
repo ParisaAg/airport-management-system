@@ -7,7 +7,11 @@ from .models import Flight
 from airlines.models import Airline
 from airports.models import Airport, Gate, Terminal
 from fleet.models import Aircraft, AircraftType
-
+from .services import (
+    InvalidFlightTransition,
+    available_flight_status_choices,
+    transition_flight_status,
+)
 from .forms import FlightForm, GateAssignmentForm
 
 
@@ -459,4 +463,165 @@ class FlightAuthorizationTests(TestCase):
         self.assertEqual(
             self.flight.status,
             "DELAYED",
+        )
+
+
+class FlightTransitionTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        airline = Airline.objects.create(
+            name="Workflow Air",
+            iata_code="WA",
+            icao_code="WFA",
+            country="Iran",
+        )
+
+        aircraft_type = AircraftType.objects.create(
+            manufacturer="Airbus",
+            model="A319",
+            passenger_capacity=150,
+            range_km=6900,
+        )
+
+        aircraft = Aircraft.objects.create(
+            airline=airline,
+            aircraft_type=aircraft_type,
+            registration_number="EP-WFA",
+        )
+
+        origin = Airport.objects.create(
+            name="Imam Khomeini International Airport",
+            icao_code="OIIE",
+            iata_code="IKA",
+            country="Iran",
+            city="Tehran",
+        )
+
+        destination = Airport.objects.create(
+            name="Shiraz International Airport",
+            icao_code="OISS",
+            iata_code="SYZ",
+            country="Iran",
+            city="Shiraz",
+        )
+
+        departure_time = (
+            timezone.now() + timedelta(days=1)
+        )
+
+        cls.flight = Flight.objects.create(
+            flight_number="WA300",
+            airline=airline,
+            aircraft=aircraft,
+            origin=origin,
+            destination=destination,
+            departure_time=departure_time,
+            arrival_time=(
+                departure_time + timedelta(hours=1)
+            ),
+            status="SCHEDULED",
+        )
+
+    def test_scheduled_flight_can_begin_boarding(self):
+        flight = transition_flight_status(
+            flight_id=self.flight.id,
+            new_status="BOARDING",
+        )
+
+        self.assertEqual(
+            flight.status,
+            "BOARDING",
+        )
+
+    def test_scheduled_flight_cannot_depart_directly(self):
+        with self.assertRaises(
+            InvalidFlightTransition
+        ):
+            transition_flight_status(
+                flight_id=self.flight.id,
+                new_status="DEPARTED",
+            )
+
+        self.flight.refresh_from_db()
+
+        self.assertEqual(
+            self.flight.status,
+            "SCHEDULED",
+        )
+
+    def test_flight_can_complete_valid_lifecycle(self):
+        transition_flight_status(
+            flight_id=self.flight.id,
+            new_status="BOARDING",
+        )
+
+        transition_flight_status(
+            flight_id=self.flight.id,
+            new_status="DEPARTED",
+        )
+
+        flight = transition_flight_status(
+            flight_id=self.flight.id,
+            new_status="ARRIVED",
+        )
+
+        self.assertEqual(
+            flight.status,
+            "ARRIVED",
+        )
+
+    def test_arrived_flight_is_terminal(self):
+        transition_flight_status(
+            flight_id=self.flight.id,
+            new_status="BOARDING",
+        )
+
+        transition_flight_status(
+            flight_id=self.flight.id,
+            new_status="DEPARTED",
+        )
+
+        transition_flight_status(
+            flight_id=self.flight.id,
+            new_status="ARRIVED",
+        )
+
+        with self.assertRaises(
+            InvalidFlightTransition
+        ):
+            transition_flight_status(
+                flight_id=self.flight.id,
+                new_status="DELAYED",
+            )
+
+    def test_available_choices_only_include_valid_transitions(self):
+        choices = dict(
+            available_flight_status_choices(
+                "SCHEDULED"
+            )
+        )
+
+        self.assertIn(
+            "BOARDING",
+            choices,
+        )
+
+        self.assertIn(
+            "DELAYED",
+            choices,
+        )
+
+        self.assertIn(
+            "CANCELLED",
+            choices,
+        )
+
+        self.assertNotIn(
+            "DEPARTED",
+            choices,
+        )
+
+        self.assertNotIn(
+            "ARRIVED",
+            choices,
         )

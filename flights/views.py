@@ -3,7 +3,15 @@ from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
-
+from .services import (
+    InvalidFlightTransition,
+    transition_flight_status,
+)
+from .services import (
+    InvalidFlightTransition,
+    available_flight_status_choices,
+    transition_flight_status,
+)
 from accounts.permissions import (
     ADMIN,
     AIRLINE_OPERATOR,
@@ -210,7 +218,7 @@ def flight_detail(request, id):
         )
         .all()
     )
-
+    
     ground_operations = (
         flight.ground_operations
         .select_related(
@@ -228,6 +236,7 @@ def flight_detail(request, id):
             "statuses": Flight.STATUS_CHOICES,
             "gate_assignments": gate_assignments,
             "ground_operations": ground_operations,
+            "allowed_statuses": (available_flight_status_choices(flight.status)),
         },
     )
 
@@ -245,29 +254,24 @@ def flight_change_status(request, id):
         "status"
     )
 
-    if new_status in dict(
-        Flight.STATUS_CHOICES
-    ):
-        flight.status = new_status
-
-        flight.save(
-            update_fields=[
-                "status",
-                "updated_at",
-            ]
+    try:
+        flight = transition_flight_status(
+            flight_id=flight.id,
+            new_status=new_status,
         )
-
+    except InvalidFlightTransition as error:
+        messages.error(
+            request,
+            error.messages[0],
+        )
+    else:
         messages.success(
             request,
             (
                 f"Flight {flight.flight_number} "
-                "status updated."
+                f"changed to "
+                f"{flight.get_status_display()}."
             ),
-        )
-    else:
-        messages.error(
-            request,
-            "Invalid flight status.",
         )
 
     return redirect(
