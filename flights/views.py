@@ -2,27 +2,25 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
 from django.views.decorators.http import require_POST
-from .services import (
-    InvalidFlightTransition,
-    transition_flight_status,
-)
-from audit.models import AuditLog
-from audit.services import record_audit_event
-from .services import (
-    InvalidFlightTransition,
-    available_flight_status_choices,
-    transition_flight_status,
-)
+
 from accounts.permissions import (
     ADMIN,
     AIRLINE_OPERATOR,
     role_required,
 )
+from audit.models import AuditLog
+from audit.services import record_audit_event
 
 from .forms import FlightForm, GateAssignmentForm
 from .models import Flight, GateAssignment
 from .selectors import flights_visible_to
+from .services import (
+    InvalidFlightTransition,
+    available_flight_status_choices,
+    transition_flight_status,
+)
 
 
 FLIGHT_MANAGEMENT_ROLES = (
@@ -301,25 +299,18 @@ def gate_assignment_create(request, id):
             assignment = form.save(
                 commit=False,
             )
-
             assignment.flight = flight
             assignment.save()
 
-            record_audit_event(
-                action=AuditLog.Action.GATE_ASSIGNMENT,
-                instance=assignment,
-                actor=request.user,
-                request=request,
-            )
             record_audit_event(
                 action=AuditLog.Action.ASSIGN,
                 instance=assignment,
                 actor=request.user,
                 request=request,
                 description=(
-                f"Gate {assignment.gate.code} "
-                f"assigned to flight "
-                f"{flight.flight_number}."
+                    f"Gate {assignment.gate.code} "
+                    f"assigned to flight "
+                    f"{flight.flight_number}."
                 ),
                 changes={
                     "gate": {
@@ -328,15 +319,17 @@ def gate_assignment_create(request, id):
                     },
                     "status": {
                         "from": None,
-                        "to": "ACTIVE",
+                        "to": assignment.status,
                     },
                 },
             )
+
             messages.success(
                 request,
                 (
                     f"Gate {assignment.gate.code} "
-                    f"assigned to {flight.flight_number}."
+                    f"assigned to "
+                    f"{flight.flight_number}."
                 ),
             )
 
@@ -356,7 +349,6 @@ def gate_assignment_create(request, id):
         },
     )
 
-
 @login_required
 @require_POST
 @role_required(ADMIN)
@@ -368,49 +360,53 @@ def gate_assignment_release(request, id):
         ),
         id=id,
     )
-    previous_status = assignment.status
+
     if assignment.status == "ACTIVE":
-        from django.utils import timezone
+        previous_status = assignment.status
+        gate_code = assignment.gate.code
 
         assignment.status = "RELEASED"
-        assignment.released_time = (
-            timezone.now()
-        )
-
+        assignment.released_time = timezone.now()
         assignment.save(
             update_fields=[
                 "status",
                 "released_time",
-            ]
+            ],
         )
+
         record_audit_event(
             action=AuditLog.Action.RELEASE,
             instance=assignment,
             actor=request.user,
             request=request,
             description=(
-            f"Gate {assignment.gate.code} "
-            f"released from flight "
-            f"{assignment.flight.flight_number}."
+                f"Gate {gate_code} released "
+                f"from flight "
+                f"{assignment.flight.flight_number}."
             ),
             changes={
                 "status": {
                     "from": previous_status,
-                    "to": "RELEASED",
+                    "to": assignment.status,
                 },
                 "gate": {
-                    "from": assignment.gate.code,
+                    "from": gate_code,
                     "to": None,
                 },
             },
-            )
+        )
 
         messages.success(
             request,
             (
-                f"Gate {assignment.gate.code} "
+                f"Gate {gate_code} "
                 "released successfully."
             ),
+        )
+    else:
+        messages.warning(
+            request,
+            "This gate assignment has already been released.",
         )
 
     return redirect(

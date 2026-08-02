@@ -29,6 +29,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
 
+    "audit.apps.AuditConfig",
     "accounts.apps.AccountsConfig",
     "airports.apps.AirportsConfig",
     "airlines.apps.AirlinesConfig",
