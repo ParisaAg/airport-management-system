@@ -1,6 +1,7 @@
 from django.core.exceptions import ValidationError
 from django.db import transaction
-
+from audit.models import AuditLog
+from audit.services import record_audit_event
 from .models import Flight
 
 
@@ -37,6 +38,8 @@ def transition_flight_status(
     *,
     flight_id,
     new_status,
+    actor=None,
+    request=None,
 ):
     flight = (
         Flight.objects
@@ -83,7 +86,23 @@ def transition_flight_status(
             "updated_at",
         ]
     )
-
+    record_audit_event(
+    action=AuditLog.Action.STATUS_CHANGE,
+    instance=flight,
+    actor=actor,
+    request=request,
+    description=(
+        f"Flight {flight.flight_number} "
+        f"changed from {current_status} "
+        f"to {new_status}."
+    ),
+    changes={
+        "status": {
+            "from": current_status,
+            "to": new_status,
+        }
+    },
+)
     return flight
 
 

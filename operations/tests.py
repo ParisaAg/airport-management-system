@@ -4,7 +4,7 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
-
+from audit.models import AuditLog
 from airlines.models import Airline
 from airports.models import Airport
 from fleet.models import Aircraft, AircraftType
@@ -309,7 +309,39 @@ class GroundOperationAuthorizationTests(
             self.operation.status,
             "IN_PROGRESS",
         )
+def test_status_change_creates_audit_event(self):
+    self.client.force_login(
+        self.ground_staff
+    )
 
+    self.client.post(
+        reverse(
+            "ground_operation_change_status",
+            args=[self.operation.id],
+        ),
+        {
+            "status": "IN_PROGRESS",
+        },
+    )
+
+    event = AuditLog.objects.get(
+        entity_type="operations.GroundOperation",
+        entity_id=str(self.operation.id),
+        action=AuditLog.Action.STATUS_CHANGE,
+    )
+
+    self.assertEqual(
+        event.actor,
+        self.ground_staff,
+    )
+
+    self.assertEqual(
+        event.changes["status"],
+        {
+            "from": "PENDING",
+            "to": "IN_PROGRESS",
+        },
+    )
 class GroundOperationFormTests(
     GroundOperationTestData
 ):

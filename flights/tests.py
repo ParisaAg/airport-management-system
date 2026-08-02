@@ -1,18 +1,22 @@
 from datetime import timedelta
+
 from django.contrib.auth import get_user_model
 from django.test import TestCase
-from django.utils import timezone
 from django.urls import reverse
-from .models import Flight
+from django.utils import timezone
+
 from airlines.models import Airline
 from airports.models import Airport, Gate, Terminal
+from audit.models import AuditLog
 from fleet.models import Aircraft, AircraftType
+
+from .forms import FlightForm, GateAssignmentForm
+from .models import Flight, GateAssignment
 from .services import (
     InvalidFlightTransition,
     available_flight_status_choices,
     transition_flight_status,
 )
-from .forms import FlightForm, GateAssignmentForm
 
 
 User = get_user_model()
@@ -80,13 +84,9 @@ class FlightFormTests(TestCase):
         )
 
     def valid_form_data(self):
-        departure_time = (
-            timezone.now() + timedelta(days=1)
-        )
+        departure_time = timezone.now() + timedelta(days=1)
 
-        arrival_time = (
-            departure_time + timedelta(hours=1)
-        )
+        arrival_time = departure_time + timedelta(hours=1)
 
         return {
             "flight_number": "ra100",
@@ -94,12 +94,8 @@ class FlightFormTests(TestCase):
             "aircraft": self.aircraft.id,
             "origin": self.origin.id,
             "destination": self.destination.id,
-            "departure_time": departure_time.strftime(
-                "%Y-%m-%dT%H:%M"
-            ),
-            "arrival_time": arrival_time.strftime(
-                "%Y-%m-%dT%H:%M"
-            ),
+            "departure_time": departure_time.strftime("%Y-%m-%dT%H:%M"),
+            "arrival_time": arrival_time.strftime("%Y-%m-%dT%H:%M"),
         }
 
     def test_status_is_not_form_editable(self):
@@ -111,9 +107,7 @@ class FlightFormTests(TestCase):
         )
 
     def test_flight_number_is_normalized(self):
-        form = FlightForm(
-            data=self.valid_form_data()
-        )
+        form = FlightForm(data=self.valid_form_data())
 
         self.assertTrue(
             form.is_valid(),
@@ -158,9 +152,7 @@ class FlightFormTests(TestCase):
     def test_arrival_must_be_after_departure(self):
         data = self.valid_form_data()
 
-        data["arrival_time"] = data[
-            "departure_time"
-        ]
+        data["arrival_time"] = data["departure_time"]
 
         form = FlightForm(data=data)
 
@@ -172,13 +164,9 @@ class FlightFormTests(TestCase):
         )
 
     def test_operator_only_sees_own_aircraft(self):
-        form = FlightForm(
-            user=self.operator
-        )
+        form = FlightForm(user=self.operator)
 
-        aircraft_queryset = (
-            form.fields["aircraft"].queryset
-        )
+        aircraft_queryset = form.fields["aircraft"].queryset
 
         self.assertIn(
             self.aircraft,
@@ -193,6 +181,7 @@ class FlightFormTests(TestCase):
         self.assertTrue(
             form["airline"].is_hidden,
         )
+
 
 class GateAssignmentFormTests(TestCase):
     @classmethod
@@ -228,9 +217,7 @@ class GateAssignmentFormTests(TestCase):
     def test_only_active_gates_are_available(self):
         form = GateAssignmentForm()
 
-        gate_queryset = form.fields[
-            "gate"
-        ].queryset
+        gate_queryset = form.fields["gate"].queryset
 
         self.assertIn(
             self.active_gate,
@@ -241,6 +228,7 @@ class GateAssignmentFormTests(TestCase):
             self.inactive_gate,
             gate_queryset,
         )
+
 
 class FlightAuthorizationTests(TestCase):
     @classmethod
@@ -278,7 +266,7 @@ class FlightAuthorizationTests(TestCase):
             registration_number="EP-OTH",
         )
 
-        origin = Airport.objects.create(
+        cls.origin = Airport.objects.create(
             name="Imam Khomeini International Airport",
             icao_code="OIIE",
             iata_code="IKA",
@@ -286,7 +274,7 @@ class FlightAuthorizationTests(TestCase):
             city="Tehran",
         )
 
-        destination = Airport.objects.create(
+        cls.destination = Airport.objects.create(
             name="Mashhad International Airport",
             icao_code="OIMM",
             iata_code="MHD",
@@ -294,32 +282,39 @@ class FlightAuthorizationTests(TestCase):
             city="Mashhad",
         )
 
-        departure_time = (
-            timezone.now() + timedelta(days=1)
+        departure_time = timezone.now() + timedelta(days=1)
+
+        cls.terminal = Terminal.objects.create(
+            airport=cls.origin,
+            name="Terminal 1",
+            code="T1",
+        )
+
+        cls.gate = Gate.objects.create(
+            terminal=cls.terminal,
+            name="Gate A1",
+            code="A1",
+            is_active=True,
         )
 
         cls.flight = Flight.objects.create(
             flight_number="RA100",
             airline=cls.airline,
             aircraft=cls.aircraft,
-            origin=origin,
-            destination=destination,
+            origin=cls.origin,
+            destination=cls.destination,
             departure_time=departure_time,
-            arrival_time=(
-                departure_time + timedelta(hours=1)
-            ),
+            arrival_time=(departure_time + timedelta(hours=1)),
         )
 
         cls.other_flight = Flight.objects.create(
             flight_number="OA200",
             airline=cls.other_airline,
             aircraft=cls.other_aircraft,
-            origin=origin,
-            destination=destination,
+            origin=cls.origin,
+            destination=cls.destination,
             departure_time=departure_time,
-            arrival_time=(
-                departure_time + timedelta(hours=1)
-            ),
+            arrival_time=(departure_time + timedelta(hours=1)),
         )
 
         cls.operator = User.objects.create_user(
@@ -329,12 +324,10 @@ class FlightAuthorizationTests(TestCase):
             airline=cls.airline,
         )
 
-        cls.operator_without_airline = (
-            User.objects.create_user(
-                username="unassigned-operator",
-                password="test-password",
-                role="AIRLINE_OPERATOR",
-            )
+        cls.operator_without_airline = User.objects.create_user(
+            username="unassigned-operator",
+            password="test-password",
+            role="AIRLINE_OPERATOR",
         )
 
         cls.ground_staff = User.objects.create_user(
@@ -349,14 +342,103 @@ class FlightAuthorizationTests(TestCase):
             role="ADMIN",
         )
 
-    def test_operator_only_sees_own_airline_flights(self):
-        self.client.force_login(
-            self.operator
+    def test_gate_assignment_creates_audit_event(self):
+        self.client.force_login(self.admin)
+
+        response = self.client.post(
+            reverse(
+                "gate_assignment_create",
+                args=[self.flight.id],
+            ),
+            {
+                "gate": self.gate.id,
+                "notes": "Primary departure gate",
+            },
         )
 
-        response = self.client.get(
-            reverse("flight_list")
+        self.assertRedirects(
+            response,
+            reverse(
+                "flight_detail",
+                args=[self.flight.id],
+            ),
         )
+
+        assignment = GateAssignment.objects.get(
+            flight=self.flight,
+            gate=self.gate,
+        )
+
+        event = AuditLog.objects.get(
+            entity_type=("flights.GateAssignment"),
+            entity_id=str(assignment.id),
+            action=AuditLog.Action.ASSIGN,
+        )
+
+        self.assertEqual(
+            event.actor,
+            self.admin,
+        )
+
+        self.assertEqual(
+            event.changes["gate"]["to"],
+            "A1",
+        )
+
+    def test_gate_release_creates_audit_event(self):
+        assignment = GateAssignment.objects.create(
+            flight=self.flight,
+            gate=self.gate,
+            status="ACTIVE",
+        )
+
+        self.client.force_login(self.admin)
+
+        response = self.client.post(
+            reverse(
+                "gate_assignment_release",
+                args=[assignment.id],
+            )
+        )
+
+        self.assertRedirects(
+            response,
+            reverse(
+                "flight_detail",
+                args=[self.flight.id],
+            ),
+        )
+
+        assignment.refresh_from_db()
+
+        self.assertEqual(
+            assignment.status,
+            "RELEASED",
+        )
+
+        event = AuditLog.objects.get(
+            entity_type=("flights.GateAssignment"),
+            entity_id=str(assignment.id),
+            action=AuditLog.Action.RELEASE,
+        )
+
+        self.assertEqual(
+            event.actor,
+            self.admin,
+        )
+
+        self.assertEqual(
+            event.changes["status"],
+            {
+                "from": "ACTIVE",
+                "to": "RELEASED",
+            },
+        )
+
+    def test_operator_only_sees_own_airline_flights(self):
+        self.client.force_login(self.operator)
+
+        response = self.client.get(reverse("flight_list"))
 
         self.assertContains(
             response,
@@ -369,9 +451,7 @@ class FlightAuthorizationTests(TestCase):
         )
 
     def test_operator_cannot_open_other_airline_flight(self):
-        self.client.force_login(
-            self.operator
-        )
+        self.client.force_login(self.operator)
 
         response = self.client.get(
             reverse(
@@ -386,13 +466,9 @@ class FlightAuthorizationTests(TestCase):
         )
 
     def test_unassigned_operator_sees_no_flights(self):
-        self.client.force_login(
-            self.operator_without_airline
-        )
+        self.client.force_login(self.operator_without_airline)
 
-        response = self.client.get(
-            reverse("flight_list")
-        )
+        response = self.client.get(reverse("flight_list"))
 
         self.assertNotContains(
             response,
@@ -405,13 +481,9 @@ class FlightAuthorizationTests(TestCase):
         )
 
     def test_ground_staff_cannot_create_flight(self):
-        self.client.force_login(
-            self.ground_staff
-        )
+        self.client.force_login(self.ground_staff)
 
-        response = self.client.get(
-            reverse("flight_create")
-        )
+        response = self.client.get(reverse("flight_create"))
 
         self.assertEqual(
             response.status_code,
@@ -419,9 +491,7 @@ class FlightAuthorizationTests(TestCase):
         )
 
     def test_status_change_rejects_get_request(self):
-        self.client.force_login(
-            self.admin
-        )
+        self.client.force_login(self.admin)
 
         response = self.client.get(
             reverse(
@@ -436,9 +506,7 @@ class FlightAuthorizationTests(TestCase):
         )
 
     def test_admin_can_change_flight_status(self):
-        self.client.force_login(
-            self.admin
-        )
+        self.client.force_login(self.admin)
 
         response = self.client.post(
             reverse(
@@ -463,6 +531,38 @@ class FlightAuthorizationTests(TestCase):
         self.assertEqual(
             self.flight.status,
             "DELAYED",
+        )
+
+    def test_status_change_creates_audit_event(self):
+        self.client.force_login(self.admin)
+
+        self.client.post(
+            reverse(
+                "flight_change_status",
+                args=[self.flight.id],
+            ),
+            {
+                "status": "DELAYED",
+            },
+        )
+
+        event = AuditLog.objects.get(
+            entity_type="flights.Flight",
+            entity_id=str(self.flight.id),
+            action=(AuditLog.Action.STATUS_CHANGE),
+        )
+
+        self.assertEqual(
+            event.actor,
+            self.admin,
+        )
+
+        self.assertEqual(
+            event.changes["status"],
+            {
+                "from": "SCHEDULED",
+                "to": "DELAYED",
+            },
         )
 
 
@@ -505,9 +605,7 @@ class FlightTransitionTests(TestCase):
             city="Shiraz",
         )
 
-        departure_time = (
-            timezone.now() + timedelta(days=1)
-        )
+        departure_time = timezone.now() + timedelta(days=1)
 
         cls.flight = Flight.objects.create(
             flight_number="WA300",
@@ -516,9 +614,7 @@ class FlightTransitionTests(TestCase):
             origin=origin,
             destination=destination,
             departure_time=departure_time,
-            arrival_time=(
-                departure_time + timedelta(hours=1)
-            ),
+            arrival_time=(departure_time + timedelta(hours=1)),
             status="SCHEDULED",
         )
 
@@ -534,9 +630,7 @@ class FlightTransitionTests(TestCase):
         )
 
     def test_scheduled_flight_cannot_depart_directly(self):
-        with self.assertRaises(
-            InvalidFlightTransition
-        ):
+        with self.assertRaises(InvalidFlightTransition):
             transition_flight_status(
                 flight_id=self.flight.id,
                 new_status="DEPARTED",
@@ -586,20 +680,14 @@ class FlightTransitionTests(TestCase):
             new_status="ARRIVED",
         )
 
-        with self.assertRaises(
-            InvalidFlightTransition
-        ):
+        with self.assertRaises(InvalidFlightTransition):
             transition_flight_status(
                 flight_id=self.flight.id,
                 new_status="DELAYED",
             )
 
     def test_available_choices_only_include_valid_transitions(self):
-        choices = dict(
-            available_flight_status_choices(
-                "SCHEDULED"
-            )
-        )
+        choices = dict(available_flight_status_choices("SCHEDULED"))
 
         self.assertIn(
             "BOARDING",

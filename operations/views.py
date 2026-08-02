@@ -238,7 +238,8 @@ def ground_operation_change_status(request, id):
         transition_ground_operation(
             operation_id=operation.id,
             new_status=new_status,
-        )
+            actor=request.user,
+            request=request,)
     except InvalidOperationTransition as error:
         messages.error(
             request,

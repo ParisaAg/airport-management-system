@@ -7,6 +7,8 @@ from .services import (
     InvalidFlightTransition,
     transition_flight_status,
 )
+from audit.models import AuditLog
+from audit.services import record_audit_event
 from .services import (
     InvalidFlightTransition,
     available_flight_status_choices,
@@ -258,6 +260,8 @@ def flight_change_status(request, id):
         flight = transition_flight_status(
             flight_id=flight.id,
             new_status=new_status,
+            actor=request.user,
+            request=request,
         )
     except InvalidFlightTransition as error:
         messages.error(
@@ -301,6 +305,33 @@ def gate_assignment_create(request, id):
             assignment.flight = flight
             assignment.save()
 
+            record_audit_event(
+                action=AuditLog.Action.GATE_ASSIGNMENT,
+                instance=assignment,
+                actor=request.user,
+                request=request,
+            )
+            record_audit_event(
+                action=AuditLog.Action.ASSIGN,
+                instance=assignment,
+                actor=request.user,
+                request=request,
+                description=(
+                f"Gate {assignment.gate.code} "
+                f"assigned to flight "
+                f"{flight.flight_number}."
+                ),
+                changes={
+                    "gate": {
+                        "from": None,
+                        "to": assignment.gate.code,
+                    },
+                    "status": {
+                        "from": None,
+                        "to": "ACTIVE",
+                    },
+                },
+            )
             messages.success(
                 request,
                 (
@@ -337,7 +368,7 @@ def gate_assignment_release(request, id):
         ),
         id=id,
     )
-
+    previous_status = assignment.status
     if assignment.status == "ACTIVE":
         from django.utils import timezone
 
@@ -352,6 +383,27 @@ def gate_assignment_release(request, id):
                 "released_time",
             ]
         )
+        record_audit_event(
+            action=AuditLog.Action.RELEASE,
+            instance=assignment,
+            actor=request.user,
+            request=request,
+            description=(
+            f"Gate {assignment.gate.code} "
+            f"released from flight "
+            f"{assignment.flight.flight_number}."
+            ),
+            changes={
+                "status": {
+                    "from": previous_status,
+                    "to": "RELEASED",
+                },
+                "gate": {
+                    "from": assignment.gate.code,
+                    "to": None,
+                },
+            },
+            )
 
         messages.success(
             request,

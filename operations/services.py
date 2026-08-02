@@ -1,7 +1,8 @@
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.utils import timezone
-
+from audit.models import AuditLog
+from audit.services import record_audit_event
 from .models import GroundOperation
 
 
@@ -28,6 +29,8 @@ def transition_ground_operation(
     *,
     operation_id,
     new_status,
+    actor=None,
+    request=None,
 ):
     operation = (
         GroundOperation.objects
@@ -84,5 +87,22 @@ def transition_ground_operation(
     operation.full_clean()
 
     operation.save(update_fields=update_fields)
-
+    record_audit_event(
+    action=AuditLog.Action.STATUS_CHANGE,
+    instance=operation,
+    actor=actor,
+    request=request,
+    description=(
+        f"Ground operation "
+        f"{operation.operation_type.name} "
+        f"changed from {current_status} "
+        f"to {new_status}."
+    ),
+    changes={
+        "status": {
+            "from": current_status,
+            "to": new_status,
+        }
+    },
+)
     return operation
