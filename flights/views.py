@@ -1,33 +1,21 @@
 from django.contrib import messages
+from airports.models import Airport
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
-from django.views.decorators.http import require_POST
-
-from accounts.permissions import (
-    ADMIN,
-    AIRLINE_OPERATOR,
-    role_required,
-)
+from django.views.decorators.http import require_GET, require_POST
+from django.http import JsonResponse
+from accounts.permissions import (ADMIN,AIRLINE_OPERATOR,role_required,)
+from .selectors import (flights_visible_to,public_board_flights,)
 from audit.models import AuditLog
 from audit.services import record_audit_event
-
 from .forms import FlightForm, GateAssignmentForm
 from .models import Flight, GateAssignment
 from .selectors import flights_visible_to
-from .services import (
-    InvalidFlightTransition,
-    available_flight_status_choices,
-    transition_flight_status,
-)
-
-
-FLIGHT_MANAGEMENT_ROLES = (
-    ADMIN,
-    AIRLINE_OPERATOR,
-)
-
+from django.utils import timezone
+from .services import (InvalidFlightTransition,available_flight_status_choices,transition_flight_status,)
+FLIGHT_MANAGEMENT_ROLES = (ADMIN,AIRLINE_OPERATOR,)
 
 @login_required
 def flight_list(request):
@@ -412,4 +400,149 @@ def gate_assignment_release(request, id):
     return redirect(
         "flight_detail",
         id=assignment.flight_id,
+    )
+@require_GET
+def public_flight_board(request):
+    airports = Airport.objects.order_by(
+        "city",
+        "name",
+    )
+
+    requested_airport = request.GET.get(
+        "airport",
+        "",
+    ).strip().upper()
+
+    selected_airport = airports.filter(
+        iata_code=requested_airport,
+    ).first()
+
+    if selected_airport is None:
+        selected_airport = airports.first()
+
+    return render(
+        request,
+        "flights/board.html",
+        {
+            "airports": airports,
+            "selected_airport": selected_airport,
+        },
+    )
+
+@require_GET
+def public_flight_board_data(request):
+    airport_code = request.GET.get(
+        "airport",
+        "",
+    ).strip().upper()
+
+    board_type = request.GET.get(
+        "type",
+        "DEPARTURES",
+    ).strip().upper()
+
+    if board_type not in {
+        "ARRIVALS",
+        "DEPARTURES",
+    }:
+        board_type = "DEPARTURES"
+
+    airport = Airport.objects.filter(
+        iata_code=airport_code,
+    ).first()
+
+    if airport is None:
+        return JsonResponse(
+            {
+                "error": "A valid airport IATA code is required.",
+            },
+            status=400,
+        )
+
+    flights = public_board_flights(
+        airport=airport,
+        board_type=board_type,
+    )
+
+    rows = []
+
+    for flight in flights:
+        gate_assignment = next(
+            iter(
+                flight.active_gate_assignments
+            ),
+            None,
+        )
+
+        gate = (
+            gate_assignment.gate.code
+            if gate_assignment
+            else None
+        )
+
+        terminal = (
+            gate_assignment.gate.terminal.code
+            if (
+                gate_assignment
+                and gate_assignment.gate.terminal
+            )
+            else None
+        )
+
+        scheduled_time = (
+            flight.arrival_time
+            if board_type == "ARRIVALS"
+            else flight.departure_time
+        )
+
+        rows.append(
+            {
+                "id": flight.id,
+                "flight_number": (
+                    flight.flight_number
+                ),
+                "airline": {
+                    "name": flight.airline.name,
+                    "iata_code": (
+                        flight.airline.iata_code
+                    ),
+                },
+                "origin": {
+                    "iata_code": (
+                        flight.origin.iata_code
+                    ),
+                    "city": flight.origin.city,
+                },
+                "destination": {
+                    "iata_code": (
+                        flight.destination.iata_code
+                    ),
+                    "city": flight.destination.city,
+                },
+                "scheduled_time": (
+                    scheduled_time.isoformat()
+                ),
+                "status": flight.status,
+                "status_label": (
+                    flight.get_status_display()
+                ),
+                "gate": gate,
+                "terminal": terminal,
+            }
+        )
+
+    return JsonResponse(
+        {
+            "airport": {
+                "name": airport.name,
+                "iata_code": airport.iata_code,
+                "city": airport.city,
+            },
+            "board_type": board_type,
+            "updated_at": (
+                timezone.now().isoformat()
+            ),
+            "count": len(rows),
+            "flights": rows,
+        }
     )

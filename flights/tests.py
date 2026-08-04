@@ -1,6 +1,7 @@
 from datetime import timedelta
 
 from django.contrib.auth import get_user_model
+from django.http import response
 from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
@@ -564,9 +565,212 @@ class FlightAuthorizationTests(TestCase):
                 "to": "DELAYED",
             },
         )
+    def test_public_flight_board_is_accessible_without_login(self):
+        response = self.client.get(
+            reverse("public_flight_board"),
+        )
 
+        self.assertEqual(
+            response.status_code,
+            200,
+        )
+
+        self.assertTemplateUsed(
+            response,
+            "flights/board.html",
+        )
+
+        self.assertContains(
+            response,
+            self.origin.name,
+        )
+
+    def test_public_departures_api_returns_matching_flights(self):
+        response = self.client.get(
+            reverse("public_flight_board_data"),
+            {
+                "airport": self.origin.iata_code,
+                "type": "DEPARTURES",
+            },
+        )
+
+        self.assertEqual(
+            response.status_code,
+            200,
+        )
+
+        payload = response.json()
+
+        self.assertEqual(
+            payload["airport"]["iata_code"],
+            self.origin.iata_code,
+        )
+
+        self.assertEqual(
+            payload["board_type"],
+            "DEPARTURES",
+        )
+
+        flight_numbers = {
+            flight["flight_number"]
+            for flight in payload["flights"]
+        }
+
+        self.assertIn(
+            self.flight.flight_number,
+            flight_numbers,
+        )
+
+        self.assertIn(
+            self.other_flight.flight_number,
+            flight_numbers,
+        )
+
+    def test_public_arrivals_api_returns_matching_flights(self):
+        response = self.client.get(
+            reverse("public_flight_board_data"),
+            {
+                "airport": self.destination.iata_code,
+                "type": "ARRIVALS",
+            },
+        )
+
+        self.assertEqual(
+            response.status_code,
+            200,
+        )
+
+        payload = response.json()
+
+        self.assertEqual(
+            payload["board_type"],
+            "ARRIVALS",
+        )
+
+        flight_numbers = {
+            flight["flight_number"]
+            for flight in payload["flights"]
+        }
+
+        self.assertIn(
+            self.flight.flight_number,
+            flight_numbers,
+        )
+
+    def test_public_board_api_rejects_unknown_airport(self):
+        response = self.client.get(
+            reverse("public_flight_board_data"),
+            {
+                "airport": "XXX",
+                "type": "DEPARTURES",
+            },
+        )
+
+        self.assertEqual(
+            response.status_code,
+            400,
+        )
+
+        self.assertEqual(
+            response.json()["error"],
+            "A valid airport IATA code is required.",
+        )
+
+    def test_public_board_api_defaults_invalid_type_to_departures(self):
+        response = self.client.get(
+            reverse("public_flight_board_data"),
+            {
+                "airport": self.origin.iata_code,
+                "type": "INVALID",
+            },
+        )
+
+        self.assertEqual(
+            response.status_code,
+            200,
+        )
+
+        self.assertEqual(
+            response.json()["board_type"],
+            "DEPARTURES",
+        )
+
+    def test_public_board_excludes_flights_outside_time_window(self):
+        departure_time = (
+            timezone.now()
+            + timedelta(days=7)
+        )
+
+        self.flight.departure_time = departure_time
+        self.flight.arrival_time = (
+            departure_time
+            + timedelta(hours=1)
+        )
+
+        self.flight.save(
+            update_fields=[
+                "departure_time",
+                "arrival_time",
+            ],
+        )
+
+        response = self.client.get(
+            reverse("public_flight_board_data"),
+            {
+                "airport": self.origin.iata_code,
+                "type": "DEPARTURES",
+            },
+        )
+
+        flight_numbers = {
+            flight["flight_number"]
+            for flight
+            in response.json()["flights"]
+        }
+
+        self.assertNotIn(
+            self.flight.flight_number,
+            flight_numbers,
+        )
+
+    def test_public_board_api_includes_active_gate_information(self):
+        GateAssignment.objects.create(
+            flight=self.flight,
+            gate=self.gate,
+            status="ACTIVE",
+        )
+
+        response = self.client.get(
+            reverse("public_flight_board_data"),
+            {
+                "airport": self.origin.iata_code,
+                "type": "DEPARTURES",
+            },
+        )
+
+        payload = response.json()
+
+        flight_data = next(
+            flight
+            for flight in payload["flights"]
+            if (
+                flight["flight_number"]
+                == self.flight.flight_number
+            )
+        )
+
+        self.assertEqual(
+            flight_data["gate"],
+            self.gate.code,
+        )
+
+        self.assertEqual(
+            flight_data["terminal"],
+            self.terminal.code,
+        )
 
 class FlightTransitionTests(TestCase):
+    
     @classmethod
     def setUpTestData(cls):
         airline = Airline.objects.create(

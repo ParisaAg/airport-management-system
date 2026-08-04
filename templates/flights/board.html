@@ -1,0 +1,221 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+    <meta
+        name="description"
+        content="Live airport arrivals and departures board"
+    >
+
+    <title>Live Flight Board | Airport Operations</title>
+
+    <link
+        rel="stylesheet"
+        href="{% static 'css/flight-board.css' %}"
+    >
+</head>
+
+<body>
+    <header class="board-header">
+        <a href="/" class="board-brand">
+            <span class="board-brand__mark">✈</span>
+
+            <span>
+                <strong>Airport Operations</strong>
+                <small>Live Flight Information</small>
+            </span>
+        </a>
+
+        <div class="board-header__status">
+            <span class="live-indicator"></span>
+            <span>Live operational data</span>
+        </div>
+    </header>
+
+    <main
+        class="flight-board"
+        data-endpoint="{% url 'public_flight_board_data' %}"
+        data-default-airport="{% if selected_airport %}{{ selected_airport.iata_code }}{% endif %}"
+    >
+        <section class="board-hero">
+            <div>
+                <span class="board-eyebrow">
+                    REAL-TIME FLIGHT MONITORING
+                </span>
+
+                <h1>Live Flight Board</h1>
+
+                <p>
+                    Current arrivals, departures, gates and
+                    operational flight status.
+                </p>
+            </div>
+
+            <div class="board-clock">
+                <span id="board-date">—</span>
+                <strong id="board-time">--:--:--</strong>
+                <small>Local airport time</small>
+            </div>
+        </section>
+
+        {% if selected_airport %}
+            <section class="board-controls">
+                <div class="airport-selector">
+                    <label for="airport-select">
+                        Airport
+                    </label>
+
+                    <select id="airport-select">
+                        {% for airport in airports %}
+                            <option
+                                value="{{ airport.iata_code }}"
+                                {% if selected_airport.id == airport.id %}selected{% endif %}
+                            >
+                                {{ airport.city }} —
+                                {{ airport.name }}
+                                ({{ airport.iata_code }})
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div
+                    class="board-tabs"
+                    role="tablist"
+                    aria-label="Flight board type"
+                >
+                    <button
+                        type="button"
+                        class="board-tab board-tab--active"
+                        data-board-type="DEPARTURES"
+                        role="tab"
+                        aria-selected="true"
+                    >
+                        <span>↗</span>
+                        Departures
+                    </button>
+
+                    <button
+                        type="button"
+                        class="board-tab"
+                        data-board-type="ARRIVALS"
+                        role="tab"
+                        aria-selected="false"
+                    >
+                        <span>↘</span>
+                        Arrivals
+                    </button>
+                </div>
+
+                <button
+                    type="button"
+                    id="refresh-board"
+                    class="refresh-button"
+                >
+                    <span>↻</span>
+                    Refresh
+                </button>
+            </section>
+
+            <section class="board-panel">
+                <header class="board-panel__header">
+                    <div>
+                        <span id="board-type-label">
+                            Departures
+                        </span>
+
+                        <h2 id="airport-heading">
+                            {{ selected_airport.name }}
+                        </h2>
+                    </div>
+
+                    <div class="board-update">
+                        Last updated
+                        <strong id="last-updated">—</strong>
+                    </div>
+                </header>
+
+                <div
+                    id="board-error"
+                    class="board-message board-message--error"
+                    hidden
+                ></div>
+
+                <div
+                    id="board-loading"
+                    class="board-loading"
+                >
+                    <span class="board-spinner"></span>
+                    <p>Loading live flight information...</p>
+                </div>
+
+                <div class="board-table-wrapper">
+                    <table
+                        class="board-table"
+                        aria-live="polite"
+                    >
+                        <thead>
+                            <tr>
+                                <th>Time</th>
+                                <th>Flight</th>
+                                <th>Airline</th>
+                                <th id="route-heading">Destination</th>
+                                <th>Terminal</th>
+                                <th>Gate</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="flight-board-body"></tbody>
+                    </table>
+                </div>
+
+                <div
+                    id="board-empty"
+                    class="board-empty"
+                    hidden
+                >
+                    <span>✈</span>
+                    <h3>No flights in this time window</h3>
+                    <p>
+                        There are currently no matching flights
+                        for the selected airport and board.
+                    </p>
+                </div>
+            </section>
+
+            <footer class="board-footer">
+                <p>
+                    Flight information refreshes automatically
+                    every 30 seconds.
+                </p>
+
+                <span>
+                    Times and gates may change during operations.
+                </span>
+            </footer>
+        {% else %}
+            <section class="board-panel board-no-airports">
+                <span>✈</span>
+                <h2>No airports configured</h2>
+                <p>
+                    Add at least one airport before using the
+                    public flight board.
+                </p>
+            </section>
+        {% endif %}
+    </main>
+
+    {% if selected_airport %}
+        <script
+            src="{% static 'js/flight-board.js' %}"
+            defer
+        ></script>
+    {% endif %}
+</body>
+</html>
