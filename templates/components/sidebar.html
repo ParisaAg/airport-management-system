@@ -34,45 +34,26 @@
             </a>
         </li>
 
-
         <li>
             <a href="{% url 'airline_list' %}">
                 🏢 Airlines
             </a>
         </li>
-
-
         <li>
             <a href="#">
                 🛫 Airports
             </a>
         </li>
-
-
         {% endif %}
-
-
-
-
-
         {% if role == "ADMIN" or role == "AIRLINE_OPERATOR" %}
-
-
         <li>
             <a href="#">
                 ✈ My Flights
             </a>
         </li>
-
-
         {% endif %}
 
-
-
-
-
         {% if role == "ADMIN" or role == "GROUND_STAFF" %}
-
 
         <li>
             <a href="{% url 'operation_type_list' %}">
@@ -80,28 +61,15 @@
             </a>
         </li>
 
-
         {% endif %}
 
-
-
-
-
         {% if role == "ADMIN" or role == "SECURITY_OFFICER" %}
-
-
         <li>
             <a href="#">
                 🔒 Security
             </a>
         </li>
-
-
         {% endif %}
-
-
-
-
 
         {% if role == "ADMIN" or role == "PASSENGER_SERVICE" %}
         <li>
@@ -110,16 +78,9 @@
             </a>
         </li>
         {% endif %}
-
-
         {% if role == "ADMIN" %}
         <li>
-            <a
-                href="{% url 'audit:list' %}"
-                class="{% if request.resolver_match.namespace == 'audit' %}active{% endif %}"
-            >
-                &#128203; Audit Center
-            </a>
+            <a href="{% url 'audit:list' %}"class="{% if request.resolver_match.namespace == 'audit' %}active{% endif %}">&#128203; Audit Center</a>
         </li>
         {% endif %}
 
