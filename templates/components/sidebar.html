@@ -104,20 +104,28 @@
 
 
         {% if role == "ADMIN" or role == "PASSENGER_SERVICE" %}
-
-
         <li>
             <a href="#">
-                🎫 Passenger Service
+                &#127915; Passenger Service
             </a>
         </li>
-
-
         {% endif %}
 
 
+        {% if role == "ADMIN" %}
+        <li>
+            <a
+                href="{% url 'audit:list' %}"
+                class="{% if request.resolver_match.namespace == 'audit' %}active{% endif %}"
+            >
+                &#128203; Audit Center
+            </a>
+        </li>
+        {% endif %}
 
     </ul>
+
+</aside>
 
 
 </aside>

@@ -1,41 +1,194 @@
-{% extends 'base.html' %}
-
-
+{% extends "base.html" %}
+{% load static %}
 
 {% block title %}
-Create Flight
+{% if edit %}Edit Flight{% else %}Create Flight{% endif %}
+| Airport Operations
 {% endblock %}
 
-
+{% block extra_css %}
+<link
+    rel="stylesheet"
+    href="{% static 'css/forms.css' %}"
+>
+{% endblock %}
 
 {% block content %}
 
+<div class="form-page">
 
+    <header class="form-page-header">
+        <a
+            href="{% url 'flight_list' %}"
+            class="form-back-link"
+        >
+            ← Back to flights
+        </a>
 
-<h1>
-Create Flight
-</h1>
+        <h1>
+            {% if edit %}
+                Edit Flight
+            {% else %}
+                Create Flight
+            {% endif %}
+        </h1>
 
+        <p>
+            Configure the carrier, aircraft, route
+            and scheduled flight times.
+        </p>
+    </header>
 
+    <form method="post" class="management-form-card">
+        {% csrf_token %}
 
-<form method="post">
+        <header class="form-card-header">
+            <h2>Flight schedule</h2>
 
-{% csrf_token %}
+            <p>
+                Aircraft and airline ownership are
+                validated automatically.
+            </p>
+        </header>
 
+        <div class="form-body">
 
-{{ form.as_p }}
+            {% if form.non_field_errors %}
+                <ul class="form-error-list">
+                    {% for error in form.non_field_errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
 
+            {% for field in form.hidden_fields %}
+                {{ field }}
 
+                {% for error in field.errors %}
+                    <p class="form-error">
+                        {{ error }}
+                    </p>
+                {% endfor %}
+            {% endfor %}
 
-<button class="btn-primary">
+            <div class="form-grid">
 
-Save Flight
+                <div class="form-field form-grid-full">
+                    <label for="{{ form.flight_number.id_for_label }}">
+                        Flight number
+                        <span class="form-required">*</span>
+                    </label>
 
-</button>
+                    {{ form.flight_number }}
 
+                    {% for error in form.flight_number.errors %}
+                        <p class="form-error">{{ error }}</p>
+                    {% endfor %}
+                </div>
 
-</form>
+                {% if not form.airline.is_hidden %}
+                    <div class="form-field">
+                        <label for="{{ form.airline.id_for_label }}">
+                            Airline
+                            <span class="form-required">*</span>
+                        </label>
 
+                        {{ form.airline }}
 
+                        {% for error in form.airline.errors %}
+                            <p class="form-error">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                <div class="form-field">
+                    <label for="{{ form.aircraft.id_for_label }}">
+                        Aircraft
+                        <span class="form-required">*</span>
+                    </label>
+
+                    {{ form.aircraft }}
+
+                    {% for error in form.aircraft.errors %}
+                        <p class="form-error">{{ error }}</p>
+                    {% endfor %}
+                </div>
+
+                <div class="form-field">
+                    <label for="{{ form.origin.id_for_label }}">
+                        Origin airport
+                        <span class="form-required">*</span>
+                    </label>
+
+                    {{ form.origin }}
+
+                    {% for error in form.origin.errors %}
+                        <p class="form-error">{{ error }}</p>
+                    {% endfor %}
+                </div>
+
+                <div class="form-field">
+                    <label for="{{ form.destination.id_for_label }}">
+                        Destination airport
+                        <span class="form-required">*</span>
+                    </label>
+
+                    {{ form.destination }}
+
+                    {% for error in form.destination.errors %}
+                        <p class="form-error">{{ error }}</p>
+                    {% endfor %}
+                </div>
+
+                <div class="form-field">
+                    <label for="{{ form.departure_time.id_for_label }}">
+                        Departure time
+                        <span class="form-required">*</span>
+                    </label>
+
+                    {{ form.departure_time }}
+
+                    {% for error in form.departure_time.errors %}
+                        <p class="form-error">{{ error }}</p>
+                    {% endfor %}
+                </div>
+
+                <div class="form-field">
+                    <label for="{{ form.arrival_time.id_for_label }}">
+                        Arrival time
+                        <span class="form-required">*</span>
+                    </label>
+
+                    {{ form.arrival_time }}
+
+                    {% for error in form.arrival_time.errors %}
+                        <p class="form-error">{{ error }}</p>
+                    {% endfor %}
+                </div>
+
+            </div>
+
+        </div>
+
+        <footer class="form-actions">
+            <a
+                href="{% url 'flight_list' %}"
+                class="form-cancel"
+            >
+                Cancel
+            </a>
+
+            <button type="submit" class="form-submit">
+                {% if edit %}
+                    Save changes
+                {% else %}
+                    Create flight
+                {% endif %}
+            </button>
+        </footer>
+
+    </form>
+
+</div>
 
 {% endblock %}

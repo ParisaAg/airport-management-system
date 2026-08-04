@@ -1,168 +1,211 @@
-from django.shortcuts import render
-from django.contrib.auth.decorators import login_required
-from .models import Flight
-from django.shortcuts import redirect
-from .forms import FlightForm
 from django.contrib import messages
-from django.shortcuts import get_object_or_404
+from django.contrib.auth.decorators import login_required
+from django.core.exceptions import PermissionDenied
+from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
+from django.views.decorators.http import require_POST
+
+from accounts.permissions import (
+    ADMIN,
+    AIRLINE_OPERATOR,
+    role_required,
+)
+from audit.models import AuditLog
+from audit.services import record_audit_event
+
 from .forms import FlightForm, GateAssignmentForm
 from .models import Flight, GateAssignment
+from .selectors import flights_visible_to
+from .services import (
+    InvalidFlightTransition,
+    available_flight_status_choices,
+    transition_flight_status,
+)
+
+
+FLIGHT_MANAGEMENT_ROLES = (
+    ADMIN,
+    AIRLINE_OPERATOR,
+)
+
 
 @login_required
 def flight_list(request):
+    flights = flights_visible_to(
+        request.user
+    )
 
-    flights = Flight.objects.all()
+    search = request.GET.get(
+        "search",
+        "",
+    ).strip()
 
-
-    search = request.GET.get("search")
-
-
-    status = request.GET.get("status")
-
-
+    status = request.GET.get(
+        "status",
+        "",
+    ).strip()
 
     if search:
-
         flights = flights.filter(
-            flight_number__icontains=search
+            flight_number__icontains=search,
         )
 
-
-
-    if status:
-
+    if status in dict(
+        Flight.STATUS_CHOICES
+    ):
         flights = flights.filter(
-            status=status
+            status=status,
         )
 
-
-
-    return render(request,"flights/list.html",{"flights": flights,"statuses": Flight.STATUS_CHOICES})
+    return render(
+        request,
+        "flights/list.html",
+        {
+            "flights": flights,
+            "statuses": Flight.STATUS_CHOICES,
+        },
+    )
 
 
 @login_required
+@role_required(*FLIGHT_MANAGEMENT_ROLES)
 def flight_create(request):
-
-
-    if request.user.role not in [
-        "ADMIN",
-        "AIRLINE_OPERATOR"
-    ]:
-
-        return redirect("flight_list")
-
-
+    if (
+        request.user.role == AIRLINE_OPERATOR
+        and not request.user.airline_id
+    ):
+        raise PermissionDenied
 
     if request.method == "POST":
-
         form = FlightForm(
             request.POST,
-            user=request.user
+            user=request.user,
         )
 
-
         if form.is_valid():
-
             flight = form.save(
-                commit=False
+                commit=False,
             )
 
+            if (
+                request.user.role
+                == AIRLINE_OPERATOR
+            ):
+                flight.airline = (
+                    request.user.airline
+                )
 
-            if request.user.role == "AIRLINE_OPERATOR":
-                flight.airline = request.user.airline
             flight.save()
 
-            return redirect(
-                "flight_list"
+            messages.success(
+                request,
+                (
+                    f"Flight {flight.flight_number} "
+                    "created successfully."
+                ),
             )
 
-
+            return redirect("flight_list")
     else:
-
         form = FlightForm(
-            user=request.user
+            user=request.user,
         )
 
-    return render(request,"flights/create.html",{"form":form})
-
-
-@login_required
-def flight_edit(request, id):
-
-
-    flight = get_object_or_404(
-        Flight,
-        id=id
+    return render(
+        request,
+        "flights/create.html",
+        {
+            "form": form,
+            "edit": False,
+        },
     )
 
 
-    if request.user.role == "AIRLINE_OPERATOR":
-
-
-        if flight.airline != request.user.airline:
-
-            return redirect(
-                "flight_list"
-            )
-
-
-
-    if request.user.role not in [
-        "ADMIN",
-        "AIRLINE_OPERATOR"
-    ]:
-        return redirect(
-            "flight_list"
-        )
+@login_required
+@role_required(*FLIGHT_MANAGEMENT_ROLES)
+def flight_edit(request, id):
+    flight = get_object_or_404(
+        flights_visible_to(request.user),
+        id=id,
+    )
 
     if request.method == "POST":
-        form = FlightForm(request.POST,instance=flight,user=request.user)
+        form = FlightForm(
+            request.POST,
+            instance=flight,
+            user=request.user,
+        )
 
         if form.is_valid():
-            form.save()
-            return redirect(
-                "flight_list"
+            flight = form.save()
+
+            messages.success(
+                request,
+                (
+                    f"Flight {flight.flight_number} "
+                    "updated successfully."
+                ),
             )
 
+            return redirect(
+                "flight_detail",
+                id=flight.id,
+            )
     else:
-        form = FlightForm(instance=flight,user=request.user)
+        form = FlightForm(
+            instance=flight,
+            user=request.user,
+        )
 
-
-
-    return render(request,"flights/create.html",{"form":form,"edit":True})
+    return render(
+        request,
+        "flights/create.html",
+        {
+            "form": form,
+            "edit": True,
+            "flight": flight,
+        },
+    )
 
 
 @login_required
+@role_required(ADMIN)
 def flight_delete(request, id):
-
     flight = get_object_or_404(
         Flight,
-        id=id
+        id=id,
     )
 
-    if request.user.role != "ADMIN":
-
-        return redirect("flight_list")
-
     if request.method == "POST":
+        flight_number = (
+            flight.flight_number
+        )
+
         flight.delete()
 
+        messages.success(
+            request,
+            (
+                f"Flight {flight_number} "
+                "deleted successfully."
+            ),
+        )
+
         return redirect("flight_list")
 
+    return render(
+        request,
+        "flights/delete.html",
+        {
+            "flight": flight,
+        },
+    )
 
-
-    return render(request,"flights/delete.html",{"flight":flight})
 
 @login_required
 def flight_detail(request, id):
     flight = get_object_or_404(
-        Flight.objects.select_related(
-            "airline",
-            "aircraft",
-            "aircraft__aircraft_type",
-            "origin",
-            "destination",
-        ),
+        flights_visible_to(request.user),
         id=id,
     )
 
@@ -175,7 +218,7 @@ def flight_detail(request, id):
         )
         .all()
     )
-
+    
     ground_operations = (
         flight.ground_operations
         .select_related(
@@ -193,111 +236,180 @@ def flight_detail(request, id):
             "statuses": Flight.STATUS_CHOICES,
             "gate_assignments": gate_assignments,
             "ground_operations": ground_operations,
+            "allowed_statuses": (available_flight_status_choices(flight.status)),
         },
     )
 
 
-
 @login_required
+@require_POST
+@role_required(ADMIN)
 def flight_change_status(request, id):
-
-
     flight = get_object_or_404(
         Flight,
-        id=id
+        id=id,
+    )
+
+    new_status = request.POST.get(
+        "status"
+    )
+
+    try:
+        flight = transition_flight_status(
+            flight_id=flight.id,
+            new_status=new_status,
+            actor=request.user,
+            request=request,
+        )
+    except InvalidFlightTransition as error:
+        messages.error(
+            request,
+            error.messages[0],
+        )
+    else:
+        messages.success(
+            request,
+            (
+                f"Flight {flight.flight_number} "
+                f"changed to "
+                f"{flight.get_status_display()}."
+            ),
+        )
+
+    return redirect(
+        "flight_detail",
+        id=flight.id,
     )
 
 
-    if request.user.role != "ADMIN":
-
-        return redirect(
-            "flight_detail",
-            id=id
-        )
-
-
-    if request.method == "POST":
-
-        new_status = request.POST.get(
-            "status"
-        )
-
-
-        if new_status in dict(
-            Flight.STATUS_CHOICES
-        ):
-
-            flight.status = new_status
-
-            flight.save()
-
-
-
-    return render(request,"flights/detail.html",{"flight": flight,"statuses": Flight.STATUS_CHOICES})
-
-
 @login_required
+@role_required(ADMIN)
 def gate_assignment_create(request, id):
-    if request.user.role != "ADMIN":
-
-        return redirect(
-            "flight_detail",
-            id=id
-        )
-
-    flight = get_object_or_404(Flight,id=id)
+    flight = get_object_or_404(
+        Flight,
+        id=id,
+    )
 
     if request.method == "POST":
-        form = GateAssignmentForm(request.POST)
+        form = GateAssignmentForm(
+            request.POST,
+        )
+
         if form.is_valid():
             assignment = form.save(
-                commit=False
+                commit=False,
             )
             assignment.flight = flight
             assignment.save()
 
-            return redirect(
-                "flight_detail",
-                id=id
+            record_audit_event(
+                action=AuditLog.Action.ASSIGN,
+                instance=assignment,
+                actor=request.user,
+                request=request,
+                description=(
+                    f"Gate {assignment.gate.code} "
+                    f"assigned to flight "
+                    f"{flight.flight_number}."
+                ),
+                changes={
+                    "gate": {
+                        "from": None,
+                        "to": assignment.gate.code,
+                    },
+                    "status": {
+                        "from": None,
+                        "to": assignment.status,
+                    },
+                },
             )
 
+            messages.success(
+                request,
+                (
+                    f"Gate {assignment.gate.code} "
+                    f"assigned to "
+                    f"{flight.flight_number}."
+                ),
+            )
+
+            return redirect(
+                "flight_detail",
+                id=flight.id,
+            )
     else:
         form = GateAssignmentForm()
-    return render(request,"flights/gate_assignment_form.html",{"form": form,"flight": flight})
 
-
-
-@login_required
-def gate_assignment_release(request, id):
-
-
-    if request.user.role != "ADMIN":
-
-        return redirect(
-            "flight_list"
-        )
-
-
-    assignment = get_object_or_404(
-        GateAssignment,
-        id=id
+    return render(
+        request,
+        "flights/gate_assignment_form.html",
+        {
+            "form": form,
+            "flight": flight,
+        },
     )
 
+@login_required
+@require_POST
+@role_required(ADMIN)
+def gate_assignment_release(request, id):
+    assignment = get_object_or_404(
+        GateAssignment.objects.select_related(
+            "flight",
+            "gate",
+        ),
+        id=id,
+    )
 
-    if request.method == "POST":
-
-        from django.utils import timezone
-
+    if assignment.status == "ACTIVE":
+        previous_status = assignment.status
+        gate_code = assignment.gate.code
 
         assignment.status = "RELEASED"
-
         assignment.released_time = timezone.now()
+        assignment.save(
+            update_fields=[
+                "status",
+                "released_time",
+            ],
+        )
 
-        assignment.save()
+        record_audit_event(
+            action=AuditLog.Action.RELEASE,
+            instance=assignment,
+            actor=request.user,
+            request=request,
+            description=(
+                f"Gate {gate_code} released "
+                f"from flight "
+                f"{assignment.flight.flight_number}."
+            ),
+            changes={
+                "status": {
+                    "from": previous_status,
+                    "to": assignment.status,
+                },
+                "gate": {
+                    "from": gate_code,
+                    "to": None,
+                },
+            },
+        )
 
-
+        messages.success(
+            request,
+            (
+                f"Gate {gate_code} "
+                "released successfully."
+            ),
+        )
+    else:
+        messages.warning(
+            request,
+            "This gate assignment has already been released.",
+        )
 
     return redirect(
         "flight_detail",
-        id=assignment.flight.id
+        id=assignment.flight_id,
     )

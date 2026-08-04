@@ -1,54 +1,108 @@
-{% extends 'base.html' %}
-
-
+{% extends "base.html" %}
+{% load static %}
 
 {% block title %}
-{{ title }}
+{{ title }} | Airport Operations
 {% endblock %}
 
-
-
+{% block extra_css %}
+<link
+    rel="stylesheet"
+    href="{% static 'css/forms.css' %}"
+>
+{% endblock %}
 
 {% block content %}
 
+<div class="form-page">
 
+    <header class="form-page-header">
+        <a
+            href="{% url 'aircraft_list' %}"
+            class="form-back-link"
+        >
+            ← Back to aircraft fleet
+        </a>
 
-<h1>
-{{ title }}
-</h1>
+        <h1>{{ title }}</h1>
 
+        <p>
+            Register an aircraft and connect it
+            to an airline and aircraft type.
+        </p>
+    </header>
 
+    <form method="post" class="management-form-card">
+        {% csrf_token %}
 
+        <header class="form-card-header">
+            <h2>Aircraft registration</h2>
 
-<form method="post">
+            <p>
+                Enter ownership, registration and
+                manufacturing details.
+            </p>
+        </header>
 
+        <div class="form-body">
 
-{% csrf_token %}
+            {% if form.non_field_errors %}
+                <ul class="form-error-list">
+                    {% for error in form.non_field_errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
 
+            <div class="form-grid">
 
-{{ form.as_p }}
+                {% for field in form %}
+                    <div
+                        class="form-field {% if field.name == 'registration_number' or field.name == 'serial_number' %}form-grid-full{% endif %}"
+                    >
+                        <label for="{{ field.id_for_label }}">
+                            {{ field.label }}
 
+                            {% if field.field.required %}
+                                <span class="form-required">*</span>
+                            {% endif %}
+                        </label>
 
+                        {{ field }}
 
-<button class="btn-primary">
+                        {% if field.help_text %}
+                            <p class="form-help">
+                                {{ field.help_text }}
+                            </p>
+                        {% endif %}
 
-Save
+                        {% for error in field.errors %}
+                            <p class="form-error">
+                                {{ error }}
+                            </p>
+                        {% endfor %}
+                    </div>
+                {% endfor %}
 
-</button>
+            </div>
 
+        </div>
 
+        <footer class="form-actions">
+            <a
+                href="{% url 'aircraft_list' %}"
+                class="form-cancel"
+            >
+                Cancel
+            </a>
 
-<a href="{% url 'aircraft_list' %}">
+            <button type="submit" class="form-submit">
+                Save aircraft
+            </button>
+        </footer>
 
-Cancel
+    </form>
 
-</a>
-
-
-
-</form>
-
-
-
+</div>
 
 {% endblock %}

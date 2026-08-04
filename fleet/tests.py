@@ -1,7 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
-
+from .forms import AircraftForm, AircraftTypeForm
 from airlines.models import Airline
 
 from .models import Aircraft, AircraftType
@@ -113,4 +113,83 @@ class FleetAuthorizationTests(TestCase):
         self.assertEqual(
             self.aircraft.status,
             "MAINTENANCE",
+        )
+
+
+
+class FleetFormTests(TestCase):
+    def setUp(self):
+        self.airline = Airline.objects.create(
+            name="Test Air",
+            iata_code="TA",
+            icao_code="TST",
+            country="Iran",
+            is_active=True,
+        )
+
+        self.aircraft_type = AircraftType.objects.create(
+            manufacturer="Airbus",
+            model="A321",
+            passenger_capacity=220,
+            range_km=7400,
+            is_active=True,
+        )
+
+    def test_invalid_aircraft_specifications_are_rejected(self):
+        form = AircraftTypeForm(
+            data={
+                "manufacturer": "Test",
+                "model": "Invalid",
+                "passenger_capacity": 1200,
+                "range_km": 50,
+                "is_active": True,
+            }
+        )
+
+        self.assertFalse(form.is_valid())
+
+        self.assertIn(
+            "passenger_capacity",
+            form.errors,
+        )
+
+        self.assertIn(
+            "range_km",
+            form.errors,
+        )
+
+    def test_aircraft_identifiers_are_normalized(self):
+        form = AircraftForm(
+            data={
+                "airline": self.airline.id,
+                "aircraft_type": self.aircraft_type.id,
+                "registration_number": "ep-tst",
+                "serial_number": "sn-123",
+                "manufacture_year": 2020,
+            }
+        )
+
+        self.assertTrue(
+            form.is_valid(),
+            form.errors,
+        )
+
+        aircraft = form.save()
+
+        self.assertEqual(
+            aircraft.registration_number,
+            "EP-TST",
+        )
+
+        self.assertEqual(
+            aircraft.serial_number,
+            "SN-123",
+        )
+
+    def test_aircraft_status_is_not_form_editable(self):
+        form = AircraftForm()
+
+        self.assertNotIn(
+            "status",
+            form.fields,
         )

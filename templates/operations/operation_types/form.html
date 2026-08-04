@@ -1,14 +1,115 @@
-{% extends 'base.html' %} {% block title %} {{ title }} {% endblock %} 
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}
+{{ title }} | Airport Operations
+{% endblock %}
+
+{% block extra_css %}
+<link
+    rel="stylesheet"
+    href="{% static 'css/forms.css' %}"
+>
+{% endblock %}
+
 {% block content %}
 
-<h1>{{ title }}</h1>
+<div class="form-page">
 
-<form method="post">
-  {% csrf_token %} {{ form.as_p }}
+    <header class="form-page-header">
+        <a
+            href="{% url 'operation_type_list' %}"
+            class="form-back-link"
+        >
+            ← Back to operation types
+        </a>
 
-  <button class="btn-primary">Save</button>
+        <h1>{{ title }}</h1>
 
-  <a href="{% url 'operation_type_list' %}"> Cancel </a>
-</form>
+        <p>
+            Configure a reusable ground handling
+            operation category.
+        </p>
+    </header>
+
+    <form method="post" class="management-form-card">
+        {% csrf_token %}
+
+        <header class="form-card-header">
+            <h2>Operation type information</h2>
+
+            <p>
+                Define its name, purpose and availability.
+            </p>
+        </header>
+
+        <div class="form-body">
+
+            {% if form.non_field_errors %}
+                <ul class="form-error-list">
+                    {% for error in form.non_field_errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+
+            <div class="form-field">
+                <label for="{{ form.name.id_for_label }}">
+                    Name
+                    <span class="form-required">*</span>
+                </label>
+
+                {{ form.name }}
+
+                {% for error in form.name.errors %}
+                    <p class="form-error">{{ error }}</p>
+                {% endfor %}
+            </div>
+
+            <div class="form-field">
+                <label for="{{ form.description.id_for_label }}">
+                    Description
+                </label>
+
+                {{ form.description }}
+
+                {% for error in form.description.errors %}
+                    <p class="form-error">{{ error }}</p>
+                {% endfor %}
+            </div>
+
+            <div class="checkbox-field">
+                {{ form.is_active }}
+
+                <div class="checkbox-content">
+                    <label for="{{ form.is_active.id_for_label }}">
+                        Active operation type
+                    </label>
+
+                    <span>
+                        Available when creating new
+                        ground operations.
+                    </span>
+                </div>
+            </div>
+
+        </div>
+
+        <footer class="form-actions">
+            <a
+                href="{% url 'operation_type_list' %}"
+                class="form-cancel"
+            >
+                Cancel
+            </a>
+
+            <button type="submit" class="form-submit">
+                Save operation type
+            </button>
+        </footer>
+
+    </form>
+
+</div>
 
 {% endblock %}

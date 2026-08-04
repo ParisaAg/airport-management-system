@@ -1,7 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
-
+from .forms import AirlineForm
 from .models import Airline
 
 
@@ -95,3 +95,59 @@ class AirlineAuthorizationTests(TestCase):
 
         self.airline.refresh_from_db()
         self.assertFalse(self.airline.is_active)
+
+class AirlineFormTests(TestCase):
+    def test_codes_are_normalized_to_uppercase(self):
+        form = AirlineForm(
+            data={
+                "name": "Test Airways",
+                "iata_code": "ta",
+                "icao_code": "taw",
+                "country": "Iran",
+                "website": "",
+                "contact_email": "",
+                "is_active": True,
+            }
+        )
+
+        self.assertTrue(
+            form.is_valid(),
+            form.errors,
+        )
+
+        airline = form.save()
+
+        self.assertEqual(
+            airline.iata_code,
+            "TA",
+        )
+
+        self.assertEqual(
+            airline.icao_code,
+            "TAW",
+        )
+
+    def test_invalid_airline_codes_are_rejected(self):
+        form = AirlineForm(
+            data={
+                "name": "Invalid Airways",
+                "iata_code": "TOO",
+                "icao_code": "LONG",
+                "country": "Iran",
+                "website": "",
+                "contact_email": "",
+                "is_active": True,
+            }
+        )
+
+        self.assertFalse(form.is_valid())
+
+        self.assertIn(
+            "iata_code",
+            form.errors,
+        )
+
+        self.assertIn(
+            "icao_code",
+            form.errors,
+        )

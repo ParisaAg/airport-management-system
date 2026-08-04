@@ -1,60 +1,123 @@
-{% extends 'base.html' %}
-
-
+{% extends "base.html" %}
+{% load static %}
 
 {% block title %}
-Assign Gate
+Assign Gate | Airport Operations
 {% endblock %}
 
-
-
+{% block extra_css %}
+<link
+    rel="stylesheet"
+    href="{% static 'css/forms.css' %}"
+>
+{% endblock %}
 
 {% block content %}
 
+<div class="form-page">
 
+    <header class="form-page-header">
+        <a
+            href="{% url 'flight_detail' flight.id %}"
+            class="form-back-link"
+        >
+            ← Back to flight details
+        </a>
 
-<h1>
-Assign Gate
-</h1>
+        <h1>Assign Gate</h1>
 
+        <p>
+            Allocate an active airport gate
+            to this flight.
+        </p>
+    </header>
 
+    <section class="form-context-card">
+        <div>
+            <span class="context-label">
+                Flight
+            </span>
 
-<h3>
-Flight:
-{{ flight.flight_number }}
-</h3>
+            <strong class="context-flight">
+                {{ flight.flight_number }}
+            </strong>
+        </div>
 
+        <div class="context-route">
+            <strong>{{ flight.origin.iata_code }}</strong>
+            →
+            <strong>{{ flight.destination.iata_code }}</strong>
+        </div>
+    </section>
 
+    <form method="post" class="management-form-card">
+        {% csrf_token %}
 
+        <header class="form-card-header">
+            <h2>Gate allocation</h2>
 
-<form method="post">
+            <p>
+                Only active gates are available.
+                Existing active assignments are validated.
+            </p>
+        </header>
 
-{% csrf_token %}
+        <div class="form-body">
 
+            {% if form.non_field_errors %}
+                <ul class="form-error-list">
+                    {% for error in form.non_field_errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
 
-{{ form.as_p }}
+            <div class="form-field">
+                <label for="{{ form.gate.id_for_label }}">
+                    Airport gate
+                    <span class="form-required">*</span>
+                </label>
 
+                {{ form.gate }}
 
+                {% for error in form.gate.errors %}
+                    <p class="form-error">
+                        {{ error }}
+                    </p>
+                {% endfor %}
+            </div>
 
-<button class="btn-primary">
+            <div class="form-field">
+                <label for="{{ form.notes.id_for_label }}">
+                    Assignment notes
+                </label>
 
-Assign
+                {{ form.notes }}
 
-</button>
+                {% for error in form.notes.errors %}
+                    <p class="form-error">
+                        {{ error }}
+                    </p>
+                {% endfor %}
+            </div>
 
+        </div>
 
+        <footer class="form-actions">
+            <a
+                href="{% url 'flight_detail' flight.id %}"
+                class="form-cancel"
+            >
+                Cancel
+            </a>
 
-<a href="{% url 'flight_detail' flight.id %}">
+            <button type="submit" class="form-submit">
+                Assign gate
+            </button>
+        </footer>
 
-Cancel
+    </form>
 
-</a>
-
-
-
-</form>
-
-
-
+</div>
 
 {% endblock %}

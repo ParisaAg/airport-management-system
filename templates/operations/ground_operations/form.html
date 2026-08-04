@@ -1,14 +1,137 @@
-{% extends 'base.html' %} {% block title %} {{ title }} {% endblock %}
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}
+{{ title }} | Airport Operations
+{% endblock %}
+
+{% block extra_css %}
+<link
+    rel="stylesheet"
+    href="{% static 'css/forms.css' %}"
+>
+{% endblock %}
+
 {% block content %}
 
-<h1>{{ title }}</h1>
+<div class="form-page">
 
-<form method="post">
-  {% csrf_token %} {{ form.as_p }}
+    <header class="form-page-header">
+        <a
+            href="{% url 'ground_operation_list' %}"
+            class="form-back-link"
+        >
+            ← Back to ground operations
+        </a>
 
-  <button class="btn-primary">Save</button>
+        <h1>{{ title }}</h1>
 
-  <a href="{% url 'ground_operation_list' %}"> Cancel </a>
-</form>
+        <p>
+            Assign an operational task to an available
+            ground staff member.
+        </p>
+    </header>
+
+    <form method="post" class="management-form-card">
+        {% csrf_token %}
+
+        <header class="form-card-header">
+            <h2>Operation assignment</h2>
+
+            <p>
+                Status and execution timestamps are managed
+                automatically by the workflow.
+            </p>
+        </header>
+
+        <div class="form-body">
+
+            {% if form.non_field_errors %}
+                <ul class="form-error-list">
+                    {% for error in form.non_field_errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+
+            {% for field in form.hidden_fields %}
+                {{ field }}
+            {% endfor %}
+
+            {% if not form.flight.is_hidden %}
+                <div class="form-field">
+                    <label for="{{ form.flight.id_for_label }}">
+                        Flight
+                        <span class="form-required">*</span>
+                    </label>
+
+                    {{ form.flight }}
+
+                    {% for error in form.flight.errors %}
+                        <p class="form-error">{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <div class="form-field">
+                <label for="{{ form.operation_type.id_for_label }}">
+                    Operation type
+                    <span class="form-required">*</span>
+                </label>
+
+                {{ form.operation_type }}
+
+                {% for error in form.operation_type.errors %}
+                    <p class="form-error">{{ error }}</p>
+                {% endfor %}
+            </div>
+
+            <div class="form-field">
+                <label for="{{ form.assigned_staff.id_for_label }}">
+                    Assigned staff
+                    <span class="form-required">*</span>
+                </label>
+
+                {{ form.assigned_staff }}
+
+                <p class="form-help">
+                    Only active Ground Staff users are available.
+                </p>
+
+                {% for error in form.assigned_staff.errors %}
+                    <p class="form-error">{{ error }}</p>
+                {% endfor %}
+            </div>
+
+            <div class="form-field">
+                <label for="{{ form.notes.id_for_label }}">
+                    Operational notes
+                </label>
+
+                {{ form.notes }}
+
+                {% for error in form.notes.errors %}
+                    <p class="form-error">{{ error }}</p>
+                {% endfor %}
+            </div>
+
+        </div>
+
+        <footer class="form-actions">
+            <a
+                href="{% url 'ground_operation_list' %}"
+                class="form-cancel"
+            >
+                Cancel
+            </a>
+
+            <button type="submit" class="form-submit">
+                Save operation
+            </button>
+        </footer>
+
+    </form>
+
+</div>
 
 {% endblock %}
