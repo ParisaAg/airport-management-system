@@ -1,0 +1,192 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Audit Center{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/audit.css' %}">
+{% endblock %}
+
+{% block content %}
+<main class="audit-page">
+    <header class="audit-hero">
+        <div>
+            <span class="audit-eyebrow">SYSTEM GOVERNANCE</span>
+            <h1>Audit Center</h1>
+            <p>
+                Monitor security-sensitive actions, operational changes
+                and user activity across the airport platform.
+            </p>
+        </div>
+
+        <div class="audit-summary">
+            <span class="audit-summary__icon">⌁</span>
+            <div>
+                <span>Recorded events</span>
+                <strong>{{ page.paginator.count }}</strong>
+            </div>
+        </div>
+    </header>
+
+    <section class="audit-panel">
+        <div class="audit-panel__heading">
+            <div>
+                <h2>Activity history</h2>
+                <p>Search and filter immutable system events.</p>
+            </div>
+        </div>
+
+        <form method="get" class="audit-filters">
+            <div class="audit-search">
+                <span aria-hidden="true">⌕</span>
+                <input
+                    type="search"
+                    name="search"
+                    value="{{ search }}"
+                    placeholder="Search actor, entity or description..."
+                    aria-label="Search audit logs"
+                >
+            </div>
+
+            <select name="action" aria-label="Filter by action">
+                <option value="">All actions</option>
+                {% for value, label in actions %}
+                    <option
+                        value="{{ value }}"
+                        {% if selected_action == value %}selected{% endif %}
+                    >
+                        {{ label }}
+                    </option>
+                {% endfor %}
+            </select>
+
+            <select name="entity_type" aria-label="Filter by entity type">
+                <option value="">All entities</option>
+                {% for value, label in entity_types %}
+                    <option
+                        value="{{ value }}"
+                        {% if selected_entity_type == value %}selected{% endif %}
+                    >
+                        {{ label }}
+                    </option>
+                {% endfor %}
+            </select>
+
+            <button type="submit" class="audit-filter-button">
+                Apply filters
+            </button>
+
+            {% if search or selected_action or selected_entity_type %}
+                <a href="{% url 'audit:list' %}" class="audit-clear">
+                    Clear
+                </a>
+            {% endif %}
+        </form>
+
+        <div class="audit-table-wrapper">
+            <table class="audit-table">
+                <thead>
+                    <tr>
+                        <th>Event</th>
+                        <th>Actor</th>
+                        <th>Entity</th>
+                        <th>Description</th>
+                        <th>Date &amp; time</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for log in logs %}
+                        <tr>
+                            <td>
+                                <span class="audit-action audit-action--{{ log.action|lower }}">
+                                    {{ log.get_action_display }}
+                                </span>
+                            </td>
+
+                            <td>
+                                <div class="audit-actor">
+                                    <span class="audit-avatar">
+                                        {% if log.actor %}
+                                            {{ log.actor.username|first|upper }}
+                                        {% else %}
+                                            S
+                                        {% endif %}
+                                    </span>
+
+                                    <div>
+                                        <strong>
+                                            {% if log.actor %}
+                                                {{ log.actor.username }}
+                                            {% else %}
+                                                System
+                                            {% endif %}
+                                        </strong>
+                                        <small>
+                                            {% if log.ip_address %}
+                                                {{ log.ip_address }}
+                                            {% else %}
+                                                Internal event
+                                            {% endif %}
+                                        </small>
+                                    </div>
+                                </div>
+                            </td>
+
+                            <td>
+                                <strong>{{ log.get_entity_type_display }}</strong>
+                                <small class="audit-entity-id">
+                                    ID: {{ log.entity_id|default:"—" }}
+                                </small>
+                            </td>
+
+                            <td class="audit-description">
+                                {{ log.description }}
+                            </td>
+
+                            <td>
+                                <time datetime="{{ log.created_at|date:'c' }}">
+                                    {{ log.created_at|date:"d M Y" }}
+                                    <small>{{ log.created_at|date:"H:i:s" }}</small>
+                                </time>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="5">
+                                <div class="audit-empty">
+                                    <span>⌕</span>
+                                    <h3>No audit events found</h3>
+                                    <p>Try changing or clearing the filters.</p>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% if page.paginator.num_pages > 1 %}
+            <nav class="audit-pagination" aria-label="Audit pagination">
+                <span>
+                    Page {{ page.number }} of {{ page.paginator.num_pages }}
+                </span>
+
+                <div>
+                    {% if page.has_previous %}
+                        <a href="?page={{ page.previous_page_number }}&search={{ search|urlencode }}&action={{ selected_action|urlencode }}&entity_type={{ selected_entity_type|urlencode }}">
+                            Previous
+                        </a>
+                    {% endif %}
+
+                    {% if page.has_next %}
+                        <a href="?page={{ page.next_page_number }}&search={{ search|urlencode }}&action={{ selected_action|urlencode }}&entity_type={{ selected_entity_type|urlencode }}">
+                            Next
+                        </a>
+                    {% endif %}
+                </div>
+            </nav>
+        {% endif %}
+    </section>
+</main>
+{% endblock %}
