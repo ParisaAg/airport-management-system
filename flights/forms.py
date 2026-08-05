@@ -1,11 +1,10 @@
 from django import forms
 from django.db.models import Q
-
+from .models import Flight, GateAssignment
 from airports.models import Gate
 from fleet.models import Aircraft
-
 from .models import Flight, GateAssignment
-
+from .services import available_flight_status_choices
 
 class FlightForm(forms.ModelForm):
     class Meta:
@@ -211,3 +210,119 @@ class GateAssignmentForm(forms.ModelForm):
                 "code",
             )
         )
+
+
+class FlightStatusUpdateForm(forms.Form):
+    status = forms.ChoiceField(
+        label="New Status",
+        choices=(),
+        widget=forms.Select(
+            attrs={
+                "class": "form-control",
+            }
+        ),
+    )
+
+    delay_minutes = forms.IntegerField(
+        label="Delay Duration",
+        required=False,
+        min_value=1,
+        max_value=1440,
+        widget=forms.NumberInput(
+            attrs={
+                "class": "form-control",
+                "placeholder": "Delay in minutes",
+                "min": 1,
+                "max": 1440,
+            }
+        ),
+        help_text=(
+            "Required when marking a flight as delayed."
+        ),
+    )
+
+    reason = forms.CharField(
+        label="Operational Reason",
+        required=False,
+        max_length=500,
+        widget=forms.Textarea(
+            attrs={
+                "class": "form-control",
+                "placeholder": (
+                    "Explain the operational reason "
+                    "for this update..."
+                ),
+                "rows": 4,
+            }
+        ),
+    )
+
+    def __init__(
+        self,
+        *args,
+        flight,
+        **kwargs,
+    ):
+        super().__init__(
+            *args,
+            **kwargs,
+        )
+
+        self.flight = flight
+
+        self.fields["status"].choices = [
+            ("","Select next status"),*available_flight_status_choices(flight.status,),
+        ]
+
+    def clean_reason(self):
+        reason = self.cleaned_data.get(
+            "reason",
+            "",
+        ).strip()
+
+        return reason
+
+    def clean(self):
+        cleaned_data = super().clean()
+
+        status = cleaned_data.get("status")
+        delay_minutes = cleaned_data.get(
+            "delay_minutes"
+        )
+        reason = cleaned_data.get(
+            "reason",
+            "",
+        )
+
+        if status == "DELAYED":
+            if not delay_minutes:
+                self.add_error(
+                    "delay_minutes",
+                    (
+                        "Delay duration is required "
+                        "for delayed flights."
+                    ),
+                )
+
+            if not reason:
+                self.add_error(
+                    "reason",
+                    (
+                        "A delay reason is required "
+                        "for delayed flights."
+                    ),
+                )
+
+        if (
+            status == "CANCELLED"
+            and not reason
+        ):
+            self.add_error(
+                "reason",
+                (
+                    "A cancellation reason is required "
+                    "for cancelled flights."
+                ),
+            )
+
+        return cleaned_data

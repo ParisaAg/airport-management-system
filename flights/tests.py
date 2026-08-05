@@ -516,7 +516,9 @@ class FlightAuthorizationTests(TestCase):
             ),
             {
                 "status": "DELAYED",
-            },
+                "delay_minutes": 45,
+                "reason": "Adverse weather conditions",
+            }
         )
 
         self.assertRedirects(
@@ -544,7 +546,9 @@ class FlightAuthorizationTests(TestCase):
             ),
             {
                 "status": "DELAYED",
-            },
+                "delay_minutes": 45,
+                "reason": "Adverse weather conditions",
+            }
         )
 
         event = AuditLog.objects.get(

@@ -1,0 +1,349 @@
+.flight-command-card {
+    margin-top: 28px;
+    overflow: hidden;
+    background: #ffffff;
+    border: 1px solid #dce4ef;
+    border-radius: 20px;
+    box-shadow: 0 16px 40px rgba(11, 31, 58, 0.07);
+}
+
+.flight-command-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    padding: 24px 28px;
+    background: linear-gradient(
+        135deg,
+        #fffdf5 0%,
+        #ffffff 68%
+    );
+    border-bottom: 1px solid #e3e8ef;
+}
+
+.flight-command-header h2 {
+    margin: 5px 0;
+    color: #101a2f;
+    font-size: 1.3rem;
+}
+
+.flight-command-header p {
+    margin: 0;
+    color: #68778f;
+    line-height: 1.5;
+}
+
+.flight-command-eyebrow {
+    display: block;
+    color: #b58b0d;
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 0.13em;
+}
+
+.flight-command-gate {
+    min-height: 46px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    flex: 0 0 auto;
+    padding: 0 18px;
+    color: #0b1f3a;
+    background: #ffffff;
+    border: 1px solid #cbd6e5;
+    border-radius: 11px;
+    font-weight: 750;
+    text-decoration: none;
+    white-space: nowrap;
+    transition:
+        background 0.2s ease,
+        border-color 0.2s ease,
+        transform 0.2s ease;
+}
+
+.flight-command-gate span {
+    color: #c99e14;
+    font-size: 1.2rem;
+}
+
+.flight-command-gate:hover {
+    background: #fffaf0;
+    border-color: #d4af37;
+    transform: translateY(-1px);
+}
+
+.flight-status-command {
+    width: 100%;
+    display: grid;
+    gap: 18px;
+    padding: 26px 28px;
+    background: #ffffff;
+}
+
+.flight-status-command-grid {
+    display: grid;
+    grid-template-columns:
+        minmax(260px, 1fr)
+        minmax(220px, 0.65fr);
+    gap: 16px;
+}
+
+.flight-command-field {
+    min-width: 0;
+    display: grid;
+    gap: 8px;
+}
+
+.flight-command-field[hidden],
+.flight-disruption-fields[hidden],
+.flight-estimated-preview[hidden] {
+    display: none;
+}
+
+.flight-command-field label {
+    color: #65748c;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+}
+
+.flight-command-field select,
+.flight-command-field input,
+.flight-command-field textarea {
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    color: #13213a;
+    background: #ffffff;
+    border: 1px solid #cbd6e5;
+    border-radius: 11px;
+    outline: none;
+    box-shadow: none;
+    font: inherit;
+}
+
+.flight-command-field select,
+.flight-command-field input {
+    height: 48px;
+    padding: 0 14px;
+}
+
+.flight-command-field textarea {
+    min-height: 105px;
+    padding: 13px 14px;
+    resize: vertical;
+}
+
+.flight-command-field select:focus,
+.flight-command-field input:focus,
+.flight-command-field textarea:focus {
+    border-color: #0b1f3a;
+    box-shadow: 0 0 0 3px rgba(11, 31, 58, 0.1);
+}
+
+.flight-command-field small {
+    color: #748198;
+    font-size: 0.73rem;
+    line-height: 1.5;
+}
+
+.flight-delay-input {
+    position: relative;
+}
+
+.flight-delay-input input {
+    padding-right: 78px;
+}
+
+.flight-delay-input > span {
+    position: absolute;
+    top: 50%;
+    right: 14px;
+    color: #748198;
+    font-size: 0.72rem;
+    pointer-events: none;
+    transform: translateY(-50%);
+}
+
+.flight-disruption-fields {
+    display: grid;
+    grid-template-columns:
+        minmax(280px, 1fr)
+        220px;
+    align-items: end;
+    gap: 18px;
+    padding: 18px;
+    background: #fffaf0;
+    border: 1px solid #ecd58a;
+    border-radius: 14px;
+}
+
+.flight-estimated-preview {
+    min-height: 105px;
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    padding: 16px;
+    background: #ffffff;
+    border: 1px solid #e3d399;
+    border-radius: 11px;
+}
+
+.flight-estimated-preview span {
+    color: #748198;
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.flight-estimated-preview strong {
+    margin-top: 8px;
+    color: #0b1f3a;
+    font-size: 1rem;
+}
+
+.flight-command-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.flight-command-footer p {
+    margin: 0;
+    color: #758299;
+    font-size: 0.75rem;
+    line-height: 1.5;
+}
+
+.flight-command-footer button {
+    width: auto;
+    min-height: 46px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    padding: 0 22px;
+    color: #ffffff;
+    background: #0b1f3a;
+    border: 0;
+    border-radius: 11px;
+    box-shadow: 0 10px 24px rgba(11, 31, 58, 0.18);
+    cursor: pointer;
+    font-weight: 800;
+    transition:
+        background 0.2s ease,
+        transform 0.2s ease;
+}
+
+.flight-command-footer button:hover {
+    background: #173657;
+    transform: translateY(-1px);
+}
+
+.flight-terminal-state {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin: 24px 28px;
+    padding: 17px 18px;
+    color: #315c41;
+    background: #edf9f1;
+    border: 1px solid #cdebd6;
+    border-radius: 13px;
+}
+
+.flight-terminal-state > span {
+    display: grid;
+    width: 38px;
+    height: 38px;
+    flex: 0 0 auto;
+    place-items: center;
+    color: #ffffff;
+    background: #27824b;
+    border-radius: 50%;
+    font-weight: 900;
+}
+
+.flight-terminal-state strong {
+    display: block;
+}
+
+.flight-terminal-state p {
+    margin: 3px 0 0;
+    color: #5e7867;
+    font-size: 0.8rem;
+}
+
+.flight-disruption-notice {
+    display: flex;
+    align-items: flex-start;
+    gap: 13px;
+    margin: 0 28px 24px;
+    padding: 15px 17px;
+    color: #7a5510;
+    background: #fff8df;
+    border: 1px solid #eed68a;
+    border-radius: 12px;
+}
+
+.flight-disruption-icon {
+    display: grid;
+    width: 32px;
+    height: 32px;
+    place-items: center;
+    color: #ffffff;
+    background: #c58b13;
+    border-radius: 50%;
+    font-weight: 900;
+}
+
+.flight-disruption-notice strong {
+    display: block;
+}
+
+.flight-disruption-notice p {
+    margin: 4px 0 0;
+    color: #806425;
+    line-height: 1.5;
+}
+
+.operational-time-note {
+    display: block;
+    margin-top: 5px;
+    color: #b0780b;
+    font-size: 0.7rem;
+    font-weight: 700;
+}
+
+@media (max-width: 760px) {
+    .flight-command-header,
+    .flight-command-footer {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .flight-status-command-grid,
+    .flight-disruption-fields {
+        grid-template-columns: 1fr;
+    }
+
+    .flight-command-gate,
+    .flight-command-footer button {
+        width: 100%;
+    }
+
+    .flight-command-header,
+    .flight-status-command {
+        padding-right: 18px;
+        padding-left: 18px;
+    }
+
+    .flight-terminal-state {
+        margin-right: 18px;
+        margin-left: 18px;
+    }
+}
