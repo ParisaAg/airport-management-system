@@ -12,6 +12,7 @@ from audit.models import AuditLog
 from audit.services import record_audit_event
 from .forms import FlightForm, GateAssignmentForm
 from .models import Flight, GateAssignment
+from .forms import (FlightForm,FlightStatusUpdateForm,GateAssignmentForm,)
 from .selectors import flights_visible_to
 from django.utils import timezone
 from .services import (InvalidFlightTransition,available_flight_status_choices,transition_flight_status,)
@@ -225,6 +226,7 @@ def flight_detail(request, id):
             "gate_assignments": gate_assignments,
             "ground_operations": ground_operations,
             "allowed_statuses": (available_flight_status_choices(flight.status)),
+            "status_form": FlightStatusUpdateForm(flight=flight,),
         },
     )
 
@@ -238,14 +240,42 @@ def flight_change_status(request, id):
         id=id,
     )
 
-    new_status = request.POST.get(
-        "status"
+    form = FlightStatusUpdateForm(
+        request.POST,
+        flight=flight,
     )
+
+    if not form.is_valid():
+        first_error = next(
+            iter(form.errors.values()),
+            ["Invalid flight status update."],
+        )[0]
+
+        messages.error(
+            request,
+            first_error,
+        )
+
+        return redirect(
+            "flight_detail",
+            id=flight.id,
+        )
 
     try:
         flight = transition_flight_status(
             flight_id=flight.id,
-            new_status=new_status,
+            new_status=form.cleaned_data[
+                "status"
+            ],
+            delay_minutes=(
+                form.cleaned_data.get(
+                    "delay_minutes"
+                )
+            ),
+            reason=form.cleaned_data.get(
+                "reason",
+                "",
+            ),
             actor=request.user,
             request=request,
         )
@@ -268,7 +298,6 @@ def flight_change_status(request, id):
         "flight_detail",
         id=flight.id,
     )
-
 
 @login_required
 @role_required(ADMIN)
@@ -454,7 +483,10 @@ def public_flight_board_data(request):
     if airport is None:
         return JsonResponse(
             {
-                "error": "A valid airport IATA code is required.",
+                "error": (
+                    "A valid airport IATA "
+                    "code is required."
+                ),
             },
             status=400,
         )
@@ -489,11 +521,50 @@ def public_flight_board_data(request):
             else None
         )
 
-        scheduled_time = (
-            flight.arrival_time
-            if board_type == "ARRIVALS"
-            else flight.departure_time
+        if board_type == "ARRIVALS":
+            scheduled_time = (
+                flight.arrival_time
+            )
+
+            estimated_time = (
+                flight.estimated_arrival_time
+            )
+
+            actual_time = (
+                flight.actual_arrival_time
+            )
+        else:
+            scheduled_time = (
+                flight.departure_time
+            )
+
+            estimated_time = (
+                flight.estimated_departure_time
+            )
+
+            actual_time = (
+                flight.actual_departure_time
+            )
+
+        display_time = (
+            actual_time
+            or estimated_time
+            or scheduled_time
         )
+
+        delay_minutes = 0
+
+        if estimated_time:
+            delay_minutes = max(
+                0,
+                int(
+                    (
+                        estimated_time
+                        - scheduled_time
+                    ).total_seconds()
+                    // 60
+                ),
+            )
 
         rows.append(
             {
@@ -511,16 +582,39 @@ def public_flight_board_data(request):
                     "iata_code": (
                         flight.origin.iata_code
                     ),
-                    "city": flight.origin.city,
+                    "city": (
+                        flight.origin.city
+                    ),
                 },
                 "destination": {
                     "iata_code": (
                         flight.destination.iata_code
                     ),
-                    "city": flight.destination.city,
+                    "city": (
+                        flight.destination.city
+                    ),
                 },
                 "scheduled_time": (
                     scheduled_time.isoformat()
+                ),
+                "estimated_time": (
+                    estimated_time.isoformat()
+                    if estimated_time
+                    else None
+                ),
+                "actual_time": (
+                    actual_time.isoformat()
+                    if actual_time
+                    else None
+                ),
+                "display_time": (
+                    display_time.isoformat()
+                ),
+                "delay_minutes": (
+                    delay_minutes
+                ),
+                "disruption_reason": (
+                    flight.disruption_reason
                 ),
                 "status": flight.status,
                 "status_label": (
@@ -535,7 +629,9 @@ def public_flight_board_data(request):
         {
             "airport": {
                 "name": airport.name,
-                "iata_code": airport.iata_code,
+                "iata_code": (
+                    airport.iata_code
+                ),
                 "city": airport.city,
             },
             "board_type": board_type,

@@ -1,0 +1,244 @@
+.flight-command-card,
+.flight-command-card *,
+.flight-disruption-notice,
+.flight-disruption-notice * {
+    box-sizing: border-box;
+}
+
+.flight-command-card {
+    width: 100%;
+    min-width: 0;
+    margin: 0;
+    overflow: hidden;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 18px;
+    box-shadow: 0 16px 40px rgba(15, 23, 42, 0.07);
+}
+
+.flight-command-header {
+    width: 100%;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 22px 24px;
+    background: #fffdf5;
+    border-bottom: 1px solid #eadca8;
+}
+
+.flight-command-header > div { min-width: 0; }
+.flight-command-eyebrow {
+    display: block;
+    margin-bottom: 5px;
+    color: #a77c00;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+}
+.flight-command-header h2 { margin: 0; color: #081426; font-size: 18px; }
+.flight-command-header p { margin: 5px 0 0; color: #64748b; font-size: 13px; line-height: 1.5; }
+
+.flight-command-gate {
+    min-height: 42px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    flex: 0 0 auto;
+    padding: 0 15px;
+    color: #0b1f3a;
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 9px;
+    font-size: 12px;
+    font-weight: 800;
+    text-decoration: none;
+    white-space: nowrap;
+}
+.flight-command-gate:hover { border-color: #d4af37; background: #fffbeb; }
+.flight-command-gate span { color: #b78b08; font-size: 17px; }
+
+.flight-status-command {
+    width: 100%;
+    min-width: 0;
+    display: grid;
+    gap: 16px;
+    margin: 0;
+    padding: 22px 24px;
+}
+.flight-status-command-grid {
+    width: 100%;
+    min-width: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(220px, 0.55fr);
+    gap: 14px;
+}
+.flight-command-field { min-width: 0; display: grid; gap: 7px; }
+.flight-command-field[hidden],
+.flight-disruption-fields[hidden],
+.flight-estimated-preview[hidden] { display: none !important; }
+.flight-command-field label {
+    color: #64748b;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+.flight-command-field select,
+.flight-command-field input,
+.flight-command-field textarea {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    margin: 0;
+    color: #0f172a;
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 9px;
+    outline: none;
+    box-shadow: none;
+    font: inherit;
+}
+.flight-command-field select,
+.flight-command-field input { height: 44px; padding: 0 12px; }
+.flight-command-field textarea { min-height: 92px; padding: 11px 12px; resize: vertical; }
+.flight-command-field select:focus,
+.flight-command-field input:focus,
+.flight-command-field textarea:focus {
+    border-color: #d4af37;
+    box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.14);
+}
+.flight-command-field small { color: #64748b; font-size: 11px; line-height: 1.4; }
+.flight-delay-input { min-width: 0; position: relative; }
+.flight-delay-input input { padding-right: 72px; }
+.flight-delay-input > span {
+    position: absolute;
+    top: 50%;
+    right: 12px;
+    color: #64748b;
+    font-size: 11px;
+    pointer-events: none;
+    transform: translateY(-50%);
+}
+
+.flight-disruption-fields {
+    width: 100%;
+    min-width: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 190px;
+    align-items: end;
+    gap: 14px;
+    padding: 15px;
+    background: #fffbeb;
+    border: 1px solid #ead58b;
+    border-radius: 11px;
+}
+.flight-estimated-preview {
+    min-width: 0;
+    min-height: 92px;
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    padding: 14px;
+    background: #ffffff;
+    border: 1px solid #e2d49c;
+    border-radius: 9px;
+}
+.flight-estimated-preview span {
+    color: #64748b;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+.flight-estimated-preview strong { margin-top: 7px; color: #0b1f3a; font-size: 14px; }
+
+.flight-command-footer {
+    width: 100%;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    padding-top: 2px;
+}
+.flight-command-footer p { min-width: 0; margin: 0; color: #64748b; font-size: 11px; line-height: 1.5; }
+.flight-command-footer button {
+    min-height: 42px;
+    flex: 0 0 auto;
+    padding: 0 17px;
+    color: #ffffff;
+    background: #0b1f3a;
+    border: 1px solid #0b1f3a;
+    border-radius: 9px;
+    font: inherit;
+    font-size: 12px;
+    font-weight: 800;
+    cursor: pointer;
+}
+.flight-command-footer button:hover { background: #17385f; border-color: #17385f; }
+
+.flight-terminal-state {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 22px 24px;
+    padding: 15px 16px;
+    color: #166534;
+    background: #ecfdf3;
+    border: 1px solid #bbebcb;
+    border-radius: 10px;
+}
+.flight-terminal-state > span {
+    width: 34px;
+    height: 34px;
+    display: grid;
+    flex: 0 0 auto;
+    place-items: center;
+    color: #ffffff;
+    background: #238348;
+    border-radius: 50%;
+    font-weight: 900;
+}
+.flight-terminal-state strong { display: block; font-size: 13px; }
+.flight-terminal-state p { margin: 3px 0 0; color: #4b7359; font-size: 11px; }
+
+.flight-disruption-notice {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin: 0 26px 22px;
+    padding: 14px 16px;
+    color: #7c570e;
+    background: #fffbeb;
+    border: 1px solid #ead58b;
+    border-radius: 10px;
+}
+.flight-disruption-icon {
+    width: 30px;
+    height: 30px;
+    display: grid;
+    flex: 0 0 auto;
+    place-items: center;
+    color: #ffffff;
+    background: #b98210;
+    border-radius: 50%;
+    font-weight: 900;
+}
+.flight-disruption-notice strong { display: block; font-size: 13px; }
+.flight-disruption-notice p { margin: 3px 0 0; color: #806425; font-size: 12px; line-height: 1.5; }
+.operational-time-note { display: block; margin-top: 4px; color: #9a6b00 !important; font-size: 10px !important; font-weight: 700; }
+
+@media (max-width: 760px) {
+    .flight-command-header,
+    .flight-command-footer { align-items: stretch; flex-direction: column; }
+    .flight-command-gate,
+    .flight-command-footer button { width: 100%; }
+    .flight-status-command-grid,
+    .flight-disruption-fields { grid-template-columns: minmax(0, 1fr); }
+    .flight-command-header,
+    .flight-status-command { padding-right: 16px; padding-left: 16px; }
+    .flight-terminal-state { margin-right: 16px; margin-left: 16px; }
+}

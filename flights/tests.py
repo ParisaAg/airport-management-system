@@ -516,7 +516,9 @@ class FlightAuthorizationTests(TestCase):
             ),
             {
                 "status": "DELAYED",
-            },
+                "delay_minutes": 45,
+                "reason": "Adverse weather conditions",
+            }
         )
 
         self.assertRedirects(
@@ -544,7 +546,9 @@ class FlightAuthorizationTests(TestCase):
             ),
             {
                 "status": "DELAYED",
-            },
+                "delay_minutes": 45,
+                "reason": "Adverse weather conditions",
+            }
         )
 
         event = AuditLog.objects.get(
@@ -767,6 +771,59 @@ class FlightAuthorizationTests(TestCase):
         self.assertEqual(
             flight_data["terminal"],
             self.terminal.code,
+        )
+
+
+    def test_public_board_uses_estimated_time_for_delayed_flight(self):
+        transition_flight_status(
+            flight_id=self.flight.id,
+            new_status="DELAYED",
+            delay_minutes=45,
+            reason="Adverse weather conditions",
+            actor=self.admin,
+        )
+
+        self.flight.refresh_from_db()
+
+        response = self.client.get(
+            reverse("public_flight_board_data"),
+            {
+                "airport": self.origin.iata_code,
+                "type": "DEPARTURES",
+            },
+        )
+
+        self.assertEqual(
+            response.status_code,
+            200,
+        )
+
+        flight_data = next(
+            item
+            for item in response.json()["flights"]
+            if (
+                item["flight_number"]
+                == self.flight.flight_number
+            )
+        )
+
+        self.assertEqual(
+            flight_data["display_time"],
+            (
+                self.flight
+                .estimated_departure_time
+                .isoformat()
+            ),
+        )
+
+        self.assertEqual(
+            flight_data["delay_minutes"],
+            45,
+        )
+
+        self.assertEqual(
+            flight_data["disruption_reason"],
+            "Adverse weather conditions",
         )
 
 class FlightTransitionTests(TestCase):

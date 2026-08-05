@@ -567,3 +567,20 @@ select {
         text-align: left;
     }
 }
+
+.board-delay-label {
+    display: inline-flex;
+    margin-top: 6px;
+    padding: 4px 7px;
+    color: #a45106;
+    background: #fff0da;
+    border-radius: 7px;
+    font-size: 0.67rem;
+    font-weight: 850;
+    white-space: nowrap;
+}
+
+.board-time-cell:has(.board-delay-label)
+.board-cell-stack > strong {
+    color: #b45f06;
+}

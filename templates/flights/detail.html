@@ -14,10 +14,13 @@
     rel="stylesheet"
     href="{% static 'css/flights.css' %}"
 >
+<link
+    rel="stylesheet"
+    href="{% static 'css/flight-status.css' %}"
+>
 {% endblock %}
 
 {% block content %}
-
 <div class="module-page flight-detail-page">
 
     <a href="{% url 'flight_list' %}" class="back-link">
@@ -25,9 +28,7 @@
     </a>
 
     <section class="flight-hero">
-
         <div class="flight-hero-top">
-
             <div>
                 <span class="module-eyebrow">
                     FLIGHT OPERATIONS
@@ -57,27 +58,38 @@
                     Edit flight
                 </a>
             {% endif %}
-
         </div>
 
         <div class="route-overview">
-
             <div class="airport-point">
                 <span class="airport-label">Origin</span>
 
-                <strong>{{ flight.origin.iata_code }}</strong>
+                <strong>
+                    {{ flight.origin.iata_code }}
+                </strong>
 
                 <span>
                     {{ flight.origin.city }}
                 </span>
 
                 <time>
-                    {{ flight.departure_time|date:"H:i" }}
+                    {% if flight.estimated_departure_time %}
+                        {{ flight.estimated_departure_time|date:"H:i" }}
+                    {% else %}
+                        {{ flight.departure_time|date:"H:i" }}
+                    {% endif %}
                 </time>
 
                 <small>
                     {{ flight.departure_time|date:"d M Y" }}
                 </small>
+
+                {% if flight.estimated_departure_time %}
+                    <span class="operational-time-note">
+                        Scheduled:
+                        {{ flight.departure_time|date:"H:i" }}
+                    </span>
+                {% endif %}
             </div>
 
             <div class="route-progress">
@@ -87,30 +99,45 @@
             </div>
 
             <div class="airport-point destination">
-                <span class="airport-label">Destination</span>
+                <span class="airport-label">
+                    Destination
+                </span>
 
-                <strong>{{ flight.destination.iata_code }}</strong>
+                <strong>
+                    {{ flight.destination.iata_code }}
+                </strong>
 
                 <span>
                     {{ flight.destination.city }}
                 </span>
 
                 <time>
-                    {{ flight.arrival_time|date:"H:i" }}
+                    {% if flight.estimated_arrival_time %}
+                        {{ flight.estimated_arrival_time|date:"H:i" }}
+                    {% else %}
+                        {{ flight.arrival_time|date:"H:i" }}
+                    {% endif %}
                 </time>
 
                 <small>
                     {{ flight.arrival_time|date:"d M Y" }}
                 </small>
-            </div>
 
+                {% if flight.estimated_arrival_time %}
+                    <span class="operational-time-note">
+                        Scheduled:
+                        {{ flight.arrival_time|date:"H:i" }}
+                    </span>
+                {% endif %}
+            </div>
         </div>
 
         <div class="flight-information-grid">
-
             <div class="information-item">
                 <span>Airline</span>
-                <strong>{{ flight.airline.name }}</strong>
+                <strong>
+                    {{ flight.airline.name }}
+                </strong>
             </div>
 
             <div class="information-item">
@@ -133,76 +160,157 @@
                     {{ flight.get_status_display }}
                 </strong>
             </div>
-
         </div>
 
+        {% if flight.disruption_reason %}
+            <div class="flight-disruption-notice">
+                <div>
+                    <span class="flight-disruption-icon">
+                        !
+                    </span>
+                </div>
+
+                <div>
+                    <strong>
+                        Operational update
+                    </strong>
+
+                    <p>
+                        {{ flight.disruption_reason }}
+                    </p>
+                </div>
+            </div>
+        {% endif %}
     </section>
 
     {% if role == "ADMIN" %}
-        <section class="operations-control-card">
+        <section class="flight-command-card">
+            <header class="flight-command-header">
+                <div>
+                    <span class="flight-command-eyebrow">
+                        OPERATIONAL COMMAND
+                    </span>
 
-            <div>
-                <h2>Operations control</h2>
+                    <h2>Operations control</h2>
 
-                <p>
-                    Update flight status or assign an operational gate.
-                </p>
-            </div>
+                    <p>
+                        Update the flight lifecycle and manage
+                        gate allocation.
+                    </p>
+                </div>
 
-            <div class="control-actions">
+                {% if flight.status == "SCHEDULED" or flight.status == "DELAYED" or flight.status == "BOARDING" %}
+                    <a
+                        href="{% url 'gate_assignment_create' flight.id %}"
+                        class="flight-command-gate"
+                    >
+                        <span>+</span>
+                        Assign gate
+                    </a>
+                {% endif %}
+            </header>
 
+            {% if allowed_statuses %}
                 <form
                     method="post"
                     action="{% url 'flight_change_status' flight.id %}"
-                    class="status-update-form"
+                    class="flight-status-command"
+                    data-flight-status-form
+                    data-scheduled-departure="{{ flight.departure_time|date:'c' }}"
                 >
                     {% csrf_token %}
 
-                    {% if allowed_statuses %}
+                    <div class="flight-status-command-grid">
+                        <div class="flight-command-field">
+                            <label for="{{ status_form.status.id_for_label }}">
+                                Next status
+                            </label>
 
-                        <select
-                            name="status"
-                            aria-label="Next flight status"
-                            required
+                            {{ status_form.status }}
+                        </div>
+
+                        <div
+                            class="flight-command-field"
+                            data-delay-field
+                            hidden
                         >
-                            <option value="" selected disabled>
-                                Select next status
-                            </option>
+                            <label for="{{ status_form.delay_minutes.id_for_label }}">
+                                Delay duration
+                            </label>
 
-                            {% for key, value in allowed_statuses %}
-                                <option value="{{ key }}">
-                                    {{ value }}
-                                </option>
-                            {% endfor %}
-                        </select>
+                            <div class="flight-delay-input">
+                                {{ status_form.delay_minutes }}
+                                <span>minutes</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div
+                        class="flight-disruption-fields"
+                        data-reason-panel
+                        hidden
+                    >
+                        <div class="flight-command-field">
+                            <label for="{{ status_form.reason.id_for_label }}">
+                                <span data-reason-label>
+                                    Operational reason
+                                </span>
+                            </label>
+
+                            {{ status_form.reason }}
+
+                            <small data-reason-help>
+                                Add a clear operational explanation.
+                            </small>
+                        </div>
+
+                        <div
+                            class="flight-estimated-preview"
+                            data-estimated-preview
+                            hidden
+                        >
+                            <span>
+                                Estimated departure
+                            </span>
+
+                            <strong data-estimated-time>
+                                —
+                            </strong>
+                        </div>
+                    </div>
+
+                    <footer class="flight-command-footer">
+                        <p>
+                            Every status update is recorded
+                            in the immutable audit history.
+                        </p>
 
                         <button type="submit">
-                            Update status
+                            Confirm status update
                         </button>
-
-                    {% else %}
-
-                        <span class="terminal-status">
-                            No further status transitions
-                        </span>
-
-                    {% endif %}
+                    </footer>
                 </form>
+            {% else %}
+                <div class="flight-terminal-state">
+                    <span>✓</span>
 
-                <a
-                    href="{% url 'gate_assignment_create' flight.id %}"
-                    class="primary-action"
-                >
-                    + Assign gate
-                </a>
+                    <div>
+                        <strong>
+                            Flight lifecycle completed
+                        </strong>
 
-            </div>
-
+                        <p>
+                            {{ flight.get_status_display }}
+                            is a terminal status and cannot
+                            be changed.
+                        </p>
+                    </div>
+                </div>
+            {% endif %}
         </section>
     {% endif %}
 
     <section class="data-card detail-section">
-
         <header class="data-card-header detail-section-header">
             <div>
                 <h2>Gate assignments</h2>
@@ -214,9 +322,7 @@
         </header>
 
         <div class="table-scroll">
-
             <table class="module-table">
-
                 <thead>
                     <tr>
                         <th>Gate</th>
@@ -234,9 +340,7 @@
                 </thead>
 
                 <tbody>
-
                     {% for assignment in gate_assignments %}
-
                         <tr>
                             <td>
                                 <span class="gate-code">
@@ -279,14 +383,15 @@
                                         </span>
                                     </div>
                                 {% else %}
-                                    <span class="not-available">—</span>
+                                    <span class="not-available">
+                                        —
+                                    </span>
                                 {% endif %}
                             </td>
 
                             {% if role == "ADMIN" %}
                                 <td>
                                     <div class="row-actions">
-
                                         {% if assignment.status == "ACTIVE" %}
                                             <form
                                                 method="post"
@@ -303,38 +408,39 @@
                                                 </button>
                                             </form>
                                         {% else %}
-                                            <span class="not-available">—</span>
+                                            <span class="not-available">
+                                                —
+                                            </span>
                                         {% endif %}
-
                                     </div>
                                 </td>
                             {% endif %}
                         </tr>
-
                     {% empty %}
-
                         <tr>
-                            <td colspan="6" class="empty-state">
-                                <div class="empty-state-icon">▣</div>
+                            <td
+                                colspan="{% if role == 'ADMIN' %}6{% else %}5{% endif %}"
+                                class="empty-state"
+                            >
+                                <div class="empty-state-icon">
+                                    ▣
+                                </div>
+
                                 <h3>No gate assigned</h3>
+
                                 <p>
-                                    This flight has no gate assignment yet.
+                                    This flight has no gate
+                                    assignment yet.
                                 </p>
                             </td>
                         </tr>
-
                     {% endfor %}
-
                 </tbody>
-
             </table>
-
         </div>
-
     </section>
 
     <section class="data-card detail-section">
-
         <header class="data-card-header detail-section-header">
             <div>
                 <h2>Ground operations</h2>
@@ -355,9 +461,7 @@
         </header>
 
         <div class="table-scroll">
-
             <table class="module-table">
-
                 <thead>
                     <tr>
                         <th>Operation</th>
@@ -369,9 +473,7 @@
                 </thead>
 
                 <tbody>
-
                     {% for operation in ground_operations %}
-
                         <tr>
                             <td>
                                 <strong class="operation-name">
@@ -380,7 +482,13 @@
                             </td>
 
                             <td>
-                                {{ operation.assigned_staff.username }}
+                                {% if operation.assigned_staff %}
+                                    {{ operation.assigned_staff.username }}
+                                {% else %}
+                                    <span class="not-available">
+                                        Unassigned
+                                    </span>
+                                {% endif %}
                             </td>
 
                             <td>
@@ -394,7 +502,9 @@
                                 {% if operation.start_time %}
                                     {{ operation.start_time|date:"d M Y, H:i" }}
                                 {% else %}
-                                    <span class="not-available">—</span>
+                                    <span class="not-available">
+                                        —
+                                    </span>
                                 {% endif %}
                             </td>
 
@@ -402,34 +512,40 @@
                                 {% if operation.end_time %}
                                     {{ operation.end_time|date:"d M Y, H:i" }}
                                 {% else %}
-                                    <span class="not-available">—</span>
+                                    <span class="not-available">
+                                        —
+                                    </span>
                                 {% endif %}
                             </td>
                         </tr>
-
                     {% empty %}
-
                         <tr>
-                            <td colspan="5" class="empty-state">
-                                <div class="empty-state-icon">⚙</div>
+                            <td
+                                colspan="5"
+                                class="empty-state"
+                            >
+                                <div class="empty-state-icon">
+                                    ⚙
+                                </div>
+
                                 <h3>No ground operations</h3>
+
                                 <p>
                                     No operational tasks are attached
                                     to this flight.
                                 </p>
                             </td>
                         </tr>
-
                     {% endfor %}
-
                 </tbody>
-
             </table>
-
         </div>
-
     </section>
 
 </div>
 
+<script
+    src="{% static 'js/flight-status-form.js' %}"
+    defer
+></script>
 {% endblock %}

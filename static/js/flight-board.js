@@ -28,71 +28,48 @@ document.addEventListener("DOMContentLoaded", () => {
     function updateClock() {
         const now = new Date();
 
-        clockTime.textContent = new Intl.DateTimeFormat(
-            "en-GB",
-            {
-                hour: "2-digit",
-                minute: "2-digit",
-                second: "2-digit",
-                hour12: false,
-            },
-        ).format(now);
+        clockTime.textContent = new Intl.DateTimeFormat("en-GB", {
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit",
+            hour12: false,
+        }).format(now);
 
-        clockDate.textContent = new Intl.DateTimeFormat(
-            "en-GB",
-            {
-                weekday: "long",
-                day: "2-digit",
-                month: "short",
-                year: "numeric",
-            },
-        ).format(now);
+        clockDate.textContent = new Intl.DateTimeFormat("en-GB", {
+            weekday: "long",
+            day: "2-digit",
+            month: "short",
+            year: "numeric",
+        }).format(now);
     }
 
     function formatFlightTime(value) {
         const date = new Date(value);
 
         if (Number.isNaN(date.getTime())) {
-            return {
-                time: "—",
-                date: "",
-            };
+            return { time: "—", date: "" };
         }
 
         return {
-            time: new Intl.DateTimeFormat(
-                "en-GB",
-                {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                    hour12: false,
-                },
-            ).format(date),
-
-            date: new Intl.DateTimeFormat(
-                "en-GB",
-                {
-                    day: "2-digit",
-                    month: "short",
-                },
-            ).format(date),
+            time: new Intl.DateTimeFormat("en-GB", {
+                hour: "2-digit",
+                minute: "2-digit",
+                hour12: false,
+            }).format(date),
+            date: new Intl.DateTimeFormat("en-GB", {
+                day: "2-digit",
+                month: "short",
+            }).format(date),
         };
     }
 
     function createCell(className = "") {
         const cell = document.createElement("td");
-
-        if (className) {
-            cell.className = className;
-        }
-
+        cell.className = className;
         return cell;
     }
 
-    function createMainAndSecondary(
-        primary,
-        secondary,
-    ) {
+    function createMainAndSecondary(primary, secondary) {
         const wrapper = document.createElement("div");
         wrapper.className = "board-cell-stack";
 
@@ -103,53 +80,50 @@ document.addEventListener("DOMContentLoaded", () => {
         small.textContent = secondary || "";
 
         wrapper.append(strong, small);
-
         return wrapper;
     }
 
     function renderFlight(flight) {
         const row = document.createElement("tr");
         const time = formatFlightTime(
-            flight.scheduled_time,
+            flight.display_time || flight.scheduled_time,
         );
+        const scheduledTime = formatFlightTime(flight.scheduled_time);
+        const timeSecondary = flight.delay_minutes > 0
+            ? `${time.date} · Scheduled ${scheduledTime.time}`
+            : time.date;
 
         const timeCell = createCell("board-time-cell");
-        timeCell.append(
-            createMainAndSecondary(
-                time.time,
-                time.date,
-            ),
-        );
+        timeCell.append(createMainAndSecondary(time.time, timeSecondary));
+
+        if (flight.delay_minutes > 0) {
+            const delayLabel = document.createElement("span");
+            delayLabel.className = "board-delay-label";
+            delayLabel.textContent = `+${flight.delay_minutes} min`;
+            timeCell.append(delayLabel);
+        }
 
         const flightCell = createCell();
-        flightCell.append(
-            createMainAndSecondary(
-                flight.flight_number,
-                flight.airline.iata_code,
-            ),
-        );
+        flightCell.append(createMainAndSecondary(
+            flight.flight_number,
+            flight.airline.iata_code,
+        ));
 
         const airlineCell = createCell();
         airlineCell.textContent = flight.airline.name;
 
-        const route = (
-            boardType === "ARRIVALS"
-                ? flight.origin
-                : flight.destination
-        );
+        const route = boardType === "ARRIVALS"
+            ? flight.origin
+            : flight.destination;
 
         const routeCell = createCell();
-        routeCell.append(
-            createMainAndSecondary(
-                route.iata_code,
-                route.city,
-            ),
-        );
+        routeCell.append(createMainAndSecondary(
+            route.iata_code,
+            route.city,
+        ));
 
         const terminalCell = createCell();
-        terminalCell.textContent = (
-            flight.terminal || "—"
-        );
+        terminalCell.textContent = flight.terminal || "—";
 
         const gateCell = createCell();
         const gateBadge = document.createElement("span");
@@ -159,14 +133,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const statusCell = createCell();
         const statusBadge = document.createElement("span");
-
         const safeStatus = flight.status
             .toLowerCase()
             .replace(/[^a-z_]/g, "");
 
-        statusBadge.className = (
-            `flight-status flight-status--${safeStatus}`
-        );
+        statusBadge.className = `flight-status flight-status--${safeStatus}`;
+
+        if (flight.disruption_reason) {
+            statusBadge.title = flight.disruption_reason;
+        }
 
         const statusDot = document.createElement("span");
         statusDot.className = "flight-status__dot";
@@ -174,11 +149,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const statusLabel = document.createElement("span");
         statusLabel.textContent = flight.status_label;
 
-        statusBadge.append(
-            statusDot,
-            statusLabel,
-        );
-
+        statusBadge.append(statusDot, statusLabel);
         statusCell.append(statusBadge);
 
         row.append(
@@ -196,43 +167,21 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function renderFlights(flights) {
         tableBody.replaceChildren();
-
-        flights.forEach((flight) => {
-            tableBody.append(
-                renderFlight(flight),
-            );
-        });
-
+        flights.forEach((flight) => tableBody.append(renderFlight(flight)));
         emptyState.hidden = flights.length > 0;
     }
 
     function updateBrowserUrl() {
         const url = new URL(window.location.href);
-
-        url.searchParams.set(
-            "airport",
-            airportSelect.value,
-        );
-
-        url.searchParams.set(
-            "type",
-            boardType,
-        );
-
-        window.history.replaceState(
-            {},
-            "",
-            url,
-        );
+        url.searchParams.set("airport", airportSelect.value);
+        url.searchParams.set("type", boardType);
+        window.history.replaceState({}, "", url);
     }
 
     function setLoading(isLoading) {
         loading.hidden = !isLoading;
         refreshButton.disabled = isLoading;
-        refreshButton.classList.toggle(
-            "refresh-button--loading",
-            isLoading,
-        );
+        refreshButton.classList.toggle("refresh-button--loading", isLoading);
     }
 
     function showError(message) {
@@ -251,7 +200,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         requestController = new AbortController();
-
         setLoading(true);
         hideError();
 
@@ -261,67 +209,40 @@ document.addEventListener("DOMContentLoaded", () => {
         });
 
         try {
-            const response = await fetch(
-                `${endpoint}?${query.toString()}`,
-                {
-                    headers: {
-                        Accept: "application/json",
-                    },
-                    signal: requestController.signal,
-                },
-            );
-
+            const response = await fetch(`${endpoint}?${query.toString()}`, {
+                headers: { Accept: "application/json" },
+                signal: requestController.signal,
+            });
             const data = await response.json();
 
             if (!response.ok) {
                 throw new Error(
-                    data.error
-                    || "Unable to load flight information.",
+                    data.error || "Unable to load flight information.",
                 );
             }
 
             airportHeading.textContent = data.airport.name;
-
-            boardTypeLabel.textContent = (
-                boardType === "ARRIVALS"
-                    ? "Arrivals"
-                    : "Departures"
-            );
-
-            routeHeading.textContent = (
-                boardType === "ARRIVALS"
-                    ? "Origin"
-                    : "Destination"
-            );
-
-            lastUpdated.textContent = (
-                new Intl.DateTimeFormat(
-                    "en-GB",
-                    {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                        second: "2-digit",
-                        hour12: false,
-                    },
-                ).format(
-                    new Date(data.updated_at),
-                )
-            );
+            boardTypeLabel.textContent = boardType === "ARRIVALS"
+                ? "Arrivals"
+                : "Departures";
+            routeHeading.textContent = boardType === "ARRIVALS"
+                ? "Origin"
+                : "Destination";
+            lastUpdated.textContent = new Intl.DateTimeFormat("en-GB", {
+                hour: "2-digit",
+                minute: "2-digit",
+                second: "2-digit",
+                hour12: false,
+            }).format(new Date(data.updated_at));
 
             renderFlights(data.flights);
             updateBrowserUrl();
         } catch (error) {
             if (error.name !== "AbortError") {
-                showError(
-                    error.message
-                    || "Live flight data is unavailable.",
-                );
+                showError(error.message || "Live flight data is unavailable.");
             }
         } finally {
-            if (
-                requestController
-                && !requestController.signal.aborted
-            ) {
+            if (requestController && !requestController.signal.aborted) {
                 setLoading(false);
             }
         }
@@ -330,78 +251,36 @@ document.addEventListener("DOMContentLoaded", () => {
     tabs.forEach((tab) => {
         tab.addEventListener("click", () => {
             boardType = tab.dataset.boardType;
-
             tabs.forEach((item) => {
                 const isActive = item === tab;
-
-                item.classList.toggle(
-                    "board-tab--active",
-                    isActive,
-                );
-
-                item.setAttribute(
-                    "aria-selected",
-                    String(isActive),
-                );
+                item.classList.toggle("board-tab--active", isActive);
+                item.setAttribute("aria-selected", String(isActive));
             });
-
             loadFlights();
         });
     });
 
-    airportSelect.addEventListener(
-        "change",
-        loadFlights,
-    );
+    airportSelect.addEventListener("change", loadFlights);
+    refreshButton.addEventListener("click", loadFlights);
+    document.addEventListener("visibilitychange", () => {
+        if (!document.hidden) {
+            loadFlights();
+        }
+    });
 
-    refreshButton.addEventListener(
-        "click",
-        loadFlights,
-    );
-
-    document.addEventListener(
-        "visibilitychange",
-        () => {
-            if (!document.hidden) {
-                loadFlights();
-            }
-        },
-    );
-
-    const initialType = new URLSearchParams(
-        window.location.search,
-    ).get("type");
-
-    if (
-        initialType
-        && ["ARRIVALS", "DEPARTURES"].includes(
-            initialType.toUpperCase(),
-        )
-    ) {
+    const initialType = new URLSearchParams(window.location.search).get("type");
+    if (initialType && ["ARRIVALS", "DEPARTURES"].includes(initialType.toUpperCase())) {
         boardType = initialType.toUpperCase();
-
         tabs.forEach((tab) => {
-            const isActive = (
-                tab.dataset.boardType === boardType
-            );
-
-            tab.classList.toggle(
-                "board-tab--active",
-                isActive,
-            );
-
-            tab.setAttribute(
-                "aria-selected",
-                String(isActive),
-            );
+            const isActive = tab.dataset.boardType === boardType;
+            tab.classList.toggle("board-tab--active", isActive);
+            tab.setAttribute("aria-selected", String(isActive));
         });
     }
 
     updateClock();
     window.setInterval(updateClock, 1000);
-
     loadFlights();
-
     window.setInterval(() => {
         if (!document.hidden) {
             loadFlights();
