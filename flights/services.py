@@ -1,5 +1,5 @@
 from datetime import timedelta
-
+from notifications.services import (notify_flight_disruption,)
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.utils import timezone
@@ -312,7 +312,15 @@ def transition_flight_status(
         ),
         changes=changes,
     )
-
+    if new_status in {
+        "DELAYED",
+        "CANCELLED",
+    }:
+        notify_flight_disruption(
+            flight=flight,
+            actor=actor,
+            delay_minutes=delay_minutes,
+        )
     return flight
 
 

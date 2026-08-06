@@ -5,7 +5,7 @@ from django.http import response
 from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
-
+from notifications.models import Notification
 from airlines.models import Airline
 from airports.models import Airport, Gate, Terminal
 from audit.models import AuditLog
@@ -825,7 +825,116 @@ class FlightAuthorizationTests(TestCase):
             flight_data["disruption_reason"],
             "Adverse weather conditions",
         )
+    def test_delay_notifies_relevant_operational_users(self):
+        passenger_service = User.objects.create_user(
+            username="passenger-service",
+            password="test-password",
+            role="PASSENGER_SERVICE",
+        )
 
+        other_operator = User.objects.create_user(
+            username="other-airline-operator",
+            password="test-password",
+            role="AIRLINE_OPERATOR",
+            airline=self.other_airline,
+        )
+
+        transition_flight_status(
+            flight_id=self.flight.id,
+            new_status="DELAYED",
+            delay_minutes=45,
+            reason="Adverse weather conditions",
+            actor=self.admin,
+        )
+
+        recipient_ids = set(
+            Notification.objects.values_list(
+                "user_id",
+                flat=True,
+            )
+        )
+
+        self.assertIn(
+            self.operator.id,
+            recipient_ids,
+        )
+
+        self.assertIn(
+            self.ground_staff.id,
+            recipient_ids,
+        )
+
+        self.assertIn(
+            passenger_service.id,
+            recipient_ids,
+        )
+
+        self.assertNotIn(
+            other_operator.id,
+            recipient_ids,
+        )
+
+        self.assertNotIn(
+            self.operator_without_airline.id,
+            recipient_ids,
+        )
+
+        self.assertNotIn(
+            self.admin.id,
+            recipient_ids,
+        )
+
+        self.assertTrue(
+            Notification.objects.filter(
+                notification_type="WARNING",
+            ).exists()
+        )
+
+    def test_cancellation_notification_contains_reason(self):
+        transition_flight_status(
+            flight_id=self.flight.id,
+            new_status="CANCELLED",
+            reason=(
+                "Aircraft technical "
+                "inspection required"
+            ),
+            actor=self.admin,
+        )
+
+        notification = Notification.objects.get(
+            user=self.ground_staff,
+        )
+
+        self.assertEqual(
+            notification.notification_type,
+            "ERROR",
+        )
+
+        self.assertIn(
+            self.flight.flight_number,
+            notification.title,
+        )
+
+        self.assertIn(
+            (
+                "Aircraft technical "
+                "inspection required"
+            ),
+            notification.message,
+        )
+
+    def test_normal_status_change_does_not_create_disruption_notification(
+        self,
+    ):
+        transition_flight_status(
+            flight_id=self.flight.id,
+            new_status="BOARDING",
+            actor=self.admin,
+        )
+
+        self.assertFalse(
+            Notification.objects.exists()
+        )
 class FlightTransitionTests(TestCase):
     
     @classmethod
