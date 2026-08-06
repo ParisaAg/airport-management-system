@@ -7,8 +7,7 @@ from django.utils import timezone
 from audit.models import AuditLog
 from audit.services import record_audit_event
 
-from .models import Flight
-
+from .models import Flight, GateAssignment
 
 ALLOWED_FLIGHT_TRANSITIONS = {
     "SCHEDULED": {
@@ -86,7 +85,83 @@ def _validate_disruption_details(
 
     return delay_minutes, reason
 
+def _close_active_gate_assignments(
+    *,
+    flight,
+    new_status,
+    actor,
+    request,
+    timestamp,
+):
+    if new_status not in {
+        "DEPARTED",
+        "CANCELLED",
+    }:
+        return 0
 
+    assignments = (
+        GateAssignment.objects
+        .select_for_update()
+        .select_related(
+            "gate",
+            "flight",
+        )
+        .filter(
+            flight=flight,
+            status="ACTIVE",
+        )
+    )
+
+    target_status = (
+        "RELEASED"
+        if new_status == "DEPARTED"
+        else "CANCELLED"
+    )
+
+    count = 0
+
+    for assignment in assignments:
+        previous_status = assignment.status
+
+        assignment.status = target_status
+        assignment.released_time = timestamp
+
+        assignment.save(
+            update_fields=[
+                "status",
+                "released_time",
+            ],
+        )
+
+        record_audit_event(
+            action=(
+                AuditLog.Action.RELEASE
+                if target_status == "RELEASED"
+                else AuditLog.Action.UPDATE
+            ),
+            instance=assignment,
+            actor=actor,
+            request=request,
+            description=(
+                f"Gate {assignment.gate.code} "
+                f"{target_status.lower()} for "
+                f"flight {flight.flight_number}."
+            ),
+            changes={
+                "status": {
+                    "from": previous_status,
+                    "to": target_status,
+                },
+                "released_time": {
+                    "from": None,
+                    "to": timestamp.isoformat(),
+                },
+            },
+        )
+
+        count += 1
+
+    return count
 @transaction.atomic
 def transition_flight_status(
     *,
@@ -290,7 +365,6 @@ def transition_flight_status(
         update_fields.add(
             "actual_arrival_time"
         )
-
         changes["actual_arrival_time"] = {
             "from": None,
             "to": _serialize_datetime(now),
@@ -299,7 +373,13 @@ def transition_flight_status(
     flight.save(
         update_fields=list(update_fields),
     )
-
+    _close_active_gate_assignments(
+        flight=flight,
+        new_status=new_status,
+        actor=actor,
+        request=request,
+        timestamp=now,
+    )
     record_audit_event(
         action=AuditLog.Action.STATUS_CHANGE,
         instance=flight,
@@ -311,6 +391,8 @@ def transition_flight_status(
             f"to {new_status}."
         ),
         changes=changes,
+
+
     )
     if new_status in {
         "DELAYED",

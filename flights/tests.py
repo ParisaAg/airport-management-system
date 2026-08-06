@@ -935,6 +935,64 @@ class FlightAuthorizationTests(TestCase):
         self.assertFalse(
             Notification.objects.exists()
         )
+
+    def test_departure_releases_active_gate(self):
+        assignment = GateAssignment.objects.create(
+            flight=self.flight,
+            gate=self.gate,
+            status="ACTIVE",
+        )
+
+        transition_flight_status(
+            flight_id=self.flight.id,
+            new_status="BOARDING",
+            actor=self.admin,
+        )
+
+        transition_flight_status(
+            flight_id=self.flight.id,
+            new_status="DEPARTED",
+            actor=self.admin,
+        )
+
+        assignment.refresh_from_db()
+
+        self.assertEqual(
+            assignment.status,
+            "RELEASED",
+        )
+
+        self.assertIsNotNone(
+            assignment.released_time,
+        )
+
+    def test_cancellation_cancels_active_gate(self):
+        assignment = GateAssignment.objects.create(
+            flight=self.flight,
+            gate=self.gate,
+            status="ACTIVE",
+        )
+
+        transition_flight_status(
+            flight_id=self.flight.id,
+            new_status="CANCELLED",
+            reason="Aircraft unavailable",
+            actor=self.admin,
+        )
+
+        assignment.refresh_from_db()
+
+        self.assertEqual(
+            assignment.status,
+            "CANCELLED",
+        )
+
+        self.assertIsNotNone(
+            assignment.released_time,
+        )
+
+
+
 class FlightTransitionTests(TestCase):
     
     @classmethod
