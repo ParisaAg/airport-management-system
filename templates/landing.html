@@ -4,1054 +4,1369 @@
 <html lang="en">
 
 <head>
-
     <meta charset="UTF-8">
 
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <meta
+        name="description"
+        content="Airport Management System — intelligent airport operations platform."
+    >
 
     <title>
         Airport Management System
     </title>
 
-
-    <link rel="stylesheet" href="{% static 'css/landing.css' %}">
-
-
+    <link
+        rel="stylesheet"
+        href="{% static 'css/landing.css' %}?v=20260807-4"
+    >
 </head>
-
 
 <body>
 
 
-<!-- ================= HEADER ================= -->
-
+<!-- NAVIGATION -->
 
 <header class="landing-header">
 
+    <div class="nav-container">
 
-    <div class="brand">
+        <a
+            href="#overview"
+            class="brand"
+        >
+            <img
+                src="{% static 'images/logo-mini.png' %}"
+                alt="Airport Management System"
+            >
+
+            <div>
+                <strong>
+                    Airport Management
+                </strong>
+
+                <span>
+                    OPERATIONS SYSTEM
+                </span>
+            </div>
+        </a>
 
 
-        <img 
-        src="{% static 'images/logo-mini.png' %}"
-        alt="Airport Logo">
+        <nav class="main-navigation">
+
+            <a
+                href="#overview"
+                class="active"
+            >
+                Overview
+            </a>
+
+            <a href="#live">
+                Live Flights
+            </a>
+
+            <a href="#platform">
+                Platform
+            </a>
+
+            <a href="#engineering">
+                Engineering
+            </a>
+
+        </nav>
 
 
-        <span>
-            Airport Management System
-        </span>
+        <div class="nav-actions">
 
+            <a
+                href="{% url 'public_flight_board' %}"
+                class="live-board-link"
+            >
+                <i></i>
+                Live Board
+            </a>
+
+
+            {% if user.is_authenticated %}
+
+                <a
+                    href="{% url 'dashboard' %}"
+                    class="nav-button"
+                >
+                    Dashboard
+                    <span>→</span>
+                </a>
+
+            {% else %}
+
+                <a
+                    href="{% url 'login' %}"
+                    class="login-link"
+                >
+                    Sign in
+                </a>
+
+                <a
+                    href="{% url 'register' %}"
+                    class="nav-button"
+                >
+                    Create account
+                </a>
+
+            {% endif %}
+
+        </div>
 
     </div>
-
-
-
-    <a href="{% url 'login' %}" class="nav-login">
-
-        Login
-
-    </a>
-
-
 
 </header>
 
 
+<!-- HERO -->
+
+<section
+    id="overview"
+    class="hero"
+>
+
+    <div class="hero-overlay"></div>
 
 
+    <div class="hero-container">
 
-<!-- ================= HERO ================= -->
+        <div class="hero-content">
 
+            <div class="hero-eyebrow">
+                <i></i>
 
-<section class="hero">
-
-
-
-    <div class="hero-content">
-
-
-        <img 
-        class="hero-logo"
-        src="{% static 'images/logo.png' %}"
-        alt="Logo">
+                AIRPORT OPERATIONS PLATFORM
+            </div>
 
 
-
-        <h1>
-
-            The Future of Intelligent
-            Airport Operations
-
-        </h1>
-
+            <h1>
+                Intelligent operations.
+                <span>
+                    From gate to runway.
+                </span>
+            </h1>
 
 
-        <p>
-
-            A unified platform for managing
-            flights, airlines, ground operations,
-            security and passenger services.
-
-        </p>
-
+            <p>
+                Monitor flights, coordinate airport
+                resources and manage operational
+                workflows from one secure control
+                environment.
+            </p>
 
 
+            <div class="hero-actions">
 
-        <div class="hero-buttons">
-
-
-            <a href="{% url 'login' %}" class="primary-btn">
-
-                Enter Control Center
-
-            </a>
-
-
-
-            <a href="#features" class="secondary-btn">
-
-                Explore Platform
-
-            </a>
+                <a
+                    href="{% url 'public_flight_board' %}"
+                    class="primary-button"
+                >
+                    Live Flight Board
+                    <span>↗</span>
+                </a>
 
 
+                {% if user.is_authenticated %}
+
+                    <a
+                        href="{% url 'dashboard' %}"
+                        class="ghost-button"
+                    >
+                        Open Control Center
+                    </a>
+
+                {% else %}
+
+                    <a
+                        href="{% url 'register' %}"
+                        class="ghost-button"
+                    >
+                        Create viewer account
+                    </a>
+
+                {% endif %}
+
+            </div>
+
+
+            <div class="hero-trust">
+
+                <span>
+                    Django 5.2
+                </span>
+
+                <i></i>
+
+                <span>
+                    PostgreSQL
+                </span>
+
+                <i></i>
+
+                <span>
+                    Role-Based Access
+                </span>
+
+                <i></i>
+
+                <span>
+                    Audit Logging
+                </span>
+
+            </div>
 
         </div>
 
 
+        <!-- OPERATIONAL CONSOLE -->
+
+        <div class="control-console">
+
+            <div class="console-header">
+
+                <div>
+                    <span>
+                        OPERATIONS CONTROL
+                    </span>
+
+                    <strong>
+                        Flight activity
+                    </strong>
+                </div>
+
+
+                <div class="console-online">
+                    <i></i>
+                    LIVE
+                </div>
+
+            </div>
+
+
+            <div class="console-labels">
+
+                <span>
+                    FLIGHT
+                </span>
+
+                <span>
+                    ROUTE
+                </span>
+
+                <span>
+                    TIME
+                </span>
+
+                <span>
+                    STATUS
+                </span>
+
+            </div>
+
+
+            <div class="console-flights">
+
+                {% for flight in featured_flights|slice:":3" %}
+
+                    <div class="console-flight">
+
+                        <strong>
+                            {{ flight.flight_number }}
+                        </strong>
+
+
+                        <span class="console-route">
+
+                            {{ flight.origin.iata_code }}
+
+                            <i>→</i>
+
+                            {{ flight.destination.iata_code }}
+
+                        </span>
+
+
+                        <span>
+                            {{ flight.departure_time|date:"H:i" }}
+                        </span>
+
+
+                        <span
+                            class="mini-status mini-{{ flight.status|lower }}"
+                        >
+                            <i></i>
+
+                            {{ flight.get_status_display }}
+                        </span>
+
+                    </div>
+
+                {% empty %}
+
+                    <div class="console-empty">
+                        No current flight activity
+                    </div>
+
+                {% endfor %}
+
+            </div>
+
+
+            <div class="console-footer">
+
+                <span>
+                    Operational database
+                </span>
+
+                <a href="{% url 'public_flight_board' %}">
+                    Full board →
+                </a>
+
+            </div>
+
+        </div>
 
     </div>
 
+</section>
 
 
+<!-- FLOATING SUMMARY -->
 
+<main class="main-content">
 
+<section class="summary-wrapper">
 
-    <!-- LIVE PANEL -->
+    <div class="summary-card">
 
+        <div class="summary-intro">
 
-    <div class="status-panel">
+            <span>
+                LIVE AIRPORT STATUS
+            </span>
 
+            <strong>
+                Operational overview
+            </strong>
 
-
-        <div class="status-header">
-
-            <span class="online-dot"></span>
-
-            LIVE AIRPORT STATUS
-
+            <small>
+                Updated from current system data
+            </small>
 
         </div>
 
 
-
-
-
-        <div class="status-item">
-
+        <div class="summary-stat">
 
             <span>
                 Flights Today
             </span>
 
-
-            <strong>
-                248
+            <strong
+                class="counter"
+                data-target="{{ overview.flights_today }}"
+            >
+                0
             </strong>
 
+            <small>
+                scheduled operations
+            </small>
 
         </div>
 
 
-
-
-
-
-        <div class="status-item">
-
+        <div class="summary-stat">
 
             <span>
                 Active Operations
             </span>
 
-
-            <strong>
-                64
+            <strong
+                class="counter"
+                data-target="{{ overview.active_operations }}"
+            >
+                0
             </strong>
 
+            <small>
+                ground activities
+            </small>
 
         </div>
 
 
-
-
-
-
-        <div class="status-item">
-
+        <div class="summary-stat">
 
             <span>
-                Security Level
+                Delayed
             </span>
 
-
-            <strong>
-                99.8%
+            <strong
+                class="counter warning"
+                data-target="{{ overview.delayed_flights }}"
+            >
+                0
             </strong>
 
+            <small>
+                monitored flights
+            </small>
 
         </div>
 
 
-
-
-
-
-        <div class="status-item">
-
+        <div class="summary-stat">
 
             <span>
-                Weather
+                Airports
             </span>
 
-
-            <strong>
-                Clear
+            <strong
+                class="counter"
+                data-target="{{ overview.airports }}"
+            >
+                0
             </strong>
 
-
-        </div>
-
-
-
-
-    </div>
-<!-- Flight Route Animation -->
-
-<div class="flight-route">
-
-
-    <div class="airport-code">
-        IKA
-    </div>
-
-
-    <div class="route-line">
-
-        <div class="plane">
-            ✈
-        </div>
-
-    </div>
-
-
-    <div class="airport-code">
-        MHD
-    </div>
-
-
-</div>
-
-
-</section>
-
-
-
-
-
-
-
-<!-- ================= FEATURES ================= -->
-
-
-<section id="features" class="features">
-
-
-
-<h2>
-
-One Platform.
-Complete Airport Control.
-
-</h2>
-
-
-
-
-
-<div class="feature-grid">
-
-
-
-<div class="feature-card">
-
-
-<div class="icon">
-✈
-</div>
-
-
-<h3>
-
-Flight Intelligence
-
-</h3>
-
-
-<p>
-
-Scheduling, monitoring,
-gate assignment and flight control.
-
-</p>
-
-
-</div>
-
-
-
-
-
-
-
-
-<div class="feature-card">
-
-
-<div class="icon">
-🏢
-</div>
-
-
-<h3>
-
-Airline Management
-
-</h3>
-
-
-<p>
-
-Manage airlines,
-aircraft fleet and operators.
-
-</p>
-
-
-</div>
-
-
-
-
-
-
-
-
-
-<div class="feature-card">
-
-
-<div class="icon">
-🛠
-</div>
-
-
-<h3>
-
-Ground Operations
-
-</h3>
-
-
-<p>
-
-Fueling, boarding,
-baggage and airport services.
-
-</p>
-
-
-</div>
-
-
-
-
-
-
-
-
-
-<div class="feature-card">
-
-
-<div class="icon">
-🔒
-</div>
-
-
-<h3>
-
-Security Control
-
-</h3>
-
-
-<p>
-
-Monitor alerts,
-reports and security workflow.
-
-</p>
-
-
-</div>
-
-
-
-
-
-</div>
-
-
-</section>
-
-
-
-
-
-
-
-
-<!-- ================= WORKFLOW ================= -->
-
-
-<section class="workflow">
-
-
-
-<h2>
-
-Airport Operational Workflow
-
-</h2>
-
-
-
-
-<div class="workflow-line">
-
-
-
-<div>
-
-Aircraft Arrival
-
-</div>
-
-
-
-<div>
-
-Gate Assignment
-
-</div>
-
-
-
-<div>
-
-Ground Operations
-
-</div>
-
-
-
-<div>
-
-Security Check
-
-</div>
-
-
-
-<div>
-
-Passenger Service
-
-</div>
-
-
-
-<div>
-
-Departure
-
-</div>
-
-
-
-</div>
-
-
-
-</section>
-
-
-
-
-
-
-
-<!-- ================= DASHBOARD PREVIEW ================= -->
-
-
-<section class="dashboard-preview">
-
-
-    <h2>
-        Airport Control Center
-    </h2>
-
-
-    <p class="section-desc">
-
-        Real-time monitoring and intelligent airport operations dashboard.
-
-    </p>
-
-
-
-
-
-    <div class="dashboard-window">
-
-
-
-        <div class="dashboard-header">
-
-
-            <span>
-                Airport Operations Console
-            </span>
-
-
-            <div class="dashboard-status">
-
-                <span></span>
-                System Online
-
-            </div>
-
-
-        </div>
-
-
-
-
-
-        <div class="dashboard-body">
-
-
-
-            <div class="mini-card">
-
-
-                <span>
-                    Total Flights
-                </span>
-
-
-                <strong class="counter" data-target="248">
-                0
-                </strong>
-
-
-            </div>
-
-
-
-
-
-            <div class="mini-card">
-
-
-                <span>
-                    Active Operations
-                </span>
-
-
-                <strong class="counter" data-target="248">
-                0
-                </strong>
-
-
-            </div>
-
-
-
-
-
-            <div class="mini-card">
-
-
-                <span>
-                    Security Alerts
-                </span>
-
-
-                <strong class="counter" data-target="248">
-                0
-                </strong>
-
-
-            </div>
-
-
-
-        </div>
-
-
-
-
-
-
-        <div class="activity-box">
-
-
-            <h3>
-                Recent Activities
-            </h3>
-
-
-
-            <div class="activity">
-
-
-                <span class="green"></span>
-
-
-                IRB8019
-
-                <small>
-                    IKA → MHD
-                </small>
-
-
-                <b>
-                    Boarding
-                </b>
-
-
-            </div>
-
-
-
-
-
-            <div class="activity">
-
-
-                <span class="gold"></span>
-
-
-                Ground Service
-
-
-                <small>
-                    Fueling Completed
-                </small>
-
-
-                <b>
-                    Completed
-                </b>
-
-
-            </div>
-
-
-
-
-
-
-            <div class="activity">
-
-
-                <span class="blue"></span>
-
-
-                Security Check
-
-
-                <small>
-                    Terminal 1
-                </small>
-
-
-                <b>
-                    Active
-                </b>
-
-
-            </div>
-
-
-
-        </div>
-
-
-
-
-    </div>
-
-
-
-</section>
-<!-- ================= GLOBAL NETWORK ================= -->
-
-
-<section class="network-section">
-
-
-    <h2>
-        Global Airport Network
-    </h2>
-
-
-    <p class="section-desc">
-
-        Connecting airports through intelligent
-        operational management.
-
-    </p>
-
-
-
-
-    <div class="network-map">
-
-
-
-        <div class="airport-node node-ika">
-
-
-            <span></span>
-
-            IKA
-
             <small>
-                Tehran
+                connected locations
             </small>
 
-
         </div>
-
-
-
-
-
-        <div class="airport-node node-mhd">
-
-
-            <span></span>
-
-            MHD
-
-            <small>
-                Mashhad
-            </small>
-
-
-        </div>
-
-
-
-
-
-        <div class="airport-node node-dxb">
-
-
-            <span></span>
-
-            DXB
-
-            <small>
-                Dubai
-            </small>
-
-
-        </div>
-
-
-
-
-
-        <div class="airport-node node-ist">
-
-
-            <span></span>
-
-            IST
-
-            <small>
-                Istanbul
-            </small>
-
-
-        </div>
-
-
-
-
-
-        <div class="network-plane">
-
-            ✈
-
-        </div>
-
-
-
 
     </div>
 
-
-
-
-
-</section>
-<!-- ================= WHY CHOOSE ================= -->
-
-
-<section class="why-section">
-
-
-    <h2>
-        Why Choose Our Platform
-    </h2>
-
-
-    <p class="section-desc">
-
-        Built for modern airports with
-        intelligent operations and secure management.
-
-    </p>
-
-
-
-
-    <div class="why-grid">
-
-
-
-        <div class="why-card">
-
-
-            <div class="number">
-                01
-            </div>
-
-
-            <h3>
-                Unified Operations
-            </h3>
-
-
-            <p>
-
-                Connect flights, airlines,
-                ground services and passenger
-                operations in one platform.
-
-            </p>
-
-
-        </div>
-
-
-
-
-
-        <div class="why-card">
-
-
-            <div class="number">
-                02
-            </div>
-
-
-            <h3>
-                Role Based Security
-            </h3>
-
-
-            <p>
-
-                Advanced permission management
-                for different airport teams.
-
-            </p>
-
-
-        </div>
-
-
-
-
-
-
-        <div class="why-card">
-
-
-            <div class="number">
-                03
-            </div>
-
-
-            <h3>
-                Real-Time Visibility
-            </h3>
-
-
-            <p>
-
-                Monitor flights, activities
-                and operational status instantly.
-
-            </p>
-
-
-        </div>
-
-
-
-
-
-
-
-        <div class="why-card">
-
-
-            <div class="number">
-                04
-            </div>
-
-
-            <h3>
-                Scalable Architecture
-            </h3>
-
-
-            <p>
-
-                Designed for future expansion
-                and integrations.
-
-            </p>
-
-
-        </div>
-
-
-
-    </div>
-
-
-
-</section>
-
-<!-- ================= TECHNOLOGY ================= -->
-
-
-<section class="technology">
-
-
-
-<h2>
-
-Enterprise Architecture
-
-</h2>
-
-
-
-
-<div class="tech-grid">
-
-
-<div>
-Python
-</div>
-
-
-<div>
-Django
-</div>
-
-
-<div>
-PostgreSQL
-</div>
-
-
-<div>
-RBAC Security
-</div>
-
-
-<div>
-REST API
-</div>
-
-
-
-</div>
-
-
 </section>
 
 
+<!-- LIVE FLIGHTS -->
 
-
-
-
-
-
-
-<!-- ================= FOOTER ================= -->
-
-
-<footer>
-
-
-<img 
-src="{% static 'images/logo-mini.png' %}"
+<section
+    id="live"
+    class="page-section live-flights-section"
 >
 
+    <div class="section-title-row">
+
+        <div>
+
+            <span class="section-eyebrow">
+                LIVE FLIGHT INTELLIGENCE
+            </span>
+
+            <h2>
+                Current airport activity
+            </h2>
+
+            <p>
+                A live operational snapshot from
+                the flight management database.
+            </p>
+
+        </div>
 
 
-<p>
+        <a
+            href="{% url 'public_flight_board' %}"
+            class="outline-button"
+        >
+            Open Full Flight Board
+            <span>↗</span>
+        </a>
 
-Airport Management System
-
-</p>
-
-
-<span>
-
-Digital Infrastructure For Future Airports
-
-</span>
+    </div>
 
 
+    <div class="flight-board-preview">
+
+        <div class="flight-board-header">
+
+            <span>
+                FLIGHT
+            </span>
+
+            <span>
+                AIRLINE
+            </span>
+
+            <span>
+                ROUTE
+            </span>
+
+            <span>
+                DEPARTURE
+            </span>
+
+            <span>
+                STATUS
+            </span>
+
+        </div>
+
+
+        {% for flight in featured_flights %}
+
+            <div class="flight-board-row">
+
+                <div class="flight-id">
+
+                    <strong>
+                        {{ flight.flight_number }}
+                    </strong>
+
+                    <small>
+                        {{ flight.airline.iata_code }}
+                    </small>
+
+                </div>
+
+
+                <div class="airline-cell">
+                    {{ flight.airline.name }}
+                </div>
+
+
+                <div class="route-cell">
+
+                    <strong>
+                        {{ flight.origin.iata_code }}
+                    </strong>
+
+                    <span>
+                        ── ✈ ──
+                    </span>
+
+                    <strong>
+                        {{ flight.destination.iata_code }}
+                    </strong>
+
+                </div>
+
+
+                <div class="time-cell">
+
+                    <strong>
+                        {{ flight.departure_time|date:"H:i" }}
+                    </strong>
+
+                    <small>
+                        {{ flight.departure_time|date:"d M Y" }}
+                    </small>
+
+                </div>
+
+
+                <div>
+
+                    <span
+                        class="status-badge status-{{ flight.status|lower }}"
+                    >
+                        <i></i>
+
+                        {{ flight.get_status_display }}
+                    </span>
+
+                </div>
+
+            </div>
+
+        {% empty %}
+
+            <div class="empty-flights">
+
+                <span>✈</span>
+
+                <strong>
+                    No flights in the
+                    current operating window
+                </strong>
+
+                <p>
+                    Open the public flight board
+                    for complete information.
+                </p>
+
+            </div>
+
+        {% endfor %}
+
+
+        <div class="flight-board-footer">
+
+            <div>
+                <i></i>
+
+                Live operational database
+            </div>
+
+            <a href="{% url 'public_flight_board' %}">
+                Passenger Flight Information →
+            </a>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- PLATFORM EXPLORER -->
+
+<section
+    id="platform"
+    class="page-section platform-section"
+>
+
+    <div class="section-title-row platform-heading">
+
+        <div>
+
+            <span class="section-eyebrow">
+                EXPLORE THE PLATFORM
+            </span>
+
+            <h2>
+                Connected airport workflows
+            </h2>
+
+            <p>
+                Explore how individual modules
+                work together across the airport.
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <div class="platform-explorer">
+
+        <div
+            class="platform-tabs"
+            role="tablist"
+        >
+
+            <button
+                class="platform-tab active"
+                data-tab="flight-control"
+                type="button"
+            >
+                <span>✈</span>
+                Flight Control
+            </button>
+
+
+            <button
+                class="platform-tab"
+                data-tab="ground-operations"
+                type="button"
+            >
+                <span>⚙</span>
+                Ground Operations
+            </button>
+
+
+            <button
+                class="platform-tab"
+                data-tab="gate-control"
+                type="button"
+            >
+                <span>▣</span>
+                Gate Control
+            </button>
+
+
+            <button
+                class="platform-tab"
+                data-tab="audit-control"
+                type="button"
+            >
+                <span>☷</span>
+                Audit & Access
+            </button>
+
+        </div>
+
+
+        <!-- FLIGHT CONTROL -->
+
+        <div
+            class="platform-panel active"
+            id="flight-control"
+        >
+
+            <div class="panel-content">
+
+                <span class="panel-eyebrow">
+                    FLIGHT OPERATIONS
+                </span>
+
+                <h3>
+                    Control the complete
+                    flight lifecycle.
+                </h3>
+
+                <p>
+                    Manage scheduled services,
+                    operational transitions,
+                    disruptions and live timing
+                    information from one workflow.
+                </p>
+
+
+                <div class="feature-points">
+
+                    <div>
+                        <i>✓</i>
+                        Controlled status transitions
+                    </div>
+
+                    <div>
+                        <i>✓</i>
+                        Delay and cancellation management
+                    </div>
+
+                    <div>
+                        <i>✓</i>
+                        Estimated and actual timing
+                    </div>
+
+                    <div>
+                        <i>✓</i>
+                        Airline data isolation
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="workflow-card">
+
+                <span>
+                    FLIGHT LIFECYCLE
+                </span>
+
+
+                <div class="workflow-row active-step">
+                    <i>01</i>
+
+                    <div>
+                        <strong>Scheduled</strong>
+                        <small>Flight prepared</small>
+                    </div>
+
+                    <b>→</b>
+                </div>
+
+
+                <div class="workflow-row">
+                    <i>02</i>
+
+                    <div>
+                        <strong>Boarding</strong>
+                        <small>Gate active</small>
+                    </div>
+
+                    <b>→</b>
+                </div>
+
+
+                <div class="workflow-row">
+                    <i>03</i>
+
+                    <div>
+                        <strong>Departed</strong>
+                        <small>Gate released</small>
+                    </div>
+
+                    <b>→</b>
+                </div>
+
+
+                <div class="workflow-row">
+                    <i>04</i>
+
+                    <div>
+                        <strong>Arrived</strong>
+                        <small>Lifecycle complete</small>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- GROUND -->
+
+        <div
+            class="platform-panel"
+            id="ground-operations"
+        >
+
+            <div class="panel-content">
+
+                <span class="panel-eyebrow">
+                    TURNAROUND OPERATIONS
+                </span>
+
+                <h3>
+                    Coordinate aircraft
+                    turnaround activities.
+                </h3>
+
+                <p>
+                    Ground teams manage assigned
+                    services through controlled
+                    operational states.
+                </p>
+
+
+                <div class="feature-points">
+
+                    <div>
+                        <i>✓</i>
+                        Refueling
+                    </div>
+
+                    <div>
+                        <i>✓</i>
+                        Baggage handling
+                    </div>
+
+                    <div>
+                        <i>✓</i>
+                        Cabin and catering services
+                    </div>
+
+                    <div>
+                        <i>✓</i>
+                        Technical inspection
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="operations-preview">
+
+                <div class="operation-preview-row">
+
+                    <span class="operation-icon">
+                        ⛽
+                    </span>
+
+                    <div>
+                        <strong>Refueling</strong>
+                        <small>Assigned ground staff</small>
+                    </div>
+
+                    <b class="completed">
+                        COMPLETED
+                    </b>
+
+                </div>
+
+
+                <div class="operation-preview-row">
+
+                    <span class="operation-icon">
+                        ▦
+                    </span>
+
+                    <div>
+                        <strong>Baggage Handling</strong>
+                        <small>Turnaround operation</small>
+                    </div>
+
+                    <b class="progress">
+                        IN PROGRESS
+                    </b>
+
+                </div>
+
+
+                <div class="operation-preview-row">
+
+                    <span class="operation-icon">
+                        ⚙
+                    </span>
+
+                    <div>
+                        <strong>Technical Inspection</strong>
+                        <small>Pre-departure check</small>
+                    </div>
+
+                    <b class="progress">
+                        IN PROGRESS
+                    </b>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- GATE -->
+
+        <div
+            class="platform-panel"
+            id="gate-control"
+        >
+
+            <div class="panel-content">
+
+                <span class="panel-eyebrow">
+                    AIRPORT RESOURCES
+                </span>
+
+                <h3>
+                    Allocate gates without
+                    operational conflicts.
+                </h3>
+
+                <p>
+                    Gate assignment follows the
+                    flight lifecycle and releases
+                    resources automatically when
+                    required.
+                </p>
+
+
+                <div class="feature-points">
+
+                    <div>
+                        <i>✓</i>
+                        Active gate conflict detection
+                    </div>
+
+                    <div>
+                        <i>✓</i>
+                        Terminal-aware assignment
+                    </div>
+
+                    <div>
+                        <i>✓</i>
+                        Automatic gate release
+                    </div>
+
+                    <div>
+                        <i>✓</i>
+                        Audited gate events
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="gate-preview">
+
+                <div class="gate-preview-top">
+                    GATE ALLOCATION
+                </div>
+
+
+                <div class="gate-route">
+
+                    <div>
+                        <span>FLIGHT</span>
+                        <strong>W5104</strong>
+                    </div>
+
+                    <b>→</b>
+
+                    <div>
+                        <span>TERMINAL</span>
+                        <strong>IKA-T1</strong>
+                    </div>
+
+                    <b>→</b>
+
+                    <div>
+                        <span>GATE</span>
+                        <strong>A03</strong>
+                    </div>
+
+                </div>
+
+
+                <div class="gate-status">
+                    <i></i>
+                    ACTIVE ASSIGNMENT
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- AUDIT -->
+
+        <div
+            class="platform-panel"
+            id="audit-control"
+        >
+
+            <div class="panel-content">
+
+                <span class="panel-eyebrow">
+                    SECURITY & GOVERNANCE
+                </span>
+
+                <h3>
+                    Access controlled.
+                    Actions traceable.
+                </h3>
+
+                <p>
+                    Operational actions are
+                    protected by role permissions
+                    and recorded through an
+                    immutable audit trail.
+                </p>
+
+
+                <div class="feature-points">
+
+                    <div>
+                        <i>✓</i>
+                        Role-based authorization
+                    </div>
+
+                    <div>
+                        <i>✓</i>
+                        Airline data isolation
+                    </div>
+
+                    <div>
+                        <i>✓</i>
+                        Operational audit history
+                    </div>
+
+                    <div>
+                        <i>✓</i>
+                        Actor and change tracking
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="audit-preview">
+
+                <div class="audit-preview-header">
+                    RECENT AUDIT EVENT
+                </div>
+
+
+                <div class="audit-event">
+
+                    <span class="audit-icon">
+                        ↻
+                    </span>
+
+                    <div>
+                        <strong>
+                            FLIGHT STATUS CHANGE
+                        </strong>
+
+                        <p>
+                            W5104 changed from
+                            SCHEDULED to DELAYED
+                        </p>
+
+                        <small>
+                            Actor · Airport Admin
+                        </small>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- ENGINEERING -->
+
+<section
+    id="engineering"
+    class="page-section engineering-section"
+>
+
+    <div class="engineering-layout">
+
+        <div class="engineering-content">
+
+            <span class="section-eyebrow">
+                ENGINEERING
+            </span>
+
+            <h2>
+                Built beyond the UI.
+            </h2>
+
+            <p>
+                The project separates operational
+                concerns into domain modules,
+                service-layer logic and controlled
+                data access.
+            </p>
+
+
+            <div class="engineering-stats">
+
+                <div>
+                    <strong>89+</strong>
+                    <span>Automated tests</span>
+                </div>
+
+                <div>
+                    <strong>6</strong>
+                    <span>Operational roles</span>
+                </div>
+
+                <div>
+                    <strong>3</strong>
+                    <span>Runtime settings</span>
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="technology-grid">
+
+            <div class="technology-card">
+                <span>PY</span>
+
+                <div>
+                    <strong>
+                        Django 5.2
+                    </strong>
+
+                    <small>
+                        Application framework
+                    </small>
+                </div>
+            </div>
+
+
+            <div class="technology-card">
+                <span>DB</span>
+
+                <div>
+                    <strong>
+                        PostgreSQL
+                    </strong>
+
+                    <small>
+                        Relational data
+                    </small>
+                </div>
+            </div>
+
+
+            <div class="technology-card">
+                <span>SV</span>
+
+                <div>
+                    <strong>
+                        Service Layer
+                    </strong>
+
+                    <small>
+                        Business logic
+                    </small>
+                </div>
+            </div>
+
+
+            <div class="technology-card">
+                <span>RB</span>
+
+                <div>
+                    <strong>
+                        RBAC
+                    </strong>
+
+                    <small>
+                        Authorization
+                    </small>
+                </div>
+            </div>
+
+
+            <div class="technology-card">
+                <span>AU</span>
+
+                <div>
+                    <strong>
+                        Audit Logging
+                    </strong>
+
+                    <small>
+                        Traceability
+                    </small>
+                </div>
+            </div>
+
+
+            <div class="technology-card">
+                <span>TS</span>
+
+                <div>
+                    <strong>
+                        Automated Tests
+                    </strong>
+
+                    <small>
+                        Workflow validation
+                    </small>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- CTA -->
+
+<section class="final-cta">
+
+    <div class="cta-copy">
+
+        <span>
+            READY TO EXPLORE?
+        </span>
+
+        <h2>
+            See airport operations in action.
+        </h2>
+
+        <p>
+            Explore live passenger flight data
+            or access the operational environment.
+        </p>
+
+    </div>
+
+
+    <div class="cta-buttons">
+
+        <a
+            href="{% url 'public_flight_board' %}"
+            class="cta-primary"
+        >
+            Live Flight Board
+            <span>↗</span>
+        </a>
+
+
+        {% if user.is_authenticated %}
+
+            <a
+                href="{% url 'dashboard' %}"
+                class="cta-secondary"
+            >
+                Dashboard
+            </a>
+
+        {% else %}
+
+            <a
+                href="{% url 'register' %}"
+                class="cta-secondary"
+            >
+                Create Account
+            </a>
+
+        {% endif %}
+
+    </div>
+
+</section>
+
+</main>
+
+
+<!-- FOOTER -->
+
+<footer class="landing-footer">
+
+    <div class="footer-container">
+
+        <div class="footer-brand">
+
+            <img
+                src="{% static 'images/logo-mini.png' %}"
+                alt="Airport Management System"
+            >
+
+            <div>
+                <strong>
+                    Airport Management System
+                </strong>
+
+                <span>
+                    Operational infrastructure
+                    for modern airports.
+                </span>
+            </div>
+
+        </div>
+
+
+        <div class="footer-links">
+
+            <a href="#overview">
+                Overview
+            </a>
+
+            <a href="#live">
+                Flights
+            </a>
+
+            <a href="#platform">
+                Platform
+            </a>
+
+            <a href="#engineering">
+                Engineering
+            </a>
+
+        </div>
+
+    </div>
 
 </footer>
 
 
+<script
+    src="{% static 'js/landing.js' %}?v=20260807-4"
+></script>
 
-
-<script src="{% static 'js/landing.js' %}"></script>
 </body>
-
 </html>
