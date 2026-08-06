@@ -510,3 +510,155 @@ class DemoSeedCommandTests(TestCase):
                 pk=existing_airport.pk
             ).exists()
         )
+
+
+
+
+class RegistrationFlowTests(TestCase):
+    def test_registration_page_is_available(self):
+        response = self.client.get(
+            reverse("register")
+        )
+
+        self.assertEqual(
+            response.status_code,
+            200,
+        )
+
+        self.assertTemplateUsed(
+            response,
+            "accounts/register.html",
+        )
+
+    def test_registration_creates_viewer_and_logs_user_in(
+        self,
+    ):
+        response = self.client.post(
+            reverse("register"),
+            {
+                "first_name": "Parisa",
+                "last_name": "Demo",
+                "username": "parisa-viewer",
+                "email": "parisa@example.com",
+                "password1": "AirportTest@2026!",
+                "password2": "AirportTest@2026!",
+            },
+        )
+
+        user = User.objects.get(
+            username="parisa-viewer"
+        )
+
+        self.assertEqual(
+            user.role,
+            "VIEWER",
+        )
+
+        self.assertEqual(
+            user.email,
+            "parisa@example.com",
+        )
+
+        self.assertTrue(
+            user.check_password(
+                "AirportTest@2026!"
+            )
+        )
+
+        self.assertRedirects(
+            response,
+            reverse("dashboard"),
+        )
+
+        self.assertEqual(
+            int(
+                self.client.session[
+                    "_auth_user_id"
+                ]
+            ),
+            user.pk,
+        )
+
+    def test_duplicate_email_is_rejected(self):
+        User.objects.create_user(
+            username="existing-viewer",
+            email="viewer@example.com",
+            password="AirportTest@2026!",
+            role="VIEWER",
+        )
+
+        response = self.client.post(
+            reverse("register"),
+            {
+                "first_name": "Another",
+                "last_name": "Viewer",
+                "username": "another-viewer",
+                "email": "VIEWER@example.com",
+                "password1": "AirportTest@2026!",
+                "password2": "AirportTest@2026!",
+            },
+        )
+
+        self.assertEqual(
+            response.status_code,
+            200,
+        )
+
+        self.assertFalse(
+            User.objects.filter(
+                username="another-viewer"
+            ).exists()
+        )
+
+        self.assertContains(
+            response,
+            (
+                "An account with this email "
+                "already exists."
+            ),
+        )
+
+    def test_authenticated_user_cannot_open_register(
+        self,
+    ):
+        user = User.objects.create_user(
+            username="authenticated-viewer",
+            password="AirportTest@2026!",
+            role="VIEWER",
+        )
+
+        self.client.force_login(user)
+
+        response = self.client.get(
+            reverse("register")
+        )
+
+        self.assertRedirects(
+            response,
+            reverse("dashboard"),
+        )
+
+    def test_new_user_default_role_is_viewer(self):
+        user = User.objects.create_user(
+            username="default-role-user",
+            password="AirportTest@2026!",
+        )
+
+        self.assertEqual(
+            user.role,
+            "VIEWER",
+        )
+
+    def test_viewer_does_not_have_admin_role(self):
+        user = User.objects.create_user(
+            username="limited-viewer",
+            password="AirportTest@2026!",
+            role="VIEWER",
+        )
+
+        self.assertFalse(
+            has_role(
+                user,
+                [ADMIN],
+            )
+        )
