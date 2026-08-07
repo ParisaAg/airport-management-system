@@ -1,0 +1,431 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}
+Report Security Incident | Airport Management
+{% endblock %}
+
+{% block extra_css %}
+<link
+    rel="stylesheet"
+    href="{% static 'css/security.css' %}?v=1"
+>
+<link
+    rel="stylesheet"
+    href="{% static 'css/security-form.css' %}?v=1"
+>
+{% endblock %}
+
+{% block content %}
+
+<div class="security-form-page">
+
+    <div class="security-form-back">
+        <a href="{% url 'security:list' %}">
+            ← Back to Security Center
+        </a>
+    </div>
+
+
+    <header class="security-form-header">
+
+        <div>
+            <span class="security-form-eyebrow">
+                AIRPORT SECURITY OPERATIONS
+            </span>
+
+            <h1>
+                Report Security Incident
+            </h1>
+
+            <p>
+                Register a new operational security event for
+                investigation, assignment and audit tracking.
+            </p>
+        </div>
+
+        <div class="security-form-header-badge">
+            <span>SEC</span>
+
+            <div>
+                <small>INCIDENT SYSTEM</small>
+                <strong>New report</strong>
+            </div>
+        </div>
+
+    </header>
+
+
+    <form
+        method="post"
+        class="security-incident-form"
+        novalidate
+    >
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+            <div class="security-form-errors">
+                {% for error in form.non_field_errors %}
+                    <p>{{ error }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+
+        <div class="security-form-layout">
+
+            <main class="security-form-main">
+
+
+                <section class="security-form-card">
+
+                    <div class="form-section-heading">
+
+                        <span>01</span>
+
+                        <div>
+                            <h2>
+                                Incident classification
+                            </h2>
+
+                            <p>
+                                Define the operational context and
+                                severity of the security event.
+                            </p>
+                        </div>
+
+                    </div>
+
+
+                    <div class="security-fields-grid">
+
+                        <div class="security-field security-field-full">
+
+                            <label for="{{ form.flight.id_for_label }}">
+                                Associated flight
+                            </label>
+
+                            {{ form.flight }}
+
+                            <small>
+                                Select the flight connected to this
+                                security incident.
+                            </small>
+
+                            {% for error in form.flight.errors %}
+                                <div class="security-input-error">
+                                    {{ error }}
+                                </div>
+                            {% endfor %}
+
+                        </div>
+
+
+                        <div class="security-field">
+
+                            <label for="{{ form.report_type.id_for_label }}">
+                                Incident type
+                            </label>
+
+                            {{ form.report_type }}
+
+                            {% for error in form.report_type.errors %}
+                                <div class="security-input-error">
+                                    {{ error }}
+                                </div>
+                            {% endfor %}
+
+                        </div>
+
+
+                        <div class="security-field">
+
+                            <label for="{{ form.severity.id_for_label }}">
+                                Severity
+                            </label>
+
+                            {{ form.severity }}
+
+                            <div
+                                class="severity-preview"
+                                id="severity-preview"
+                            >
+                                <span></span>
+
+                                <strong id="severity-preview-text">
+                                    Select severity
+                                </strong>
+                            </div>
+
+                            {% for error in form.severity.errors %}
+                                <div class="security-input-error">
+                                    {{ error }}
+                                </div>
+                            {% endfor %}
+
+                        </div>
+
+
+                        <div class="security-field security-field-full">
+
+                            <label for="{{ form.location.id_for_label }}">
+                                Incident location
+                            </label>
+
+                            {{ form.location }}
+
+                            <small>
+                                Example: Terminal 1 / Gate A4,
+                                Security Checkpoint 2, Baggage Hall.
+                            </small>
+
+                            {% for error in form.location.errors %}
+                                <div class="security-input-error">
+                                    {{ error }}
+                                </div>
+                            {% endfor %}
+
+                        </div>
+
+                    </div>
+
+                </section>
+
+
+                <section class="security-form-card">
+
+                    <div class="form-section-heading">
+
+                        <span>02</span>
+
+                        <div>
+                            <h2>
+                                Incident description
+                            </h2>
+
+                            <p>
+                                Record enough operational detail for
+                                security staff to begin investigation.
+                            </p>
+                        </div>
+
+                    </div>
+
+
+                    <div class="security-field security-field-full">
+
+                        <label for="{{ form.description.id_for_label }}">
+                            Description
+                        </label>
+
+                        {{ form.description }}
+
+                        <div class="description-guidance">
+
+                            <span>
+                                Include where appropriate:
+                            </span>
+
+                            <ul>
+                                <li>What occurred</li>
+                                <li>Where it happened</li>
+                                <li>Immediate action taken</li>
+                                <li>Relevant operational impact</li>
+                            </ul>
+
+                        </div>
+
+                        {% for error in form.description.errors %}
+                            <div class="security-input-error">
+                                {{ error }}
+                            </div>
+                        {% endfor %}
+
+                    </div>
+
+                </section>
+
+            </main>
+
+
+            <aside class="security-form-sidebar">
+
+                <section class="security-form-card assignment-card">
+
+                    <div class="form-section-heading compact">
+
+                        <span>03</span>
+
+                        <div>
+                            <h2>
+                                Responsibility
+                            </h2>
+
+                            <p>
+                                Optional initial assignment.
+                            </p>
+                        </div>
+
+                    </div>
+
+
+                    <div class="security-field security-field-full">
+
+                        <label for="{{ form.officer.id_for_label }}">
+                            Security officer
+                        </label>
+
+                        {{ form.officer }}
+
+                        <small>
+                            The incident may remain unassigned and
+                            be assigned later from Security Center.
+                        </small>
+
+                        {% for error in form.officer.errors %}
+                            <div class="security-input-error">
+                                {{ error }}
+                            </div>
+                        {% endfor %}
+
+                    </div>
+
+                </section>
+
+
+                <section class="incident-policy-card">
+
+                    <span class="policy-label">
+                        WORKFLOW
+                    </span>
+
+                    <h3>
+                        What happens next?
+                    </h3>
+
+
+                    <div class="policy-step">
+
+                        <span>1</span>
+
+                        <div>
+                            <strong>
+                                Incident created
+                            </strong>
+
+                            <small>
+                                Initial status is Open.
+                            </small>
+                        </div>
+
+                    </div>
+
+
+                    <div class="policy-step">
+
+                        <span>2</span>
+
+                        <div>
+                            <strong>
+                                Officer assigned
+                            </strong>
+
+                            <small>
+                                A Security Officer takes
+                                responsibility.
+                            </small>
+                        </div>
+
+                    </div>
+
+
+                    <div class="policy-step">
+
+                        <span>3</span>
+
+                        <div>
+                            <strong>
+                                Investigation
+                            </strong>
+
+                            <small>
+                                Operational investigation begins.
+                            </small>
+                        </div>
+
+                    </div>
+
+
+                    <div class="policy-step">
+
+                        <span>4</span>
+
+                        <div>
+                            <strong>
+                                Resolve & close
+                            </strong>
+
+                            <small>
+                                Findings remain available in
+                                the audit trail.
+                            </small>
+                        </div>
+
+                    </div>
+
+                </section>
+
+
+                <section class="audit-policy-card">
+
+                    <div class="audit-policy-icon">
+                        ✓
+                    </div>
+
+                    <div>
+                        <strong>
+                            Audit tracked
+                        </strong>
+
+                        <p>
+                            Incident creation and lifecycle changes
+                            are recorded in the operational audit log.
+                        </p>
+                    </div>
+
+                </section>
+
+            </aside>
+
+        </div>
+
+
+        <div class="security-form-actions">
+
+            <a
+                href="{% url 'security:list' %}"
+                class="security-cancel-button"
+            >
+                Cancel
+            </a>
+
+            <button
+                type="submit"
+                class="security-submit-button"
+            >
+                <span>+</span>
+                Create security incident
+            </button>
+
+        </div>
+
+    </form>
+
+</div>
+
+{% endblock %}
+
+
+{% block extra_js %}
+<script src="{% static 'js/security-form.js' %}?v=1"></script>
+{% endblock %}

@@ -7,28 +7,31 @@
 
     <meta charset="UTF-8">
 
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
     <title>
         {% block title %}
-        Airport Management System
+            Airport Management System
         {% endblock %}
     </title>
 
+    <link
+        rel="stylesheet"
+        href="{% static 'css/style.css' %}"
+    >
 
-    <link rel="stylesheet"
-          href="{% static 'css/style.css' %}">
-        {% block extra_css %}
-
-        {% endblock %}
+    {% block extra_css %}
+    {% endblock %}
 
 </head>
 
-
 <body>
 
-    
-    {% include 'components/navbar.html' %}
+{% include 'components/navbar.html' %}
+
 
 <div class="layout">
 
@@ -37,26 +40,43 @@
 
     <section class="content">
 
+        {% if messages %}
+
+            <div class="system-messages">
+
+                {% for message in messages %}
+
+                    <div
+                        class="system-message system-message-{{ message.tags|default:'info' }}"
+                        role="alert"
+                    >
+                        {{ message }}
+                    </div>
+
+                {% endfor %}
+
+            </div>
+
+        {% endif %}
+
+
         {% block content %}
-            {% if messages %}
-                <div class="system-messages">
-                    {% for message in messages %}
-                        <divclass="system-message system-message-{{ message.tags|default:'info' }}"role="alert">
-                            {{ message }}
-                        </div>
-                    {% endfor %}
-                </div>
-            {% endif %}
         {% endblock %}
 
     </section>
 
-
 </div>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="{% static 'js/main.js' %}"></script>
+
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script src="{% static 'js/main.js' %}"></script>
+
+{% block extra_js %}
+{% endblock %}
+
 
 {% include 'components/footer.html' %}
-</body>
 
+</body>
 </html>

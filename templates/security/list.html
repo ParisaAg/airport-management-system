@@ -1,0 +1,519 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}
+Security Center | Airport Management
+{% endblock %}
+
+{% block extra_css %}
+<link
+    rel="stylesheet"
+    href="{% static 'css/security.css' %}?v=1"
+>
+{% endblock %}
+
+{% block content %}
+
+<div class="security-page">
+
+    <!-- PAGE HEADER -->
+
+    <header class="security-header">
+
+        <div>
+            <span class="security-eyebrow">
+                AIRPORT SECURITY OPERATIONS
+            </span>
+
+            <h1>Security Center</h1>
+
+            <p>
+                Monitor, triage and investigate
+                airport security incidents from
+                one operational queue.
+            </p>
+        </div>
+
+        {% if can_manage_security %}
+            <a
+                href="{% url 'security:create' %}"
+                class="security-primary-action"
+            >
+                <span>+</span>
+                Report incident
+            </a>
+        {% endif %}
+
+    </header>
+
+
+    <!-- STATISTICS -->
+
+    <section class="security-stats">
+
+        <article class="security-stat-card">
+            <div class="stat-icon open-icon">
+                !
+            </div>
+
+            <div>
+                <span>Open incidents</span>
+
+                <strong>
+                    {{ statistics.open }}
+                </strong>
+            </div>
+        </article>
+
+
+        <article class="security-stat-card">
+            <div class="stat-icon investigate-icon">
+                ◉
+            </div>
+
+            <div>
+                <span>Investigating</span>
+
+                <strong>
+                    {{ statistics.investigating }}
+                </strong>
+            </div>
+        </article>
+
+
+        <article class="security-stat-card critical-card">
+            <div class="stat-icon critical-icon">
+                ▲
+            </div>
+
+            <div>
+                <span>Critical active</span>
+
+                <strong>
+                    {{ statistics.critical }}
+                </strong>
+            </div>
+        </article>
+
+
+        <article class="security-stat-card">
+            <div class="stat-icon unassigned-icon">
+                ?
+            </div>
+
+            <div>
+                <span>Unassigned</span>
+
+                <strong>
+                    {{ statistics.unassigned }}
+                </strong>
+            </div>
+        </article>
+
+    </section>
+
+
+    <!-- INCIDENT QUEUE -->
+
+    <section class="incident-panel">
+
+        <div class="incident-panel-header">
+
+            <div>
+                <h2>Incident Queue</h2>
+
+                <p>
+                    Current airport security
+                    reports and investigations.
+                </p>
+            </div>
+
+            <div class="queue-status">
+                <span></span>
+                Operational queue
+            </div>
+
+        </div>
+
+
+        <!-- FILTERS -->
+
+        <form
+            method="get"
+            class="security-filters"
+        >
+
+            <div class="security-search">
+
+                <span>⌕</span>
+
+                <input
+                    type="search"
+                    name="search"
+                    value="{{ search }}"
+                    placeholder="Search incident, flight, location or officer..."
+                >
+
+            </div>
+
+
+            <!-- STATUS -->
+
+            <select
+                name="status"
+                aria-label="Filter by status"
+            >
+                <option value="">
+                    All statuses
+                </option>
+
+                {% for value, label in statuses %}
+                    <option
+                        value="{{ value }}"
+                        {% if selected_status == value %}selected{% endif %}
+                    >
+                        {{ label }}
+                    </option>
+                {% endfor %}
+            </select>
+
+
+            <!-- SEVERITY -->
+
+            <select
+                name="severity"
+                aria-label="Filter by severity"
+            >
+                <option value="">
+                    All severities
+                </option>
+
+                {% for value, label in severities %}
+                    <option
+                        value="{{ value }}"
+                        {% if selected_severity == value %}selected{% endif %}
+                    >
+                        {{ label }}
+                    </option>
+                {% endfor %}
+            </select>
+
+
+            <!-- INCIDENT TYPE -->
+
+            <select
+                name="type"
+                aria-label="Filter by incident type"
+            >
+                <option value="">
+                    All types
+                </option>
+
+                {% for value, label in report_types %}
+                    <option
+                        value="{{ value }}"
+                        {% if selected_type == value %}selected{% endif %}
+                    >
+                        {{ label }}
+                    </option>
+                {% endfor %}
+            </select>
+
+
+            <!-- ASSIGNMENT -->
+
+            <select
+                name="assignment"
+                aria-label="Filter by assignment"
+            >
+                <option value="">
+                    All assignments
+                </option>
+
+                <option
+                    value="MINE"
+                    {% if selected_assignment == "MINE" %}selected{% endif %}
+                >
+                    Assigned to me
+                </option>
+
+                <option
+                    value="UNASSIGNED"
+                    {% if selected_assignment == "UNASSIGNED" %}selected{% endif %}
+                >
+                    Unassigned
+                </option>
+            </select>
+
+
+            <button
+                type="submit"
+                class="filter-button"
+            >
+                Apply
+            </button>
+
+
+            {% if search or selected_status or selected_severity or selected_type or selected_assignment %}
+                <a
+                    href="{% url 'security:list' %}"
+                    class="clear-filters"
+                >
+                    Reset
+                </a>
+            {% endif %}
+
+        </form>
+
+
+        <!-- INCIDENT TABLE -->
+
+        <div class="security-table-wrap">
+
+            <table class="security-table">
+
+                <thead>
+                    <tr>
+                        <th>INCIDENT</th>
+                        <th>FLIGHT</th>
+                        <th>TYPE</th>
+                        <th>SEVERITY</th>
+                        <th>STATUS</th>
+                        <th>OFFICER</th>
+                        <th>CREATED</th>
+                        <th></th>
+                    </tr>
+                </thead>
+
+
+                <tbody>
+
+                    {% for report in reports %}
+
+                        <tr>
+
+                            <!-- INCIDENT -->
+
+                            <td>
+                                <div class="incident-reference">
+
+                                    <span
+                                        class="incident-marker marker-{{ report.severity|lower }}"
+                                    ></span>
+
+                                    <div>
+                                        <strong>
+                                            {{ report.reference }}
+                                        </strong>
+
+                                        <small>
+                                            {{ report.location|default:"Location not specified"|truncatechars:30 }}
+                                        </small>
+                                    </div>
+
+                                </div>
+                            </td>
+
+
+                            <!-- FLIGHT -->
+
+                            <td>
+                                <div class="flight-reference">
+
+                                    <strong>
+                                        {{ report.flight.flight_number }}
+                                    </strong>
+
+                                    <small>
+                                        {{ report.flight.origin.iata_code }}
+                                        →
+                                        {{ report.flight.destination.iata_code }}
+                                    </small>
+
+                                </div>
+                            </td>
+
+
+                            <!-- TYPE -->
+
+                            <td>
+                                <span class="report-type">
+                                    {{ report.get_report_type_display }}
+                                </span>
+                            </td>
+
+
+                            <!-- SEVERITY -->
+
+                            <td>
+                                <span
+                                    class="severity-badge severity-{{ report.severity|lower }}"
+                                >
+                                    {{ report.get_severity_display }}
+                                </span>
+                            </td>
+
+
+                            <!-- STATUS -->
+
+                            <td>
+                                <span
+                                    class="incident-status status-{{ report.status|lower }}"
+                                >
+                                    <i></i>
+                                    {{ report.get_status_display }}
+                                </span>
+                            </td>
+
+
+                            <!-- OFFICER -->
+
+                            <td>
+
+                                {% if report.officer %}
+
+                                    <div class="officer">
+
+                                        <span>
+                                            {{ report.officer.username|slice:":1"|upper }}
+                                        </span>
+
+                                        <div>
+
+                                            <strong>
+                                                {% if report.officer.get_full_name %}
+                                                    {{ report.officer.get_full_name }}
+                                                {% else %}
+                                                    {{ report.officer.username }}
+                                                {% endif %}
+                                            </strong>
+
+                                            <small>
+                                                Security Officer
+                                            </small>
+
+                                        </div>
+
+                                    </div>
+
+                                {% else %}
+
+                                    <span class="unassigned">
+                                        Unassigned
+                                    </span>
+
+                                {% endif %}
+
+                            </td>
+
+
+                            <!-- CREATED -->
+
+                            <td>
+                                <div class="incident-date">
+
+                                    <strong>
+                                        {{ report.created_at|date:"d M Y" }}
+                                    </strong>
+
+                                    <small>
+                                        {{ report.created_at|date:"H:i" }}
+                                    </small>
+
+                                </div>
+                            </td>
+
+
+                            <!-- DETAILS -->
+
+                            <td>
+                                <a
+                                    href="{% url 'security:detail' report.id %}"
+                                    class="view-incident"
+                                    title="View incident"
+                                    aria-label="View {{ report.reference }}"
+                                >
+                                    →
+                                </a>
+                            </td>
+
+                        </tr>
+
+
+                    {% empty %}
+
+                        <tr>
+                            <td
+                                colspan="8"
+                                class="empty-incidents"
+                            >
+                                <span>✓</span>
+
+                                <strong>
+                                    No security incidents found
+                                </strong>
+
+                                <p>
+                                    There are no incidents
+                                    matching the current filters.
+                                </p>
+                            </td>
+                        </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+
+        <!-- PAGINATION -->
+
+        {% if page_obj.paginator.num_pages > 1 %}
+
+            <div class="security-pagination">
+
+                <span>
+                    Page
+                    {{ page_obj.number }}
+                    of
+                    {{ page_obj.paginator.num_pages }}
+                </span>
+
+
+                <div>
+
+                    {% if page_obj.has_previous %}
+
+                        <a
+                            href="?page={{ page_obj.previous_page_number }}&amp;search={{ search|urlencode }}&amp;status={{ selected_status }}&amp;severity={{ selected_severity }}&amp;type={{ selected_type }}&amp;assignment={{ selected_assignment }}"
+                        >
+                            ← Previous
+                        </a>
+
+                    {% endif %}
+
+
+                    {% if page_obj.has_next %}
+
+                        <a
+                            href="?page={{ page_obj.next_page_number }}&amp;search={{ search|urlencode }}&amp;status={{ selected_status }}&amp;severity={{ selected_severity }}&amp;type={{ selected_type }}&amp;assignment={{ selected_assignment }}"
+                        >
+                            Next →
+                        </a>
+
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+        {% endif %}
+
+    </section>
+
+</div>
+
+{% endblock %}

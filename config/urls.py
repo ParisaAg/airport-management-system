@@ -30,5 +30,6 @@ urlpatterns = [
     path("fleet/",include("fleet.urls")),
     path("operations/",include("operations.urls")),
     path("audit/",include("audit.urls")),
+    path("security/",include("security.urls")),
 
 ]

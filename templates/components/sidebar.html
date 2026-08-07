@@ -1,92 +1,107 @@
 {% load static %}
 
-
 <aside class="sidebar">
-
 
     <div class="sidebar-logo">
 
-        <img 
-        src="{% static 'images/logo-mini.png' %}"
+        <img
+            src="{% static 'images/logo-mini.png' %}"
+            alt="Airport Management"
         >
 
     </div>
 
 
-
     <ul class="sidebar-menu">
 
-
         <li>
-            <a class="active" href="{% url 'dashboard' %}">
+            <a
+                href="{% url 'dashboard' %}"
+                class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}"
+            >
                 🏠 Dashboard
             </a>
         </li>
 
 
+        {% if request.user.role == "ADMIN" or request.user.role == "AIRLINE_OPERATOR" %}
 
-        {% if role == "ADMIN" or role == "AIRLINE_OPERATOR" %}
+            <li>
+                <a href="{% url 'flight_list' %}">
+                    ✈ Flights
+                </a>
+            </li>
 
+            <li>
+                <a href="{% url 'airline_list' %}">
+                    🏢 Airlines
+                </a>
+            </li>
 
-        <li>
-            <a href="{% url 'flight_list' %}">
-                ✈ Flights
-            </a>
-        </li>
+            <li>
+                <a href="#">
+                    🛫 Airports
+                </a>
+            </li>
 
-        <li>
-            <a href="{% url 'airline_list' %}">
-                🏢 Airlines
-            </a>
-        </li>
-        <li>
-            <a href="#">
-                🛫 Airports
-            </a>
-        </li>
-        {% endif %}
-        {% if role == "ADMIN" or role == "AIRLINE_OPERATOR" %}
-        <li>
-            <a href="#">
-                ✈ My Flights
-            </a>
-        </li>
-        {% endif %}
-
-        {% if role == "ADMIN" or role == "GROUND_STAFF" %}
-
-        <li>
-            <a href="{% url 'operation_type_list' %}">
-                🛠 Operations
-            </a>
-        </li>
+            <li>
+                <a href="#">
+                    ✈ My Flights
+                </a>
+            </li>
 
         {% endif %}
 
-        {% if role == "ADMIN" or role == "SECURITY_OFFICER" %}
-        <li>
-            <a href="#">
-                🔒 Security
-            </a>
-        </li>
+
+        {% if request.user.role == "ADMIN" or request.user.role == "GROUND_STAFF" or request.user.role == "AIRPORT_MANAGER" %}
+
+            <li>
+                <a href="{% url 'operation_type_list' %}">
+                    🛠 Operations
+                </a>
+            </li>
+
         {% endif %}
 
-        {% if role == "ADMIN" or role == "PASSENGER_SERVICE" %}
-        <li>
-            <a href="#">
-                &#127915; Passenger Service
-            </a>
-        </li>
+
+        {% if request.user.role == "ADMIN" or request.user.role == "SECURITY_OFFICER" or request.user.role == "AIRPORT_MANAGER" %}
+
+            <li>
+                <a
+                    href="{% url 'security:list' %}"
+                    class="{% if request.resolver_match.namespace == 'security' %}active{% endif %}"
+                >
+                    🔒 Security Center
+                </a>
+            </li>
+
         {% endif %}
-        {% if role == "ADMIN" %}
-        <li>
-            <a href="{% url 'audit:list' %}"class="{% if request.resolver_match.namespace == 'audit' %}active{% endif %}">&#128203; Audit Center</a>
-        </li>
+
+
+        {% if request.user.role == "ADMIN" or request.user.role == "PASSENGER_SERVICE" %}
+
+            <li>
+                <a href="#">
+                    🎫 Passenger Service
+                </a>
+            </li>
+
+        {% endif %}
+
+
+        {% if request.user.role == "ADMIN" %}
+
+            <li>
+                <a
+                    href="{% url 'audit:list' %}"
+                    class="{% if request.resolver_match.namespace == 'audit' %}active{% endif %}"
+                >
+                    📋 Audit Center
+                </a>
+            </li>
+
         {% endif %}
 
     </ul>
-
-</aside>
-
 
 </aside>

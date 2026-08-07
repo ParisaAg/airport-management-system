@@ -1,0 +1,716 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}
+{{ report.reference }} | Security Center
+{% endblock %}
+
+{% block extra_css %}
+<link
+    rel="stylesheet"
+    href="{% static 'css/security.css' %}?v=1"
+>
+<link
+    rel="stylesheet"
+    href="{% static 'css/security-detail.css' %}?v=1"
+>
+{% endblock %}
+
+{% block content %}
+
+<div class="security-detail-page">
+
+    <div class="security-detail-back">
+        <a href="{% url 'security:list' %}">
+            ← Back to Security Center
+        </a>
+    </div>
+
+
+    <section class="incident-hero">
+
+        <div class="incident-hero-main">
+
+            <div class="incident-eyebrow">
+                SECURITY INCIDENT
+            </div>
+
+            <div class="incident-title-row">
+
+                <h1>
+                    {{ report.reference }}
+                </h1>
+
+                <span
+                    class="
+                        security-badge
+                        severity-{{ report.severity|lower }}
+                    "
+                >
+                    {{ report.get_severity_display }}
+                </span>
+
+                <span
+                    class="
+                        security-badge
+                        status-{{ report.status|lower }}
+                    "
+                >
+                    {{ report.get_status_display }}
+                </span>
+
+            </div>
+
+            <p class="incident-summary">
+                {{ report.get_report_type_display }}
+
+                {% if report.flight %}
+                    · Flight {{ report.flight.flight_number }}
+                {% endif %}
+            </p>
+
+        </div>
+
+
+        <div class="incident-hero-meta">
+
+            <span>
+                LAST UPDATED
+            </span>
+
+            <strong>
+                {{ report.updated_at|date:"d M Y, H:i" }}
+            </strong>
+
+        </div>
+
+    </section>
+
+
+    <div class="security-detail-grid">
+
+        <main class="incident-content">
+
+
+            <section class="incident-card">
+
+                <div class="incident-card-header">
+
+                    <div>
+                        <span class="section-label">
+                            INCIDENT OVERVIEW
+                        </span>
+
+                        <h2>
+                            Incident information
+                        </h2>
+                    </div>
+
+                </div>
+
+
+                <div class="incident-information-grid">
+
+                    <div class="incident-information-item">
+
+                        <span>
+                            Incident type
+                        </span>
+
+                        <strong>
+                            {{ report.get_report_type_display }}
+                        </strong>
+
+                    </div>
+
+
+                    <div class="incident-information-item">
+
+                        <span>
+                            Location
+                        </span>
+
+                        <strong>
+                            {% if report.location %}
+                                {{ report.location }}
+                            {% else %}
+                                Not specified
+                            {% endif %}
+                        </strong>
+
+                    </div>
+
+
+                    <div class="incident-information-item">
+
+                        <span>
+                            Created
+                        </span>
+
+                        <strong>
+                            {{ report.created_at|date:"d M Y, H:i" }}
+                        </strong>
+
+                    </div>
+
+
+                    <div class="incident-information-item">
+
+                        <span>
+                            Status updated
+                        </span>
+
+                        <strong>
+                            {{ report.status_updated_at|date:"d M Y, H:i" }}
+                        </strong>
+
+                    </div>
+
+                </div>
+
+
+                <div class="incident-description">
+
+                    <span>
+                        INCIDENT DESCRIPTION
+                    </span>
+
+                    <p>
+                        {{ report.description|linebreaksbr }}
+                    </p>
+
+                </div>
+
+            </section>
+
+
+            {% if report.flight %}
+
+            <section class="incident-card">
+
+                <div class="incident-card-header">
+
+                    <div>
+                        <span class="section-label">
+                            FLIGHT CONTEXT
+                        </span>
+
+                        <h2>
+                            Associated flight
+                        </h2>
+                    </div>
+
+                    <a
+                        href="{% url 'flight_detail' report.flight.id %}"
+                        class="secondary-detail-action"
+                    >
+                        View flight →
+                    </a>
+
+                </div>
+
+
+                <div class="security-flight-card">
+
+                    <div class="security-flight-number">
+
+                        <span>
+                            FLIGHT
+                        </span>
+
+                        <strong>
+                            {{ report.flight.flight_number }}
+                        </strong>
+
+                        <small>
+                            {{ report.flight.airline.name }}
+                        </small>
+
+                    </div>
+
+
+                    <div class="security-route">
+
+                        <div>
+
+                            <span>
+                                ORIGIN
+                            </span>
+
+                            <strong>
+                                {{ report.flight.origin.iata_code }}
+                            </strong>
+
+                            <small>
+                                {{ report.flight.origin.city }}
+                            </small>
+
+                        </div>
+
+
+                        <div class="security-route-line">
+                            <span></span>
+                            <b>✈</b>
+                            <span></span>
+                        </div>
+
+
+                        <div>
+
+                            <span>
+                                DESTINATION
+                            </span>
+
+                            <strong>
+                                {{ report.flight.destination.iata_code }}
+                            </strong>
+
+                            <small>
+                                {{ report.flight.destination.city }}
+                            </small>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="security-flight-status">
+
+                        <span>
+                            FLIGHT STATUS
+                        </span>
+
+                        <strong>
+                            {{ report.flight.get_status_display }}
+                        </strong>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+            {% endif %}
+
+
+            <section class="incident-card">
+
+                <div class="incident-card-header">
+
+                    <div>
+                        <span class="section-label">
+                            INCIDENT LIFECYCLE
+                        </span>
+
+                        <h2>
+                            Security workflow
+                        </h2>
+                    </div>
+
+                </div>
+
+
+                <div class="security-workflow">
+
+                    <div
+                        class="
+                            workflow-step
+                            {% if report.status == 'OPEN' %}
+                                current
+                            {% else %}
+                                completed
+                            {% endif %}
+                        "
+                    >
+                        <span class="workflow-number">
+                            01
+                        </span>
+
+                        <strong>
+                            Open
+                        </strong>
+
+                        <small>
+                            Incident registered
+                        </small>
+                    </div>
+
+
+                    <div
+                        class="
+                            workflow-line
+                            {% if report.status != 'OPEN' %}
+                                completed
+                            {% endif %}
+                        "
+                    ></div>
+
+
+                    <div
+                        class="
+                            workflow-step
+                            {% if report.status == 'INVESTIGATING' %}
+                                current
+                            {% elif report.status == 'RESOLVED' or report.status == 'CLOSED' %}
+                                completed
+                            {% endif %}
+                        "
+                    >
+                        <span class="workflow-number">
+                            02
+                        </span>
+
+                        <strong>
+                            Investigating
+                        </strong>
+
+                        <small>
+                            Officer investigation
+                        </small>
+                    </div>
+
+
+                    <div
+                        class="
+                            workflow-line
+                            {% if report.status == 'RESOLVED' or report.status == 'CLOSED' %}
+                                completed
+                            {% endif %}
+                        "
+                    ></div>
+
+
+                    <div
+                        class="
+                            workflow-step
+                            {% if report.status == 'RESOLVED' %}
+                                current
+                            {% elif report.status == 'CLOSED' %}
+                                completed
+                            {% endif %}
+                        "
+                    >
+                        <span class="workflow-number">
+                            03
+                        </span>
+
+                        <strong>
+                            Resolved
+                        </strong>
+
+                        <small>
+                            Resolution recorded
+                        </small>
+                    </div>
+
+
+                    <div
+                        class="
+                            workflow-line
+                            {% if report.status == 'CLOSED' %}
+                                completed
+                            {% endif %}
+                        "
+                    ></div>
+
+
+                    <div
+                        class="
+                            workflow-step
+                            {% if report.status == 'CLOSED' %}
+                                current completed
+                            {% endif %}
+                        "
+                    >
+                        <span class="workflow-number">
+                            04
+                        </span>
+
+                        <strong>
+                            Closed
+                        </strong>
+
+                        <small>
+                            Lifecycle complete
+                        </small>
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            {% if report.resolution_notes %}
+
+            <section class="incident-card resolution-card">
+
+                <div class="incident-card-header">
+
+                    <div>
+                        <span class="section-label">
+                            RESOLUTION
+                        </span>
+
+                        <h2>
+                            Resolution report
+                        </h2>
+                    </div>
+
+                    {% if report.resolved_at %}
+                        <span class="resolution-date">
+                            {{ report.resolved_at|date:"d M Y, H:i" }}
+                        </span>
+                    {% endif %}
+
+                </div>
+
+
+                <div class="resolution-content">
+                    {{ report.resolution_notes|linebreaksbr }}
+                </div>
+
+            </section>
+
+            {% endif %}
+
+        </main>
+
+
+        <aside class="incident-control-column">
+
+
+            <section class="control-card officer-card">
+
+                <div class="control-card-heading">
+
+                    <span>
+                        RESPONSIBILITY
+                    </span>
+
+                    <h2>
+                        Assigned officer
+                    </h2>
+
+                </div>
+
+
+                {% if report.officer %}
+
+                    <div class="assigned-officer">
+
+                        <div class="officer-avatar">
+                            {{ report.officer.username|first|upper }}
+                        </div>
+
+                        <div>
+                            <strong>
+                                {{ report.officer.get_full_name|default:report.officer.username }}
+                            </strong>
+
+                            <span>
+                                {{ report.officer.username }}
+                            </span>
+                        </div>
+
+                    </div>
+
+                {% else %}
+
+                    <div class="unassigned-officer">
+
+                        <span>!</span>
+
+                        <div>
+                            <strong>
+                                Unassigned incident
+                            </strong>
+
+                            <p>
+                                An officer must be assigned before
+                                investigation can begin.
+                            </p>
+                        </div>
+
+                    </div>
+
+                {% endif %}
+
+
+                {% if can_manage %}
+
+                    <form
+                        method="post"
+                        action="{% url 'security:assign' report.id %}"
+                        class="security-control-form"
+                    >
+                        {% csrf_token %}
+
+                        <label for="{{ assignment_form.officer.id_for_label }}">
+                            Assign security officer
+                        </label>
+
+                        {{ assignment_form.officer }}
+
+                        {% if assignment_form.officer.errors %}
+                            <div class="security-field-error">
+                                {{ assignment_form.officer.errors }}
+                            </div>
+                        {% endif %}
+
+                        <button
+                            type="submit"
+                            class="security-secondary-button"
+                        >
+                            Assign officer
+                        </button>
+
+                    </form>
+
+                {% endif %}
+
+            </section>
+
+
+            <section class="control-card status-control-card">
+
+                <div class="control-card-heading">
+
+                    <span>
+                        INCIDENT CONTROL
+                    </span>
+
+                    <h2>
+                        Status management
+                    </h2>
+
+                </div>
+
+
+                <div class="current-security-state">
+
+                    <span>
+                        CURRENT STATUS
+                    </span>
+
+                    <strong>
+                        {{ report.get_status_display }}
+                    </strong>
+
+                </div>
+
+
+                {% if can_manage %}
+
+                    {% if allowed_statuses %}
+
+                        <form
+                            method="post"
+                            action="{% url 'security:change_status' report.id %}"
+                            class="security-control-form"
+                            id="security-status-form"
+                        >
+                            {% csrf_token %}
+
+                            <label for="security-next-status">
+                                Next status
+                            </label>
+
+                            <select
+                                name="status"
+                                id="security-next-status"
+                                required
+                            >
+                                <option value="" selected disabled>
+                                    Select next status
+                                </option>
+
+                                {% for value, label in allowed_statuses %}
+                                    <option value="{{ value }}">
+                                        {{ label }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+
+
+                            <div
+                                class="resolution-input"
+                                id="security-resolution-input"
+                                hidden
+                            >
+                                <label for="security-resolution-notes">
+                                    Resolution notes
+                                </label>
+
+                                <textarea
+                                    name="resolution_notes"
+                                    id="security-resolution-notes"
+                                    rows="5"
+                                    placeholder="Document investigation findings, actions taken and final resolution..."
+                                ></textarea>
+
+                                <small>
+                                    Required when resolving an incident.
+                                </small>
+                            </div>
+
+
+                            <button
+                                type="submit"
+                                class="security-primary-button"
+                            >
+                                Update incident status
+                            </button>
+
+                        </form>
+
+                    {% else %}
+
+                        <div class="terminal-security-state">
+
+                            <span>✓</span>
+
+                            <div>
+                                <strong>
+                                    Incident lifecycle complete
+                                </strong>
+
+                                <p>
+                                    No further status transitions are available.
+                                </p>
+                            </div>
+
+                        </div>
+
+                    {% endif %}
+
+                {% else %}
+
+                    <div class="readonly-security-state">
+
+                        <strong>
+                            Read-only access
+                        </strong>
+
+                        <p>
+                            You can monitor this incident but cannot
+                            modify its operational state.
+                        </p>
+
+                    </div>
+
+                {% endif %}
+
+            </section>
+
+        </aside>
+
+    </div>
+
+</div>
+
+{% endblock %}
+
+
+{% block extra_js %}
+<script src="{% static 'js/security-detail.js' %}?v=1"></script>
+{% endblock %}
