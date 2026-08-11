@@ -1,0 +1,535 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}
+Passenger Service Center | Airport Management
+{% endblock %}
+
+{% block extra_css %}
+<link
+    rel="stylesheet"
+    href="{% static 'css/passenger-service.css' %}?v=1"
+>
+{% endblock %}
+
+{% block content %}
+
+<div class="passenger-page">
+
+    <header class="passenger-header">
+
+        <div>
+            <span class="passenger-eyebrow">
+                PASSENGER EXPERIENCE OPERATIONS
+            </span>
+
+            <h1>Passenger Service Center</h1>
+
+            <p>
+                Coordinate passenger assistance,
+                service requests and operational
+                support from one unified queue.
+            </p>
+        </div>
+
+        {% if can_manage %}
+            <a
+                href="{% url 'passenger_service:create' %}"
+                class="passenger-primary-action"
+            >
+                <span>+</span>
+                New service request
+            </a>
+        {% endif %}
+
+    </header>
+
+
+    <section class="passenger-stats">
+
+        <article class="passenger-stat-card">
+
+            <div class="passenger-stat-icon open">
+                ◌
+            </div>
+
+            <div>
+                <span>Open requests</span>
+
+                <strong>
+                    {{ statistics.open }}
+                </strong>
+            </div>
+
+        </article>
+
+
+        <article class="passenger-stat-card">
+
+            <div class="passenger-stat-icon progress">
+                ↻
+            </div>
+
+            <div>
+                <span>In progress</span>
+
+                <strong>
+                    {{ statistics.in_progress }}
+                </strong>
+            </div>
+
+        </article>
+
+
+        <article class="passenger-stat-card urgent-card">
+
+            <div class="passenger-stat-icon urgent">
+                !
+            </div>
+
+            <div>
+                <span>Urgent active</span>
+
+                <strong>
+                    {{ statistics.urgent }}
+                </strong>
+            </div>
+
+        </article>
+
+
+        <article class="passenger-stat-card">
+
+            <div class="passenger-stat-icon unassigned">
+                ?
+            </div>
+
+            <div>
+                <span>Unassigned</span>
+
+                <strong>
+                    {{ statistics.unassigned }}
+                </strong>
+            </div>
+
+        </article>
+
+    </section>
+
+
+    <section class="passenger-queue">
+
+        <div class="passenger-queue-header">
+
+            <div>
+                <span class="queue-eyebrow">
+                    LIVE SERVICE OPERATIONS
+                </span>
+
+                <h2>Service Request Queue</h2>
+
+                <p>
+                    Passenger assistance requests
+                    requiring operational attention.
+                </p>
+            </div>
+
+            <div class="queue-online">
+                <i></i>
+                Service desk online
+            </div>
+
+        </div>
+
+
+        <form
+            method="get"
+            class="passenger-filters"
+        >
+
+            <div class="passenger-search">
+
+                <span>⌕</span>
+
+                <input
+                    type="search"
+                    name="search"
+                    value="{{ selected_search }}"
+                    placeholder="Search passenger, PSR reference, flight or booking..."
+                >
+
+            </div>
+
+
+            <select name="status">
+                <option value="">
+                    All statuses
+                </option>
+
+                {% for value, label in statuses %}
+                    <option
+                        value="{{ value }}"
+                        {% if selected_status == value %}
+                            selected
+                        {% endif %}
+                    >
+                        {{ label }}
+                    </option>
+                {% endfor %}
+            </select>
+
+
+            <select name="priority">
+                <option value="">
+                    All priorities
+                </option>
+
+                {% for value, label in priorities %}
+                    <option
+                        value="{{ value }}"
+                        {% if selected_priority == value %}
+                            selected
+                        {% endif %}
+                    >
+                        {{ label }}
+                    </option>
+                {% endfor %}
+            </select>
+
+
+            <select name="type">
+                <option value="">
+                    All services
+                </option>
+
+                {% for value, label in request_types %}
+                    <option
+                        value="{{ value }}"
+                        {% if selected_type == value %}
+                            selected
+                        {% endif %}
+                    >
+                        {{ label }}
+                    </option>
+                {% endfor %}
+            </select>
+
+
+            <select name="assignment">
+
+                <option value="">
+                    All assignments
+                </option>
+
+                <option
+                    value="MINE"
+                    {% if selected_assignment == "MINE" %}
+                        selected
+                    {% endif %}
+                >
+                    Assigned to me
+                </option>
+
+                <option
+                    value="UNASSIGNED"
+                    {% if selected_assignment == "UNASSIGNED" %}
+                        selected
+                    {% endif %}
+                >
+                    Unassigned
+                </option>
+
+            </select>
+
+
+            <button
+                type="submit"
+                class="passenger-filter-button"
+            >
+                Apply
+            </button>
+
+
+            {% if selected_search or selected_status or selected_priority or selected_type or selected_assignment %}
+                <a
+                    href="{% url 'passenger_service:list' %}"
+                    class="passenger-reset"
+                >
+                    Reset
+                </a>
+            {% endif %}
+
+        </form>
+
+
+        <div class="passenger-table-wrap">
+
+            <table class="passenger-table">
+
+                <thead>
+                    <tr>
+                        <th>REQUEST</th>
+                        <th>PASSENGER</th>
+                        <th>FLIGHT</th>
+                        <th>SERVICE</th>
+                        <th>PRIORITY</th>
+                        <th>STATUS</th>
+                        <th>ASSIGNED TO</th>
+                        <th>CREATED</th>
+                        <th></th>
+                    </tr>
+                </thead>
+
+
+                <tbody>
+
+                    {% for item in requests %}
+
+                        <tr>
+
+                            <td>
+                                <div class="request-reference">
+
+                                    <span
+                                        class="
+                                            request-indicator
+                                            priority-{{ item.priority|lower }}
+                                        "
+                                    ></span>
+
+                                    <div>
+                                        <strong>
+                                            {{ item.reference }}
+                                        </strong>
+
+                                        <small>
+                                            {% if item.booking_reference %}
+                                                Booking {{ item.booking_reference }}
+                                            {% else %}
+                                                No booking reference
+                                            {% endif %}
+                                        </small>
+                                    </div>
+
+                                </div>
+                            </td>
+
+
+                            <td>
+                                <div class="passenger-name">
+
+                                    <div class="passenger-avatar">
+                                        {{ item.passenger_name|first|upper }}
+                                    </div>
+
+                                    <div>
+                                        <strong>
+                                            {{ item.passenger_name }}
+                                        </strong>
+
+                                        <small>
+                                            {% if item.service_location %}
+                                                {{ item.service_location }}
+                                            {% else %}
+                                                Location not specified
+                                            {% endif %}
+                                        </small>
+                                    </div>
+
+                                </div>
+                            </td>
+
+
+                            <td>
+                                <div class="passenger-flight">
+
+                                    <strong>
+                                        {{ item.flight.flight_number }}
+                                    </strong>
+
+                                    <small>
+                                        {{ item.flight.origin.iata_code }}
+                                        →
+                                        {{ item.flight.destination.iata_code }}
+                                    </small>
+
+                                </div>
+                            </td>
+
+
+                            <td>
+                                <span class="service-type">
+                                    {{ item.get_request_type_display }}
+                                </span>
+                            </td>
+
+
+                            <td>
+                                <span
+                                    class="
+                                        passenger-priority
+                                        priority-{{ item.priority|lower }}
+                                    "
+                                >
+                                    {{ item.get_priority_display }}
+                                </span>
+                            </td>
+
+
+                            <td>
+                                <span
+                                    class="
+                                        passenger-status
+                                        status-{{ item.status|lower }}
+                                    "
+                                >
+                                    <i></i>
+
+                                    {{ item.get_status_display }}
+                                </span>
+                            </td>
+
+
+                            <td>
+
+                                {% if item.assigned_staff %}
+
+                                    <div class="assigned-agent">
+
+                                        <span>
+                                            {{ item.assigned_staff.username|first|upper }}
+                                        </span>
+
+                                        <div>
+                                            <strong>
+                                                {% if item.assigned_staff.get_full_name %}
+                                                    {{ item.assigned_staff.get_full_name }}
+                                                {% else %}
+                                                    {{ item.assigned_staff.username }}
+                                                {% endif %}
+                                            </strong>
+
+                                            <small>
+                                                Passenger Service
+                                            </small>
+                                        </div>
+
+                                    </div>
+
+                                {% else %}
+
+                                    <span class="passenger-unassigned">
+                                        Unassigned
+                                    </span>
+
+                                {% endif %}
+
+                            </td>
+
+
+                            <td>
+                                <div class="passenger-date">
+
+                                    <strong>
+                                        {{ item.created_at|date:"d M Y" }}
+                                    </strong>
+
+                                    <small>
+                                        {{ item.created_at|date:"H:i" }}
+                                    </small>
+
+                                </div>
+                            </td>
+
+
+                            <td>
+                                <a
+                                    href="{% url 'passenger_service:detail' item.id %}"
+                                    class="passenger-view-action"
+                                    aria-label="View {{ item.reference }}"
+                                >
+                                    →
+                                </a>
+                            </td>
+
+                        </tr>
+
+                    {% empty %}
+
+                        <tr>
+                            <td
+                                colspan="9"
+                                class="passenger-empty"
+                            >
+
+                                <div class="empty-icon">
+                                    ✓
+                                </div>
+
+                                <h3>
+                                    No service requests found
+                                </h3>
+
+                                <p>
+                                    There are no passenger requests
+                                    matching the current filters.
+                                </p>
+
+                            </td>
+                        </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+
+        {% if page_obj.has_other_pages %}
+
+            <nav class="passenger-pagination">
+
+                <div>
+                    Page
+                    <strong>
+                        {{ page_obj.number }}
+                    </strong>
+                    of
+                    <strong>
+                        {{ page_obj.paginator.num_pages }}
+                    </strong>
+                </div>
+
+
+                <div class="pagination-actions">
+
+                    {% if page_obj.has_previous %}
+                        <a
+                            href="?page={{ page_obj.previous_page_number }}&search={{ selected_search }}&status={{ selected_status }}&priority={{ selected_priority }}&type={{ selected_type }}&assignment={{ selected_assignment }}"
+                        >
+                            ← Previous
+                        </a>
+                    {% endif %}
+
+
+                    {% if page_obj.has_next %}
+                        <a
+                            href="?page={{ page_obj.next_page_number }}&search={{ selected_search }}&status={{ selected_status }}&priority={{ selected_priority }}&type={{ selected_type }}&assignment={{ selected_assignment }}"
+                        >
+                            Next →
+                        </a>
+                    {% endif %}
+
+                </div>
+
+            </nav>
+
+        {% endif %}
+
+    </section>
+
+</div>
+
+{% endblock %}

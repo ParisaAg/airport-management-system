@@ -81,8 +81,11 @@
         {% if request.user.role == "ADMIN" or request.user.role == "PASSENGER_SERVICE" %}
 
             <li>
-                <a href="#">
+                <a
+            href="{% url 'passenger_service:list' %}"
+            class="{% if request.resolver_match.namespace == 'passenger_service' %}active{% endif %}">
                     🎫 Passenger Service
+
                 </a>
             </li>
 

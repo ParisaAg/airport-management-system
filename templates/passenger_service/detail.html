@@ -1,0 +1,737 @@
+
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}
+{{ passenger_request.reference }} | Passenger Service
+{% endblock %}
+
+{% block extra_css %}
+<link
+    rel="stylesheet"
+    href="{% static 'css/passenger-service.css' %}?v=1"
+>
+<link
+    rel="stylesheet"
+    href="{% static 'css/passenger-detail.css' %}?v=1"
+>
+{% endblock %}
+
+{% block content %}
+
+<div class="ps-detail-page">
+
+    <div class="ps-back">
+        <a href="{% url 'passenger_service:list' %}">
+            ← Back to Passenger Service Center
+        </a>
+    </div>
+
+
+    <section class="ps-detail-hero">
+
+        <div>
+
+            <span class="ps-detail-eyebrow">
+                PASSENGER SERVICE REQUEST
+            </span>
+
+            <div class="ps-title-row">
+
+                <h1>
+                    {{ passenger_request.reference }}
+                </h1>
+
+                <span
+                    class="
+                        passenger-priority
+                        priority-{{ passenger_request.priority|lower }}
+                    "
+                >
+                    {{ passenger_request.get_priority_display }}
+                </span>
+
+                <span
+                    class="
+                        passenger-status
+                        status-{{ passenger_request.status|lower }}
+                    "
+                >
+                    <i></i>
+
+                    {{ passenger_request.get_status_display }}
+                </span>
+
+            </div>
+
+            <p>
+                {{ passenger_request.get_request_type_display }}
+                ·
+                {{ passenger_request.passenger_name }}
+            </p>
+
+        </div>
+
+
+        <div class="ps-hero-time">
+
+            <span>CREATED</span>
+
+            <strong>
+                {{ passenger_request.created_at|date:"d M Y, H:i" }}
+            </strong>
+
+        </div>
+
+    </section>
+
+
+    <div class="ps-detail-layout">
+
+        <main class="ps-detail-main">
+
+
+            <section class="ps-card">
+
+                <div class="ps-card-heading">
+
+                    <div>
+                        <span>REQUEST OVERVIEW</span>
+
+                        <h2>
+                            Passenger information
+                        </h2>
+                    </div>
+
+                </div>
+
+
+                <div class="ps-info-grid">
+
+                    <div>
+                        <span>Passenger</span>
+
+                        <strong>
+                            {{ passenger_request.passenger_name }}
+                        </strong>
+                    </div>
+
+
+                    <div>
+                        <span>Booking reference</span>
+
+                        <strong>
+                            {% if passenger_request.booking_reference %}
+                                {{ passenger_request.booking_reference }}
+                            {% else %}
+                                —
+                            {% endif %}
+                        </strong>
+                    </div>
+
+
+                    <div>
+                        <span>Service type</span>
+
+                        <strong>
+                            {{ passenger_request.get_request_type_display }}
+                        </strong>
+                    </div>
+
+
+                    <div>
+                        <span>Service location</span>
+
+                        <strong>
+                            {% if passenger_request.service_location %}
+                                {{ passenger_request.service_location }}
+                            {% else %}
+                                Not specified
+                            {% endif %}
+                        </strong>
+                    </div>
+
+                </div>
+
+
+                <div class="ps-description">
+
+                    <span>
+                        SERVICE REQUIREMENT
+                    </span>
+
+                    <p>
+                        {{ passenger_request.description|linebreaksbr }}
+                    </p>
+
+                </div>
+
+            </section>
+
+
+            <section class="ps-card">
+
+                <div class="ps-card-heading">
+
+                    <div>
+                        <span>FLIGHT CONTEXT</span>
+
+                        <h2>
+                            Associated flight
+                        </h2>
+                    </div>
+
+                    <a
+                        href="{% url 'flight_detail' passenger_request.flight.id %}"
+                        class="ps-text-action"
+                    >
+                        View flight →
+                    </a>
+
+                </div>
+
+
+                <div class="ps-flight">
+
+                    <div class="ps-flight-number">
+
+                        <span>FLIGHT</span>
+
+                        <strong>
+                            {{ passenger_request.flight.flight_number }}
+                        </strong>
+
+                        <small>
+                            {{ passenger_request.flight.airline.name }}
+                        </small>
+
+                    </div>
+
+
+                    <div class="ps-route">
+
+                        <div>
+                            <span>ORIGIN</span>
+
+                            <strong>
+                                {{ passenger_request.flight.origin.iata_code }}
+                            </strong>
+
+                            <small>
+                                {{ passenger_request.flight.origin.city }}
+                            </small>
+                        </div>
+
+
+                        <div class="ps-route-track">
+
+                            <span></span>
+
+                            <b>✈</b>
+
+                            <span></span>
+
+                        </div>
+
+
+                        <div>
+                            <span>DESTINATION</span>
+
+                            <strong>
+                                {{ passenger_request.flight.destination.iata_code }}
+                            </strong>
+
+                            <small>
+                                {{ passenger_request.flight.destination.city }}
+                            </small>
+                        </div>
+
+                    </div>
+
+
+                    <div class="ps-flight-state">
+
+                        <span>FLIGHT STATUS</span>
+
+                        <strong>
+                            {{ passenger_request.flight.get_status_display }}
+                        </strong>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <section class="ps-card">
+
+                <div class="ps-card-heading">
+
+                    <div>
+                        <span>SERVICE LIFECYCLE</span>
+
+                        <h2>
+                            Request workflow
+                        </h2>
+                    </div>
+
+                </div>
+
+
+                <div class="ps-workflow">
+
+                    <div
+                        class="
+                            ps-step
+                            {% if passenger_request.status == 'OPEN' %}
+                                current
+                            {% else %}
+                                complete
+                            {% endif %}
+                        "
+                    >
+                        <span>01</span>
+
+                        <strong>Open</strong>
+
+                        <small>
+                            Request received
+                        </small>
+                    </div>
+
+
+                    <div
+                        class="
+                            ps-step-line
+                            {% if passenger_request.status != 'OPEN' %}
+                                complete
+                            {% endif %}
+                        "
+                    ></div>
+
+
+                    <div
+                        class="
+                            ps-step
+                            {% if passenger_request.status == 'ASSIGNED' %}
+                                current
+                            {% elif passenger_request.status == 'IN_PROGRESS' or passenger_request.status == 'COMPLETED' %}
+                                complete
+                            {% endif %}
+                        "
+                    >
+                        <span>02</span>
+
+                        <strong>Assigned</strong>
+
+                        <small>
+                            Agent responsible
+                        </small>
+                    </div>
+
+
+                    <div
+                        class="
+                            ps-step-line
+                            {% if passenger_request.status == 'IN_PROGRESS' or passenger_request.status == 'COMPLETED' %}
+                                complete
+                            {% endif %}
+                        "
+                    ></div>
+
+
+                    <div
+                        class="
+                            ps-step
+                            {% if passenger_request.status == 'IN_PROGRESS' %}
+                                current
+                            {% elif passenger_request.status == 'COMPLETED' %}
+                                complete
+                            {% endif %}
+                        "
+                    >
+                        <span>03</span>
+
+                        <strong>In progress</strong>
+
+                        <small>
+                            Service underway
+                        </small>
+                    </div>
+
+
+                    <div
+                        class="
+                            ps-step-line
+                            {% if passenger_request.status == 'COMPLETED' %}
+                                complete
+                            {% endif %}
+                        "
+                    ></div>
+
+
+                    <div
+                        class="
+                            ps-step
+                            {% if passenger_request.status == 'COMPLETED' %}
+                                current complete
+                            {% endif %}
+                        "
+                    >
+                        <span>04</span>
+
+                        <strong>Completed</strong>
+
+                        <small>
+                            Service delivered
+                        </small>
+                    </div>
+
+                </div>
+
+
+                {% if passenger_request.status == "CANCELLED" %}
+
+                    <div class="ps-cancelled-state">
+
+                        <span>×</span>
+
+                        <div>
+                            <strong>
+                                Request cancelled
+                            </strong>
+
+                            <p>
+                                This passenger service request
+                                has been removed from the active workflow.
+                            </p>
+                        </div>
+
+                    </div>
+
+                {% endif %}
+
+            </section>
+
+
+            {% if passenger_request.resolution_notes %}
+
+                <section class="ps-card ps-resolution-card">
+
+                    <div class="ps-card-heading">
+
+                        <div>
+                            <span>SERVICE OUTCOME</span>
+
+                            <h2>
+                                Resolution report
+                            </h2>
+                        </div>
+
+                        {% if passenger_request.completed_at %}
+                            <small>
+                                {{ passenger_request.completed_at|date:"d M Y, H:i" }}
+                            </small>
+                        {% endif %}
+
+                    </div>
+
+
+                    <div class="ps-resolution">
+                        {{ passenger_request.resolution_notes|linebreaksbr }}
+                    </div>
+
+                </section>
+
+            {% endif %}
+
+        </main>
+
+
+        <aside class="ps-control-column">
+
+
+            <section class="ps-control-card">
+
+                <div class="ps-control-heading">
+
+                    <span>RESPONSIBILITY</span>
+
+                    <h2>
+                        Service assignment
+                    </h2>
+
+                </div>
+
+
+                {% if passenger_request.assigned_staff %}
+
+                    <div class="ps-agent">
+
+                        <div class="ps-agent-avatar">
+                            {{ passenger_request.assigned_staff.username|first|upper }}
+                        </div>
+
+                        <div>
+
+                            <strong>
+                                {% if passenger_request.assigned_staff.get_full_name %}
+                                    {{ passenger_request.assigned_staff.get_full_name }}
+                                {% else %}
+                                    {{ passenger_request.assigned_staff.username }}
+                                {% endif %}
+                            </strong>
+
+                            <span>
+                                Passenger Service Agent
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                {% else %}
+
+                    <div class="ps-no-agent">
+
+                        <span>!</span>
+
+                        <div>
+                            <strong>
+                                No agent assigned
+                            </strong>
+
+                            <p>
+                                Assign passenger service staff
+                                before beginning service.
+                            </p>
+                        </div>
+
+                    </div>
+
+                {% endif %}
+
+
+                {% if can_manage and passenger_request.is_active %}
+
+                    <form
+                        method="post"
+                        action="{% url 'passenger_service:assign' passenger_request.id %}"
+                        class="ps-control-form"
+                    >
+                        {% csrf_token %}
+
+                        <label for="{{ assignment_form.staff.id_for_label }}">
+                            Assign service agent
+                        </label>
+
+                        {{ assignment_form.staff }}
+
+                        <button
+                            type="submit"
+                            class="ps-secondary-button"
+                        >
+                            {% if passenger_request.assigned_staff %}
+                                Reassign request
+                            {% else %}
+                                Assign request
+                            {% endif %}
+                        </button>
+
+                    </form>
+
+                {% endif %}
+
+            </section>
+
+
+            <section class="ps-control-card">
+
+                <div class="ps-control-heading">
+
+                    <span>OPERATIONS CONTROL</span>
+
+                    <h2>
+                        Service status
+                    </h2>
+
+                </div>
+
+
+                <div class="ps-current-state">
+
+                    <span>CURRENT STATUS</span>
+
+                    <strong>
+                        {{ passenger_request.get_status_display }}
+                    </strong>
+
+                </div>
+
+
+                {% if can_change_status %}
+
+                    {% if allowed_statuses %}
+
+                        <form
+                            method="post"
+                            action="{% url 'passenger_service:change_status' passenger_request.id %}"
+                            class="ps-control-form"
+                            id="passenger-status-form"
+                        >
+                            {% csrf_token %}
+
+                            <label for="passenger-next-status">
+                                Next status
+                            </label>
+
+                            <select
+                                name="status"
+                                id="passenger-next-status"
+                                required
+                            >
+                                <option
+                                    value=""
+                                    selected
+                                    disabled
+                                >Select next status
+                                </option>
+
+                                {% for value, label in allowed_statuses %}
+                                    <option value="{{ value }}">
+                                        {{ label }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+
+
+                            <div
+                                class="ps-resolution-input"
+                                id="passenger-resolution"
+                                hidden
+                            >
+
+                                <label for="passenger-resolution-notes">
+                                    Resolution notes
+                                </label>
+
+                                <textarea
+                                    name="resolution_notes"
+                                    id="passenger-resolution-notes"
+                                    rows="5"
+                                    placeholder="Describe the assistance provided and final outcome..."
+                                ></textarea>
+
+                                <small>
+                                    Required before completing the request.
+                                </small>
+
+                            </div>
+
+
+                            <button
+                                type="submit"
+                                class="ps-primary-button"
+                            >
+                                Update service status
+                            </button>
+
+                        </form>
+
+                    {% else %}
+
+                        <div class="ps-terminal-state">
+
+                            <span>✓</span>
+
+                            <div>
+                                <strong>
+                                    Service lifecycle complete
+                                </strong>
+
+                                <p>
+                                    No further operational
+                                    transitions are available.
+                                </p>
+                            </div>
+
+                        </div>
+
+                    {% endif %}
+
+                {% else %}
+
+                    <div class="ps-readonly-state">
+
+                        <strong>
+                            {% if passenger_request.assigned_staff %}
+                                Assigned agent control
+                            {% else %}
+                                Assignment required
+                            {% endif %}
+                        </strong>
+
+                        <p>
+                            {% if passenger_request.assigned_staff %}
+                                Only the assigned Passenger Service
+                                agent or an administrator can update
+                                this request.
+                            {% else %}
+                                Assign this request before service
+                                operations can begin.
+                            {% endif %}
+                        </p>
+
+                    </div>
+
+                {% endif %}
+
+            </section>
+
+
+            <section class="ps-priority-card">
+
+                <span>PRIORITY</span>
+
+                <div>
+                    <strong>
+                        {{ passenger_request.get_priority_display }}
+                    </strong>
+
+                    <span
+                        class="
+                            ps-priority-dot
+                            priority-{{ passenger_request.priority|lower }}
+                        "
+                    ></span>
+                </div>
+
+                {% if passenger_request.priority == "URGENT" %}
+                    <p>
+                        Immediate operational attention required.
+                    </p>
+                {% elif passenger_request.priority == "HIGH" %}
+                    <p>
+                        Prioritize this request within the active queue.
+                    </p>
+                {% else %}
+                    <p>
+                        Process according to normal service priority.
+                    </p>
+                {% endif %}
+
+            </section>
+
+        </aside>
+
+    </div>
+
+</div>
+
+{% endblock %}
+
+
+{% block extra_js %}
+<script src="{% static 'js/passenger-detail.js' %}?v=1"></script>
+{% endblock %}

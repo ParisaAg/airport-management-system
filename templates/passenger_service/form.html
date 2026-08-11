@@ -1,0 +1,466 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}
+New Passenger Service Request | Airport Management
+{% endblock %}
+
+{% block extra_css %}
+<link
+    rel="stylesheet"
+    href="{% static 'css/passenger-form.css' %}?v=1"
+>
+{% endblock %}
+
+{% block content %}
+
+<div class="ps-form-page">
+
+    <div class="ps-form-back">
+        <a href="{% url 'passenger_service:list' %}">
+            ← Back to Passenger Service Center
+        </a>
+    </div>
+
+
+    <header class="ps-form-header">
+
+        <div>
+            <span class="ps-form-eyebrow">
+                PASSENGER EXPERIENCE OPERATIONS
+            </span>
+
+            <h1>
+                New Service Request
+            </h1>
+
+            <p>
+                Register a passenger assistance request
+                for operational assignment, tracking
+                and resolution.
+            </p>
+        </div>
+
+
+        <div class="ps-form-system">
+
+            <span>
+                PSR
+            </span>
+
+            <div>
+                <small>
+                    SERVICE WORKFLOW
+                </small>
+
+                <strong>
+                    New request
+                </strong>
+            </div>
+
+        </div>
+
+    </header>
+
+
+    <form
+        method="post"
+        class="ps-request-form"
+        novalidate
+    >
+        {% csrf_token %}
+
+
+        {% if form.non_field_errors %}
+
+            <div class="ps-form-errors">
+
+                {% for error in form.non_field_errors %}
+                    <p>
+                        {{ error }}
+                    </p>
+                {% endfor %}
+
+            </div>
+
+        {% endif %}
+
+
+        <div class="ps-form-layout">
+
+            <main class="ps-form-main">
+
+
+                <section class="ps-form-card">
+
+                    <div class="ps-section-heading">
+
+                        <span>
+                            01
+                        </span>
+
+                        <div>
+                            <h2>
+                                Passenger and flight
+                            </h2>
+
+                            <p>
+                                Identify the passenger and
+                                associated flight service.
+                            </p>
+                        </div>
+
+                    </div>
+
+
+                    <div class="ps-fields-grid">
+
+                        <div class="ps-field ps-field-full">
+
+                            <label for="{{ form.flight.id_for_label }}">
+                                Associated flight
+                            </label>
+
+                            {{ form.flight }}
+
+                            <small>
+                                Select the flight connected
+                                to this service request.
+                            </small>
+
+                            {% for error in form.flight.errors %}
+                                <div class="ps-field-error">
+                                    {{ error }}
+                                </div>
+                            {% endfor %}
+
+                        </div>
+
+
+                        <div class="ps-field">
+
+                            <label for="{{ form.passenger_name.id_for_label }}">
+                                Passenger full name
+                            </label>
+
+                            {{ form.passenger_name }}
+
+                            {% for error in form.passenger_name.errors %}
+                                <div class="ps-field-error">
+                                    {{ error }}
+                                </div>
+                            {% endfor %}
+
+                        </div>
+
+
+                        <div class="ps-field">
+
+                            <label for="{{ form.booking_reference.id_for_label }}">
+                                Booking reference
+                            </label>
+
+                            {{ form.booking_reference }}
+
+                            <small>
+                                Optional airline booking code.
+                            </small>
+
+                            {% for error in form.booking_reference.errors %}
+                                <div class="ps-field-error">
+                                    {{ error }}
+                                </div>
+                            {% endfor %}
+
+                        </div>
+
+                    </div>
+
+                </section>
+
+
+                <section class="ps-form-card">
+
+                    <div class="ps-section-heading">
+
+                        <span>
+                            02
+                        </span>
+
+                        <div>
+                            <h2>
+                                Service requirement
+                            </h2>
+
+                            <p>
+                                Define the assistance type,
+                                location and operational priority.
+                            </p>
+                        </div>
+
+                    </div>
+
+
+                    <div class="ps-fields-grid">
+
+                        <div class="ps-field">
+
+                            <label for="{{ form.request_type.id_for_label }}">
+                                Service type
+                            </label>
+
+                            {{ form.request_type }}
+
+                            {% for error in form.request_type.errors %}
+                                <div class="ps-field-error">
+                                    {{ error }}
+                                </div>
+                            {% endfor %}
+
+                        </div>
+
+
+                        <div class="ps-field">
+
+                            <label for="{{ form.priority.id_for_label }}">
+                                Priority
+                            </label>
+
+                            {{ form.priority }}
+
+                            <div
+                                class="ps-priority-preview"
+                                id="ps-priority-preview"
+                            >
+                                <i></i>
+
+                                <strong id="ps-priority-text">
+                                    Select priority
+                                </strong>
+                            </div>
+
+                            {% for error in form.priority.errors %}
+                                <div class="ps-field-error">
+                                    {{ error }}
+                                </div>
+                            {% endfor %}
+
+                        </div>
+
+
+                        <div class="ps-field ps-field-full">
+
+                            <label for="{{ form.service_location.id_for_label }}">
+                                Service location
+                            </label>
+
+                            {{ form.service_location }}
+
+                            <small>
+                                Example: Terminal 1 / Check-in,
+                                Gate A4 or Arrival Hall.
+                            </small>
+
+                            {% for error in form.service_location.errors %}
+                                <div class="ps-field-error">
+                                    {{ error }}
+                                </div>
+                            {% endfor %}
+
+                        </div>
+
+
+                        <div class="ps-field ps-field-full">
+
+                            <label for="{{ form.description.id_for_label }}">
+                                Service description
+                            </label>
+
+                            {{ form.description }}
+
+                            {% for error in form.description.errors %}
+                                <div class="ps-field-error">
+                                    {{ error }}
+                                </div>
+                            {% endfor %}
+
+                        </div>
+
+                    </div>
+
+                </section>
+
+            </main>
+
+
+            <aside class="ps-form-sidebar">
+
+                <section class="ps-workflow-card">
+
+                    <span class="ps-workflow-label">
+                        REQUEST LIFECYCLE
+                    </span>
+
+                    <h2>
+                        What happens next?
+                    </h2>
+
+
+                    <div class="ps-form-step">
+
+                        <span>
+                            1
+                        </span>
+
+                        <div>
+                            <strong>
+                                Request created
+                            </strong>
+
+                            <small>
+                                Initial status is Open.
+                            </small>
+                        </div>
+
+                    </div>
+
+
+                    <div class="ps-form-step">
+
+                        <span>
+                            2
+                        </span>
+
+                        <div>
+                            <strong>
+                                Agent assigned
+                            </strong>
+
+                            <small>
+                                Passenger Service takes
+                                responsibility.
+                            </small>
+                        </div>
+
+                    </div>
+
+
+                    <div class="ps-form-step">
+
+                        <span>
+                            3
+                        </span>
+
+                        <div>
+                            <strong>
+                                Service delivered
+                            </strong>
+
+                            <small>
+                                Assistance is tracked
+                                in real time.
+                            </small>
+                        </div>
+
+                    </div>
+
+
+                    <div class="ps-form-step">
+
+                        <span>
+                            4
+                        </span>
+
+                        <div>
+                            <strong>
+                                Resolution recorded
+                            </strong>
+
+                            <small>
+                                Final outcome remains
+                                available in audit history.
+                            </small>
+                        </div>
+
+                    </div>
+
+                </section>
+
+
+                <section class="ps-form-note">
+
+                    <div>
+                        ✓
+                    </div>
+
+                    <div>
+                        <strong>
+                            Operationally tracked
+                        </strong>
+
+                        <p>
+                            Creation, assignment and status
+                            updates are recorded in the
+                            audit trail.
+                        </p>
+                    </div>
+
+                </section>
+
+
+                <section class="ps-urgent-note">
+
+                    <span>
+                        !
+                    </span>
+
+                    <div>
+                        <strong>
+                            Urgent requests
+                        </strong>
+
+                        <p>
+                            Use Urgent only when the passenger
+                            requires immediate operational attention.
+                        </p>
+                    </div>
+
+                </section>
+
+            </aside>
+
+        </div>
+
+
+        <div class="ps-form-actions">
+
+            <a
+                href="{% url 'passenger_service:list' %}"
+                class="ps-cancel-action"
+            >
+                Cancel
+            </a>
+
+            <button
+                type="submit"
+                class="ps-submit-action"
+            >
+                <span>
+                    +
+                </span>
+
+                Create service request
+            </button>
+
+        </div>
+
+    </form>
+
+</div>
+
+{% endblock %}
+
+
+{% block extra_js %}
+<script src="{% static 'js/passenger-form.js' %}?v=1"></script>
+{% endblock %}
