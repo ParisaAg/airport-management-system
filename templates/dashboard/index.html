@@ -1,703 +1,956 @@
-{% extends 'base.html' %}
-
+{% extends "base.html" %}
 {% load static %}
 
-
 {% block title %}
-Dashboard
+Operations Dashboard | Airport Management
 {% endblock %}
 
-
+{% block extra_css %}
+<link
+    rel="stylesheet"
+    href="{% static 'css/dashboard.css' %}?v=1"
+>
+{% endblock %}
 
 {% block content %}
 
+<div class="dashboard-page">
 
+    <header class="dashboard-hero">
 
-<!-- ================= HEADER ================= -->
+        <div class="dashboard-welcome">
 
-
-<div class="dashboard-header">
-
-
-    <div class="welcome-section">
-
-
-        <h1>
-            Airport Operations Center
-        </h1>
-
-
-        <p>
-            Welcome back,
-            <strong>
-                {{ request.user.username }}
-            </strong>
-        </p>
-
-
-    </div>
-
-
-
-
-    <div class="system-status">
-
-        <span></span>
-
-        System Online
-
-    </div>
-
-
-
-</div>
-
-
-
-
-
-<!-- ================= ADMIN OVERVIEW ================= -->
-
-
-{% if role == "ADMIN" %}
-
-
-
-<div class="system-overview">
-
-
-    <div class="overview-card">
-
-        <div class="overview-icon">
-            ✈
-        </div>
-
-        <div>
-
-            <span>
-                Total Flights
+            <span class="dashboard-eyebrow">
+                AIRPORT OPERATIONS CONTROL
             </span>
 
-            <strong>
-                {{ flight_stats.total }}
-            </strong>
+            <h1>
+                Operations Dashboard
+            </h1>
+
+            <p>
+                Welcome back,
+                <strong>
+                    {{ request.user.get_full_name|default:request.user.username }}
+                </strong>.
+                Monitor the operational state of the airport
+                from one unified control center.
+            </p>
 
         </div>
 
+
+        <div class="dashboard-hero-actions">
+
+            <div class="dashboard-online">
+                <i></i>
+
+                <div>
+                    <span>SYSTEM STATUS</span>
+                    <strong>Operational</strong>
+                </div>
+            </div>
+
+            <a
+                href="{% url 'public_flight_board' %}"
+                class="dashboard-board-action"
+            >
+                Live Flight Board
+                <span>→</span>
+            </a>
+
+        </div>
+
+    </header>
+
+
+    {% if is_admin or role == "AIRPORT_MANAGER" %}
+
+        <section class="dashboard-kpis">
+
+            <article class="dashboard-kpi">
+
+                <div class="kpi-icon flight-icon">
+                    ✈
+                </div>
+
+                <div class="kpi-content">
+                    <span>Total flights</span>
+
+                    <strong>
+                        {{ flight_stats.total }}
+                    </strong>
+
+                    <small>
+                        {{ flight_stats.delayed }}
+                        delayed
+                    </small>
+                </div>
+
+                <a href="{% url 'flight_list' %}">
+                    View
+                </a>
+
+            </article>
+
+
+            <article class="dashboard-kpi">
+
+                <div class="kpi-icon operation-icon">
+                    ⚙
+                </div>
+
+                <div class="kpi-content">
+                    <span>Active operations</span>
+
+                    <strong>
+                        {{ operation_stats.in_progress }}
+                    </strong>
+
+                    <small>
+                        {{ operation_stats.pending }}
+                        pending
+                    </small>
+                </div>
+
+                <a href="{% url 'operation_type_list' %}">
+                    View
+                </a>
+
+            </article>
+
+
+            <article class="dashboard-kpi alert-kpi">
+
+                <div class="kpi-icon security-icon">
+                    !
+                </div>
+
+                <div class="kpi-content">
+                    <span>Critical security</span>
+
+                    <strong>
+                        {{ security_stats.critical }}
+                    </strong>
+
+                    <small>
+                        {{ security_stats.open }}
+                        open reports
+                    </small>
+                </div>
+
+                <a href="{% url 'security:list' %}">
+                    View
+                </a>
+
+            </article>
+
+
+            <article class="dashboard-kpi">
+
+                <div class="kpi-icon passenger-icon">
+                    ◉
+                </div>
+
+                <div class="kpi-content">
+                    <span>Urgent passenger</span>
+
+                    <strong>
+                        {{ passenger_stats.urgent }}
+                    </strong>
+
+                    <small>
+                        {{ passenger_stats.in_progress }}
+                        in progress
+                    </small>
+                </div>
+
+                <a href="{% url 'passenger_service:list' %}">
+                    View
+                </a>
+
+            </article>
+
+        </section>
+
+    {% elif role == "AIRLINE_OPERATOR" %}
+
+        <section class="dashboard-kpis three-column">
+
+            <article class="dashboard-kpi">
+
+                <div class="kpi-icon flight-icon">
+                    ✈
+                </div>
+
+                <div class="kpi-content">
+                    <span>Airline flights</span>
+
+                    <strong>
+                        {{ airline_stats.total }}
+                    </strong>
+
+                    <small>
+                        Your airline network
+                    </small>
+                </div>
+
+            </article>
+
+
+            <article class="dashboard-kpi">
+
+                <div class="kpi-icon delayed-icon">
+                    !
+                </div>
+
+                <div class="kpi-content">
+                    <span>Delayed flights</span>
+
+                    <strong>
+                        {{ airline_stats.delayed }}
+                    </strong>
+
+                    <small>
+                        Require attention
+                    </small>
+                </div>
+
+            </article>
+
+
+            <article class="dashboard-kpi">
+
+                <div class="kpi-icon cancelled-icon">
+                    ×
+                </div>
+
+                <div class="kpi-content">
+                    <span>Cancelled</span>
+
+                    <strong>
+                        {{ airline_stats.cancelled }}
+                    </strong>
+
+                    <small>
+                        Terminal state
+                    </small>
+                </div>
+
+            </article>
+
+        </section>
+
+    {% elif role == "GROUND_STAFF" %}
+
+        <section class="dashboard-kpis three-column">
+
+            <article class="dashboard-kpi">
+
+                <div class="kpi-icon operation-icon">
+                    ⚙
+                </div>
+
+                <div class="kpi-content">
+                    <span>My operations</span>
+
+                    <strong>
+                        {{ operation_stats.total }}
+                    </strong>
+
+                    <small>
+                        Assigned to you
+                    </small>
+                </div>
+
+            </article>
+
+
+            <article class="dashboard-kpi">
+
+                <div class="kpi-icon progress-icon">
+                    ↻
+                </div>
+
+                <div class="kpi-content">
+                    <span>In progress</span>
+
+                    <strong>
+                        {{ operation_stats.in_progress }}
+                    </strong>
+
+                    <small>
+                        Active turnaround work
+                    </small>
+                </div>
+
+            </article>
+
+
+            <article class="dashboard-kpi">
+
+                <div class="kpi-icon pending-icon">
+                    ◷
+                </div>
+
+                <div class="kpi-content">
+                    <span>Pending</span>
+
+                    <strong>
+                        {{ operation_stats.pending }}
+                    </strong>
+
+                    <small>
+                        Awaiting execution
+                    </small>
+                </div>
+
+            </article>
+
+        </section>
+
+    {% elif can_view_security %}
+
+        <section class="dashboard-kpis three-column">
+
+            <article class="dashboard-kpi">
+
+                <div class="kpi-icon security-icon">
+                    !
+                </div>
+
+                <div class="kpi-content">
+                    <span>Open incidents</span>
+
+                    <strong>
+                        {{ security_stats.open }}
+                    </strong>
+
+                    <small>
+                        Active security queue
+                    </small>
+                </div>
+
+            </article>
+
+
+            <article class="dashboard-kpi alert-kpi">
+
+                <div class="kpi-icon critical-icon">
+                    ▲
+                </div>
+
+                <div class="kpi-content">
+                    <span>Critical active</span>
+
+                    <strong>
+                        {{ security_stats.critical }}
+                    </strong>
+
+                    <small>
+                        Immediate attention
+                    </small>
+                </div>
+
+            </article>
+
+
+            <article class="dashboard-kpi">
+
+                <div class="kpi-icon pending-icon">
+                    ?
+                </div>
+
+                <div class="kpi-content">
+                    <span>Unassigned</span>
+
+                    <strong>
+                        {{ security_stats.unassigned }}
+                    </strong>
+
+                    <small>
+                        Require an officer
+                    </small>
+                </div>
+
+            </article>
+
+        </section>
+
+    {% elif can_view_passenger %}
+
+        <section class="dashboard-kpis three-column">
+
+            <article class="dashboard-kpi">
+
+                <div class="kpi-icon passenger-icon">
+                    ◉
+                </div>
+
+                <div class="kpi-content">
+                    <span>Open requests</span>
+
+                    <strong>
+                        {{ passenger_stats.open }}
+                    </strong>
+
+                    <small>
+                        Active service queue
+                    </small>
+                </div>
+
+            </article>
+
+
+            <article class="dashboard-kpi alert-kpi">
+
+                <div class="kpi-icon critical-icon">
+                    !
+                </div>
+
+                <div class="kpi-content">
+                    <span>Urgent active</span>
+
+                    <strong>
+                        {{ passenger_stats.urgent }}
+                    </strong>
+
+                    <small>
+                        Immediate assistance
+                    </small>
+                </div>
+
+            </article>
+
+
+            <article class="dashboard-kpi">
+
+                <div class="kpi-icon progress-icon">
+                    ↻
+                </div>
+
+                <div class="kpi-content">
+                    <span>In progress</span>
+
+                    <strong>
+                        {{ passenger_stats.in_progress }}
+                    </strong>
+
+                    <small>
+                        Service underway
+                    </small>
+                </div>
+
+            </article>
+
+        </section>
+
+    {% endif %}
+
+
+    <div class="dashboard-layout">
+
+        <main class="dashboard-main">
+
+
+            {% if is_admin or role == "AIRPORT_MANAGER" or role == "AIRLINE_OPERATOR" %}
+
+                <section class="dashboard-panel">
+
+                    <div class="dashboard-panel-heading">
+
+                        <div>
+                            <span>FLIGHT OPERATIONS</span>
+
+                            <h2>
+                                Flight intelligence
+                            </h2>
+
+                            <p>
+                                Current operational distribution
+                                across the flight lifecycle.
+                            </p>
+                        </div>
+
+                        <a href="{% url 'flight_list' %}">
+                            Open flight management →
+                        </a>
+
+                    </div>
+
+
+                    <div class="flight-stat-grid">
+
+                        <div>
+                            <span>Scheduled</span>
+                            <strong>{{ flight_stats.scheduled }}</strong>
+                            <i class="blue"></i>
+                        </div>
+
+                        <div>
+                            <span>Boarding</span>
+                            <strong>{{ flight_stats.boarding }}</strong>
+                            <i class="teal"></i>
+                        </div>
+
+                        <div>
+                            <span>Delayed</span>
+                            <strong>{{ flight_stats.delayed }}</strong>
+                            <i class="orange"></i>
+                        </div>
+
+                        <div>
+                            <span>Departed</span>
+                            <strong>{{ flight_stats.departed }}</strong>
+                            <i class="purple"></i>
+                        </div>
+
+                        <div>
+                            <span>Arrived</span>
+                            <strong>{{ flight_stats.arrived }}</strong>
+                            <i class="green"></i>
+                        </div>
+
+                        <div>
+                            <span>Cancelled</span>
+                            <strong>{{ flight_stats.cancelled }}</strong>
+                            <i class="gray"></i>
+                        </div>
+
+                    </div>
+
+
+                    <div class="dashboard-list-heading">
+                        <h3>Recently updated flights</h3>
+                    </div>
+
+
+                    <div class="dashboard-data-list">
+
+                        {% for flight in recent_flights %}
+
+                            <a
+                                href="{% url 'flight_detail' flight.id %}"
+                                class="dashboard-data-row"
+                            >
+
+                                <div class="data-primary">
+                                    <strong>
+                                        {{ flight.flight_number }}
+                                    </strong>
+
+                                    <span>
+                                        {{ flight.airline.name }}
+                                    </span>
+                                </div>
+
+                                <div class="data-route">
+                                    {{ flight.origin.iata_code }}
+                                    <i>→</i>
+                                    {{ flight.destination.iata_code }}
+                                </div>
+
+                                <div class="data-time">
+                                    {{ flight.departure_time|date:"d M, H:i" }}
+                                </div>
+
+                                <span
+                                    class="
+                                        dashboard-status
+                                        flight-{{ flight.status|lower }}
+                                    "
+                                >
+                                    {{ flight.get_status_display }}
+                                </span>
+
+                            </a>
+
+                        {% empty %}
+
+                            <div class="dashboard-empty">
+                                No flight activity available.
+                            </div>
+
+                        {% endfor %}
+
+                    </div>
+
+                </section>
+
+            {% endif %}
+
+
+            {% if can_view_operations %}
+
+                <section class="dashboard-panel">
+
+                    <div class="dashboard-panel-heading">
+
+                        <div>
+                            <span>TURNAROUND OPERATIONS</span>
+
+                            <h2>
+                                Active ground workflows
+                            </h2>
+
+                            <p>
+                                Pending and in-progress tasks
+                                requiring ground coordination.
+                            </p>
+                        </div>
+
+                        <a href="{% url 'operation_type_list' %}">
+                            Open operations →
+                        </a>
+
+                    </div>
+
+
+                    <div class="dashboard-data-list">
+
+                        {% for operation in active_operations %}
+
+                            <div class="dashboard-data-row">
+
+                                <div class="data-primary">
+                                    <strong>
+                                        {{ operation.operation_type.name }}
+                                    </strong>
+
+                                    <span>
+                                        Flight
+                                        {{ operation.flight.flight_number }}
+                                    </span>
+                                </div>
+
+                                <div class="data-person">
+                                    {{ operation.assigned_staff.username }}
+                                </div>
+
+                                <div class="data-time">
+                                    {% if operation.start_time %}
+                                        {{ operation.start_time|date:"d M, H:i" }}
+                                    {% else %}
+                                        Awaiting start
+                                    {% endif %}
+                                </div>
+
+                                <span
+                                    class="
+                                        dashboard-status
+                                        operation-{{ operation.status|lower }}
+                                    "
+                                >
+                                    {{ operation.get_status_display }}
+                                </span>
+
+                            </div>
+
+                        {% empty %}
+
+                            <div class="dashboard-empty">
+                                No active ground operations.
+                            </div>
+
+                        {% endfor %}
+
+                    </div>
+
+                </section>
+
+            {% endif %}
+
+        </main>
+
+
+        <aside class="dashboard-side">
+
+
+            {% if is_admin or role == "AIRPORT_MANAGER" %}
+
+                <section class="attention-panel">
+
+                    <div class="attention-heading">
+
+                        <div>
+                            <span>OPERATIONAL ATTENTION</span>
+
+                            <h2>
+                                Priority center
+                            </h2>
+                        </div>
+
+                        <i></i>
+
+                    </div>
+
+
+                    <div class="attention-group">
+
+                        <div class="attention-group-title">
+                            <strong>
+                                Delayed flights
+                            </strong>
+
+                            <span>
+                                {{ flight_stats.delayed }}
+                            </span>
+                        </div>
+
+                        {% for flight in delayed_flights %}
+
+                            <a
+                                href="{% url 'flight_detail' flight.id %}"
+                                class="attention-item"
+                            >
+                                <div>
+                                    <strong>
+                                        {{ flight.flight_number }}
+                                    </strong>
+
+                                    <small>
+                                        {{ flight.origin.iata_code }}
+                                        →
+                                        {{ flight.destination.iata_code }}
+                                    </small>
+                                </div>
+
+                                <span class="attention-warning">
+                                    Delayed
+                                </span>
+                            </a>
+
+                        {% empty %}
+
+                            <p class="attention-clear">
+                                No delayed flights.
+                            </p>
+
+                        {% endfor %}
+
+                    </div>
+
+
+                    <div class="attention-group">
+
+                        <div class="attention-group-title">
+                            <strong>
+                                Critical security
+                            </strong>
+
+                            <span>
+                                {{ security_stats.critical }}
+                            </span>
+                        </div>
+
+                        {% for report in critical_security_reports %}
+
+                            <a
+                                href="{% url 'security:detail' report.id %}"
+                                class="attention-item"
+                            >
+                                <div>
+                                    <strong>
+                                        {{ report.reference }}
+                                    </strong>
+
+                                    <small>
+                                        Flight
+                                        {{ report.flight.flight_number }}
+                                    </small>
+                                </div>
+
+                                <span class="attention-danger">
+                                    Critical
+                                </span>
+                            </a>
+
+                        {% empty %}
+
+                            <p class="attention-clear">
+                                No critical incidents.
+                            </p>
+
+                        {% endfor %}
+
+                    </div>
+
+
+                    <div class="attention-group">
+
+                        <div class="attention-group-title">
+                            <strong>
+                                Urgent passenger
+                            </strong>
+
+                            <span>
+                                {{ passenger_stats.urgent }}
+                            </span>
+                        </div>
+
+                        {% for item in urgent_passenger_requests %}
+
+                            <a
+                                href="{% url 'passenger_service:detail' item.id %}"
+                                class="attention-item"
+                            >
+                                <div>
+                                    <strong>
+                                        {{ item.reference }}
+                                    </strong>
+
+                                    <small>
+                                        {{ item.passenger_name }}
+                                    </small>
+                                </div>
+
+                                <span class="attention-passenger">
+                                    Urgent
+                                </span>
+                            </a>
+
+                        {% empty %}
+
+                            <p class="attention-clear">
+                                No urgent requests.
+                            </p>
+
+                        {% endfor %}
+
+                    </div>
+
+                </section>
+
+            {% endif %}
+
+
+            <section class="dashboard-panel compact-panel">
+
+                <div class="dashboard-panel-heading">
+
+                    <div>
+                        <span>PERSONAL FEED</span>
+
+                        <h2>
+                            Notifications
+                        </h2>
+                    </div>
+
+                </div>
+
+
+                <div class="notification-feed">
+
+                    {% for item in recent_notifications %}
+
+                        <a
+                            href="{% url 'notifications' %}"
+                            class="notification-feed-item"
+                        >
+
+                            <span
+                                class="
+                                    notification-dot
+                                    notification-{{ item.notification_type|lower }}
+                                "
+                            ></span>
+
+                            <div>
+                                <strong>
+                                    {{ item.title }}
+                                </strong>
+
+                                <p>
+                                    {{ item.message|truncatechars:90 }}
+                                </p>
+
+                                <small>
+                                    {{ item.created_at|timesince }}
+                                    ago
+                                </small>
+                            </div>
+
+                        </a>
+
+                    {% empty %}
+
+                        <div class="dashboard-empty">
+                            No recent notifications.
+                        </div>
+
+                    {% endfor %}
+
+                </div>
+
+            </section>
+
+
+            <section class="quick-actions-panel">
+
+                <span class="quick-eyebrow">
+                    QUICK ACCESS
+                </span>
+
+                <h2>
+                    Operational tools
+                </h2>
+
+
+                <div class="quick-action-grid">
+
+                    {% if is_admin or role == "AIRLINE_OPERATOR" %}
+
+                        <a href="{% url 'flight_create' %}">
+                            <span>✈</span>
+                            Create flight
+                        </a>
+
+                    {% endif %}
+
+
+                    {% if is_admin or role == "GROUND_STAFF" %}
+
+                        <a href="{% url 'ground_operation_create' %}">
+                            <span>⚙</span>
+                            New operation
+                        </a>
+
+                    {% endif %}
+
+
+                    {% if can_view_security %}
+
+                        <a href="{% url 'security:list' %}">
+                            <span>!</span>
+                            Security
+                        </a>
+
+                    {% endif %}
+
+
+                    {% if can_view_passenger %}
+
+                        <a href="{% url 'passenger_service:list' %}">
+                            <span>◉</span>
+                            Passenger
+                        </a>
+
+                    {% endif %}
+
+
+                    <a href="{% url 'profile' %}">
+                        <span>●</span>
+                        My profile
+                    </a>
+
+                </div>
+
+            </section>
+
+        </aside>
 
     </div>
 
-
-
-
-
-    <div class="overview-card">
-
-
-        <div class="overview-icon">
-            🛠
-        </div>
-
-
-        <div>
-
-            <span>
-                Operations
-            </span>
-
-
-            <strong>
-                {{ operation_stats.total }}
-            </strong>
-
-        </div>
-
-
-    </div>
-
-
-
-
-
-
-
-    <div class="overview-card">
-
-
-        <div class="overview-icon">
-            🔒
-        </div>
-
-
-        <div>
-
-            <span>
-                Security Alerts
-            </span>
-
-
-            <strong>
-                {{ security_stats.critical }}
-            </strong>
-
-
-        </div>
-
-
-    </div>
-
-
-
-
-
-
-
-    <div class="overview-card">
-
-
-        <div class="overview-icon">
-            🎫
-        </div>
-
-
-        <div>
-
-            <span>
-                Passenger Requests
-            </span>
-
-
-            <strong>
-                {{ passenger_stats.total }}
-            </strong>
-
-
-        </div>
-
-
-    </div>
-
-
-
 </div>
-
-
-
-{% endif %}
-
-
-
-
-
-
-
-
-
-<!-- ================= AIRLINE OPERATOR ================= -->
-
-
-{% if role == "AIRLINE_OPERATOR" %}
-
-
-
-<div class="section-title">
-
-    My Airline Overview
-
-</div>
-
-
-
-
-<div class="cards">
-
-
-{% include 'components/card.html' with title="My Airline Flights" value=airline_stats.total %}
-
-
-{% include 'components/card.html' with title="Delayed Flights" value=airline_stats.delayed %}
-
-
-{% include 'components/card.html' with title="Cancelled Flights" value=airline_stats.cancelled %}
-
-
-
-</div>
-
-
-
-{% endif %}
-
-
-
-
-
-
-
-
-
-<!-- ================= ADMIN FLIGHTS ================= -->
-
-
-{% if role == "ADMIN" %}
-
-
-
-<div class="section-title">
-
-    Flight Intelligence
-
-</div>
-
-
-
-
-<div class="cards">
-
-
-{% include 'components/card.html' with title="Total Flights" value=flight_stats.total %}
-
-
-{% include 'components/card.html' with title="Scheduled Flights" value=flight_stats.scheduled %}
-
-
-{% include 'components/card.html' with title="Boarding" value=flight_stats.boarding %}
-
-
-{% include 'components/card.html' with title="Delayed" value=flight_stats.delayed %}
-
-
-{% include 'components/card.html' with title="Cancelled" value=flight_stats.cancelled %}
-
-
-
-</div>
-
-
-
-{% endif %}
-
-
-
-
-
-
-
-
-
-<!-- ================= OPERATIONS ================= -->
-
-
-{% if role == "ADMIN" or role == "GROUND_STAFF" %}
-
-
-
-<div class="section-title">
-
-    Ground Operations
-
-</div>
-
-
-
-
-<div class="cards">
-
-
-{% include 'components/card.html' with title="Total Operations" value=operation_stats.total %}
-
-
-{% include 'components/card.html' with title="Completed" value=operation_stats.completed %}
-
-
-{% include 'components/card.html' with title="In Progress" value=operation_stats.in_progress %}
-
-
-
-</div>
-
-
-
-{% endif %}
-
-
-
-
-
-
-
-
-
-<!-- ================= SECURITY ================= -->
-
-
-{% if role == "ADMIN" or role == "SECURITY_OFFICER" %}
-
-
-
-<div class="section-title">
-
-    Security Intelligence
-
-</div>
-
-
-
-<div class="cards">
-
-
-{% include 'components/card.html' with title="Total Reports" value=security_stats.total %}
-
-
-{% include 'components/card.html' with title="Critical Alerts" value=security_stats.critical %}
-
-
-{% include 'components/card.html' with title="Open Reports" value=security_stats.open %}
-
-
-
-</div>
-
-
-
-{% endif %}
-
-
-
-
-
-
-
-
-
-<!-- ================= PASSENGER SERVICE ================= -->
-
-
-{% if role == "ADMIN" or role == "PASSENGER_SERVICE" %}
-
-
-
-<div class="section-title">
-
-    Passenger Services
-
-</div>
-
-
-
-
-<div class="cards">
-
-
-{% include 'components/card.html' with title="Total Requests" value=passenger_stats.total %}
-
-
-{% include 'components/card.html' with title="Urgent Requests" value=passenger_stats.urgent %}
-
-
-{% include 'components/card.html' with title="Open Requests" value=passenger_stats.open %}
-
-
-
-</div>
-
-
-
-{% endif %}
-
-
-
-
-
-
-
-
-
-<!-- ================= ACTIVITY ================= -->
-
-
-<div class="dashboard-bottom">
-
-
-
-<div class="activity-panel">
-
-
-<h2>
-Recent Activity
-</h2>
-
-
-
-{% for item in recent_notifications %}
-
-
-<div class="timeline-item">
-
-
-<span class="timeline-dot success"></span>
-
-
-<div>
-
-
-<strong>
-{{ item.title }}
-</strong>
-
-
-<p>
-{{ item.message }}
-</p>
-
-
-</div>
-
-
-</div>
-
-
-{% endfor %}
-
-
-
-
-
-
-{% for flight in recent_flights %}
-
-
-<div class="timeline-item">
-
-
-<span class="timeline-dot warning"></span>
-
-
-<div>
-
-
-<strong>
-Flight {{ flight.flight_number }}
-</strong>
-
-
-<p>
-
-{{ flight.origin }}
-
-→
-
-{{ flight.destination }}
-
-<br>
-
-{{ flight.get_status_display }}
-
-</p>
-
-
-</div>
-
-
-</div>
-
-
-{% endfor %}
-
-
-
-
-
-
-{% for operation in recent_operations %}
-
-
-<div class="timeline-item">
-
-
-<span class="timeline-dot danger"></span>
-
-
-<div>
-
-
-<strong>
-{{ operation.operation_type.name }}
-</strong>
-
-
-<p>
-
-Flight:
-
-{{ operation.flight.flight_number }}
-
-<br>
-
-{{ operation.get_status_display }}
-
-</p>
-
-
-</div>
-
-
-</div>
-
-
-{% endfor %}
-
-
-
-</div>
-
-
-
-
-
-
-
-<div class="quick-panel">
-
-
-<h2>
-Quick Actions
-</h2>
-
-
-
-{% if role == "ADMIN" or role == "AIRLINE_OPERATOR" %}
-
-
-<a href="{% url 'flight_create' %}">
-+ Create Flight
-</a>
-
-
-{% endif %}
-
-
-
-
-
-{% if role == "ADMIN" or role == "GROUND_STAFF" %}
-
-
-<a href="{% url 'ground_operation_create' %}">
-+ New Operation
-</a>
-
-
-{% endif %}
-
-
-
-
-
-<a href="{% url 'profile' %}">
-View Profile
-</a>
-
-
-
-</div>
-
-
-
-</div>
-
-
-
-
-
-
-
-
-<br>
-<!-- ================= CHARTS ================= -->
-
-
-{% if role == "ADMIN" %}
-
-
-
-<div class="dashboard-grid">
-
-
-
-<div class="chart-box">
-
-
-<h2>
-Flight Status Analytics
-</h2>
-
-
-<canvas id="flightChart"></canvas>
-
-
-</div>
-
-
-
-
-
-<div class="chart-box">
-
-
-<h2>
-Operations Analytics
-</h2>
-
-
-<canvas id="operationChart"></canvas>
-
-
-</div>
-
-
-
-
-</div>
-
-
-
-{% endif %}
-
-
-
-
-
-
-
-<script>
-
-
-const flightData = {
-
-    scheduled: {{ flight_stats.scheduled|default:0 }},
-    boarding: {{ flight_stats.boarding|default:0 }},
-    delayed: {{ flight_stats.delayed|default:0 }},
-    cancelled: {{ flight_stats.cancelled|default:0 }}
-
-};
-
-
-
-const operationData = {
-
-    completed: {{ operation_stats.completed|default:0 }},
-    in_progress: {{ operation_stats.in_progress|default:0 }}
-
-};
-
-
-</script>
-
-
-
-<script src="{% static 'js/dashboard.js' %}"></script>
-
-
 
 {% endblock %}

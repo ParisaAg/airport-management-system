@@ -3,103 +3,349 @@ from datetime import timedelta
 from django.utils import timezone
 
 from airports.models import Airport
+
 from flights.models import Flight
 from operations.models import GroundOperation
-from passenger_service.models import PassengerRequest
+from passenger_service.models import (
+    PassengerRequest,
+)
 from security.models import SecurityReport
 
 
-class DashboardService:
-    @staticmethod
-    def flight_statistics():
-        return {
-            "total": Flight.objects.count(),
+ACTIVE_SECURITY_STATUSES = (
+    "OPEN",
+    "INVESTIGATING",
+)
 
-            "scheduled": Flight.objects.filter(
+
+ACTIVE_PASSENGER_STATUSES = (
+    "OPEN",
+    "ASSIGNED",
+    "IN_PROGRESS",
+)
+
+
+class DashboardService:
+
+    @staticmethod
+    def flight_statistics(
+        queryset=None,
+    ):
+        if queryset is None:
+            queryset = Flight.objects.all()
+
+        return {
+            "total": queryset.count(),
+
+            "scheduled": queryset.filter(
                 status="SCHEDULED"
             ).count(),
 
-            "boarding": Flight.objects.filter(
+            "boarding": queryset.filter(
                 status="BOARDING"
             ).count(),
 
-            "delayed": Flight.objects.filter(
+            "delayed": queryset.filter(
                 status="DELAYED"
             ).count(),
 
-            "cancelled": Flight.objects.filter(
+            "departed": queryset.filter(
+                status="DEPARTED"
+            ).count(),
+
+            "arrived": queryset.filter(
+                status="ARRIVED"
+            ).count(),
+
+            "cancelled": queryset.filter(
                 status="CANCELLED"
             ).count(),
         }
 
     @staticmethod
-    def operation_statistics():
-        return {
-            "total": GroundOperation.objects.count(),
+    def operation_statistics(
+        queryset=None,
+    ):
+        if queryset is None:
+            queryset = (
+                GroundOperation.objects.all()
+            )
 
-            "completed": GroundOperation.objects.filter(
+        return {
+            "total": queryset.count(),
+
+            "pending": queryset.filter(
+                status="PENDING"
+            ).count(),
+
+            "in_progress": queryset.filter(
+                status="IN_PROGRESS"
+            ).count(),
+
+            "completed": queryset.filter(
                 status="COMPLETED"
             ).count(),
 
-            "in_progress": GroundOperation.objects.filter(
+            "cancelled": queryset.filter(
+                status="CANCELLED"
+            ).count(),
+        }
+
+    @staticmethod
+    def security_statistics(
+        queryset=None,
+    ):
+        if queryset is None:
+            queryset = (
+                SecurityReport.objects.all()
+            )
+
+        active_reports = queryset.filter(
+            status__in=(
+                ACTIVE_SECURITY_STATUSES
+            )
+        )
+
+        return {
+            "total": queryset.count(),
+
+            "open": queryset.filter(
+                status="OPEN"
+            ).count(),
+
+            "investigating": (
+                queryset.filter(
+                    status="INVESTIGATING"
+                ).count()
+            ),
+
+            "critical": (
+                active_reports.filter(
+                    severity="CRITICAL"
+                ).count()
+            ),
+
+            "unassigned": (
+                active_reports.filter(
+                    officer__isnull=True
+                ).count()
+            ),
+        }
+
+    @staticmethod
+    def passenger_statistics(
+        queryset=None,
+    ):
+        if queryset is None:
+            queryset = (
+                PassengerRequest.objects.all()
+            )
+
+        active_requests = queryset.filter(
+            status__in=(
+                ACTIVE_PASSENGER_STATUSES
+            )
+        )
+
+        return {
+            "total": queryset.count(),
+
+            "open": queryset.filter(
+                status="OPEN"
+            ).count(),
+
+            "assigned": queryset.filter(
+                status="ASSIGNED"
+            ).count(),
+
+            "in_progress": queryset.filter(
                 status="IN_PROGRESS"
             ).count(),
-        }
 
-    @staticmethod
-    def security_statistics():
-        return {
-            "total": SecurityReport.objects.count(),
+            "urgent": (
+                active_requests.filter(
+                    priority="URGENT"
+                ).count()
+            ),
 
-            "critical": SecurityReport.objects.filter(
-                severity="CRITICAL"
-            ).count(),
+            "unassigned": (
+                active_requests.filter(
+                    assigned_staff__isnull=True
+                ).count()
+            ),
 
-            "open": SecurityReport.objects.filter(
-                status="OPEN"
-            ).count(),
-        }
-
-    @staticmethod
-    def passenger_statistics():
-        return {
-            "total": PassengerRequest.objects.count(),
-
-            "urgent": PassengerRequest.objects.filter(
-                priority="URGENT"
-            ).count(),
-
-            "open": PassengerRequest.objects.filter(
-                status="OPEN"
+            "completed": queryset.filter(
+                status="COMPLETED"
             ).count(),
         }
 
     @staticmethod
-    def airline_flight_statistics(airline):
-        return {
-            "total": Flight.objects.filter(
-                airline=airline
-            ).count(),
+    def airline_flight_statistics(
+        airline,
+    ):
+        flights = Flight.objects.filter(
+            airline=airline
+        )
 
-            "delayed": Flight.objects.filter(
-                airline=airline,
-                status="DELAYED",
-            ).count(),
+        return (
+            DashboardService
+            .flight_statistics(flights)
+        )
 
-            "cancelled": Flight.objects.filter(
-                airline=airline,
-                status="CANCELLED",
-            ).count(),
-        }
+    @staticmethod
+    def recent_flights(
+        queryset=None,
+        *,
+        limit=5,
+    ):
+        if queryset is None:
+            queryset = Flight.objects.all()
+
+        return (
+            queryset
+            .select_related(
+                "airline",
+                "aircraft",
+                "origin",
+                "destination",
+            )
+            .order_by(
+                "-updated_at"
+            )[:limit]
+        )
+
+    @staticmethod
+    def recent_operations(
+        queryset=None,
+        *,
+        limit=5,
+    ):
+        if queryset is None:
+            queryset = (
+                GroundOperation.objects.all()
+            )
+
+        return (
+            queryset
+            .select_related(
+                "flight",
+                "operation_type",
+                "assigned_staff",
+            )
+            .order_by(
+                "-updated_at"
+            )[:limit]
+        )
+
+    @staticmethod
+    def delayed_flights(
+        queryset=None,
+        *,
+        limit=5,
+    ):
+        if queryset is None:
+            queryset = Flight.objects.all()
+
+        return (
+            queryset
+            .select_related(
+                "airline",
+                "origin",
+                "destination",
+            )
+            .filter(
+                status="DELAYED"
+            )
+            .order_by(
+                "departure_time"
+            )[:limit]
+        )
+
+    @staticmethod
+    def critical_security_reports(
+        *,
+        limit=5,
+    ):
+        return (
+            SecurityReport.objects
+            .select_related(
+                "flight",
+                "officer",
+            )
+            .filter(
+                status__in=(
+                    ACTIVE_SECURITY_STATUSES
+                ),
+                severity="CRITICAL",
+            )
+            .order_by(
+                "-created_at"
+            )[:limit]
+        )
+
+    @staticmethod
+    def urgent_passenger_requests(
+        *,
+        limit=5,
+    ):
+        return (
+            PassengerRequest.objects
+            .select_related(
+                "flight",
+                "assigned_staff",
+            )
+            .filter(
+                status__in=(
+                    ACTIVE_PASSENGER_STATUSES
+                ),
+                priority="URGENT",
+            )
+            .order_by(
+                "-created_at"
+            )[:limit]
+        )
+
+    @staticmethod
+    def active_operations(
+        queryset=None,
+        *,
+        limit=5,
+    ):
+        if queryset is None:
+            queryset = (
+                GroundOperation.objects.all()
+            )
+
+        return (
+            queryset
+            .select_related(
+                "flight",
+                "operation_type",
+                "assigned_staff",
+            )
+            .filter(
+                status__in=(
+                    "PENDING",
+                    "IN_PROGRESS",
+                )
+            )
+            .order_by(
+                "status",
+                "-updated_at",
+            )[:limit]
+        )
 
 
 class LandingPageService:
+
     @staticmethod
     def operational_overview():
         today = timezone.localdate()
 
-        todays_flights = Flight.objects.filter(
-            departure_time__date=today
+        todays_flights = (
+            Flight.objects.filter(
+                departure_time__date=today
+            )
         )
 
         return {
