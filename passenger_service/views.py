@@ -19,6 +19,9 @@ from accounts.permissions import (
     ADMIN,
     role_required,
 )
+from notifications.services import (
+    notify_urgent_passenger_request,
+)
 from audit.models import AuditLog
 from audit.services import record_audit_event
 
@@ -243,7 +246,9 @@ def passenger_request_detail(
 
 
 @login_required
-@role_required(*PASSENGER_MANAGE_ROLES)
+@role_required(
+    *PASSENGER_MANAGE_ROLES
+)
 def passenger_request_create(
     request,
 ):
@@ -284,6 +289,13 @@ def passenger_request_create(
                 },
             )
 
+            notify_urgent_passenger_request(
+                passenger_request=(
+                    passenger_request
+                ),
+                actor=request.user,
+            )
+
             messages.success(
                 request,
                 (
@@ -296,7 +308,6 @@ def passenger_request_create(
                 "passenger_service:detail",
                 id=passenger_request.id,
             )
-
     else:
         form = PassengerRequestForm()
 
@@ -305,9 +316,9 @@ def passenger_request_create(
         "passenger_service/form.html",
         {
             "form": form,
+            "edit": False,
         },
     )
-
 
 @login_required
 @require_POST

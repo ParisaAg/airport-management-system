@@ -20,7 +20,9 @@ from accounts.permissions import (
 )
 from audit.models import AuditLog
 from audit.services import record_audit_event
-
+from notifications.services import (
+    notify_critical_security_report,
+)
 from .forms import (
     SecurityAssignmentForm,
     SecurityReportForm,
@@ -239,6 +241,11 @@ def security_report_create(
                 },
             )
 
+            notify_critical_security_report(
+                report=report,
+                actor=request.user,
+            )
+
             messages.success(
                 request,
                 (
@@ -259,6 +266,7 @@ def security_report_create(
         "security/form.html",
         {
             "form": form,
+            "edit": False,
         },
     )
 
