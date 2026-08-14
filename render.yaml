@@ -1,0 +1,68 @@
+databases:
+  - name: airport-management-db
+    databaseName: airport_management
+    user: airport_management_user
+    plan: free
+    region: frankfurt
+
+services:
+  - type: web
+    name: airport-management-system
+    runtime: python
+    plan: free
+    region: frankfurt
+    branch: main
+    autoDeploy: true
+    buildCommand: ./build.sh
+    startCommand: gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --workers ${WEB_CONCURRENCY:-2} --timeout 120
+    healthCheckPath: /health/
+
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+
+      - key: DJANGO_SETTINGS_MODULE
+        value: config.settings.prod
+
+      - key: DB_NAME
+        fromDatabase:
+          name: airport-management-db
+          property: database
+
+      - key: DB_USER
+        fromDatabase:
+          name: airport-management-db
+          property: user
+
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: airport-management-db
+          property: password
+
+      - key: DB_HOST
+        fromDatabase:
+          name: airport-management-db
+          property: host
+
+      - key: DB_PORT
+        fromDatabase:
+          name: airport-management-db
+          property: port
+
+      - key: DB_SSLMODE
+        value: require
+
+      - key: DB_CONN_MAX_AGE
+        value: 60
+
+      - key: SECURE_SSL_REDIRECT
+        value: true
+
+      - key: SECURE_HSTS_SECONDS
+        value: 31536000
+
+      - key: TIME_ZONE
+        value: Asia/Tehran
+
+      - key: LOG_LEVEL
+        value: INFO
