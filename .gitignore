@@ -40,4 +40,4 @@ docs
 coverage.xml
 htmlcov/
 .pytest_cache/
-.ruff_cache/
+.ruff_cache/db.pythonanywhere.sqlite3
