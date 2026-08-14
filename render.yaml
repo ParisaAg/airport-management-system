@@ -1,7 +1,7 @@
 databases:
-  - name: airport-management-db
-    databaseName: airport_management
-    user: airport_management_user
+  - name: airport-management-production-db
+    databaseName: airport_management_production
+    user: airport_management_production_user
     plan: free
     region: frankfurt
 
@@ -26,27 +26,27 @@ services:
 
       - key: DB_NAME
         fromDatabase:
-          name: airport-management-db
+          name: airport-management-production-db
           property: database
 
       - key: DB_USER
         fromDatabase:
-          name: airport-management-db
+          name: airport-management-production-db
           property: user
 
       - key: DB_PASSWORD
         fromDatabase:
-          name: airport-management-db
+          name: airport-management-production-db
           property: password
 
       - key: DB_HOST
         fromDatabase:
-          name: airport-management-db
+          name: airport-management-production-db
           property: host
 
       - key: DB_PORT
         fromDatabase:
-          name: airport-management-db
+          name: airport-management-production-db
           property: port
 
       - key: DB_SSLMODE
