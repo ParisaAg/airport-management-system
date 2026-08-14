@@ -1,5 +1,6 @@
 import os
 
+import dj_database_url
 from django.core.exceptions import (
     ImproperlyConfigured,
 )
@@ -21,31 +22,53 @@ def required_env(name):
     return value
 
 
+def add_unique(items, value):
+    value = value.strip()
+
+    if value and value not in items:
+        items.append(value)
+
+
 DEBUG = False
 
 SECRET_KEY = required_env(
     "SECRET_KEY"
 )
 
+
+# -------------------------------------------------
+# Allowed hosts
+# -------------------------------------------------
+
 ALLOWED_HOSTS = env_list(  # noqa: F405
     "ALLOWED_HOSTS"
 )
 
-RENDER_EXTERNAL_HOSTNAME = (
-    os.getenv(
-        "RENDER_EXTERNAL_HOSTNAME",
-        "",
-    )
-    .strip()
+RENDER_EXTERNAL_HOSTNAME = os.getenv(
+    "RENDER_EXTERNAL_HOSTNAME",
+    "",
+).strip()
+
+add_unique(
+    ALLOWED_HOSTS,
+    RENDER_EXTERNAL_HOSTNAME,
 )
 
-if (
-    RENDER_EXTERNAL_HOSTNAME
-    and RENDER_EXTERNAL_HOSTNAME
-    not in ALLOWED_HOSTS
-):
-    ALLOWED_HOSTS.append(
-        RENDER_EXTERNAL_HOSTNAME
+VERCEL_HOSTNAMES = (
+    os.getenv(
+        "VERCEL_URL",
+        "",
+    ),
+    os.getenv(
+        "VERCEL_PROJECT_PRODUCTION_URL",
+        "",
+    ),
+)
+
+for hostname in VERCEL_HOSTNAMES:
+    add_unique(
+        ALLOWED_HOSTS,
+        hostname,
     )
 
 if not ALLOWED_HOSTS:
@@ -57,43 +80,69 @@ if not ALLOWED_HOSTS:
     )
 
 
-DATABASES = {
-    "default": {
-        "ENGINE": (
-            "django.db.backends.postgresql"
-        ),
-        "NAME": required_env(
-            "DB_NAME"
-        ),
-        "USER": required_env(
-            "DB_USER"
-        ),
-        "PASSWORD": required_env(
-            "DB_PASSWORD"
-        ),
-        "HOST": required_env(
-            "DB_HOST"
-        ),
-        "PORT": os.getenv(
-            "DB_PORT",
-            "5432",
-        ),
-        "CONN_MAX_AGE": int(
-            os.getenv(
-                "DB_CONN_MAX_AGE",
-                "60",
-            )
-        ),
-        "CONN_HEALTH_CHECKS": True,
-        "OPTIONS": {
-            "sslmode": os.getenv(
-                "DB_SSLMODE",
-                "require",
-            ),
-        },
-    }
-}
+# -------------------------------------------------
+# Database
+# -------------------------------------------------
 
+DATABASE_URL = os.getenv(
+    "DATABASE_URL",
+    "",
+).strip()
+
+DB_CONN_MAX_AGE = int(
+    os.getenv(
+        "DB_CONN_MAX_AGE",
+        "60",
+    )
+)
+
+if DATABASE_URL:
+    DATABASES = {
+        "default": dj_database_url.parse(
+            DATABASE_URL,
+            conn_max_age=DB_CONN_MAX_AGE,
+            conn_health_checks=True,
+        )
+    }
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": (
+                "django.db.backends.postgresql"
+            ),
+            "NAME": required_env(
+                "DB_NAME"
+            ),
+            "USER": required_env(
+                "DB_USER"
+            ),
+            "PASSWORD": required_env(
+                "DB_PASSWORD"
+            ),
+            "HOST": required_env(
+                "DB_HOST"
+            ),
+            "PORT": os.getenv(
+                "DB_PORT",
+                "5432",
+            ),
+            "CONN_MAX_AGE": (
+                DB_CONN_MAX_AGE
+            ),
+            "CONN_HEALTH_CHECKS": True,
+            "OPTIONS": {
+                "sslmode": os.getenv(
+                    "DB_SSLMODE",
+                    "require",
+                ),
+            },
+        }
+    }
+
+
+# -------------------------------------------------
+# Static files
+# -------------------------------------------------
 
 MIDDLEWARE.insert(  # noqa: F405
     1,
@@ -102,7 +151,6 @@ MIDDLEWARE.insert(  # noqa: F405
         "WhiteNoiseMiddleware"
     ),
 )
-
 
 STORAGES = {
     "default": {
@@ -120,27 +168,37 @@ STORAGES = {
 }
 
 
+# -------------------------------------------------
+# CSRF trusted origins
+# -------------------------------------------------
+
 CSRF_TRUSTED_ORIGINS = env_list(  # noqa: F405
     "CSRF_TRUSTED_ORIGINS"
 )
 
-RENDER_EXTERNAL_URL = (
-    os.getenv(
-        "RENDER_EXTERNAL_URL",
-        "",
-    )
-    .strip()
-    .rstrip("/")
+RENDER_EXTERNAL_URL = os.getenv(
+    "RENDER_EXTERNAL_URL",
+    "",
+).strip().rstrip("/")
+
+add_unique(
+    CSRF_TRUSTED_ORIGINS,
+    RENDER_EXTERNAL_URL,
 )
 
-if (
-    RENDER_EXTERNAL_URL
-    and RENDER_EXTERNAL_URL
-    not in CSRF_TRUSTED_ORIGINS
-):
-    CSRF_TRUSTED_ORIGINS.append(
-        RENDER_EXTERNAL_URL
-    )
+for hostname in VERCEL_HOSTNAMES:
+    hostname = hostname.strip()
+
+    if hostname:
+        add_unique(
+            CSRF_TRUSTED_ORIGINS,
+            f"https://{hostname}",
+        )
+
+
+# -------------------------------------------------
+# HTTPS and browser security
+# -------------------------------------------------
 
 SECURE_SSL_REDIRECT = env_bool(  # noqa: F405
     "SECURE_SSL_REDIRECT",
@@ -173,12 +231,16 @@ SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_HSTS_PRELOAD = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 
-X_FRAME_OPTIONS = "DENY"
-
 SECURE_REFERRER_POLICY = (
     "same-origin"
 )
 
+X_FRAME_OPTIONS = "DENY"
+
+
+# -------------------------------------------------
+# Logging
+# -------------------------------------------------
 
 LOG_LEVEL = os.getenv(
     "LOG_LEVEL",
