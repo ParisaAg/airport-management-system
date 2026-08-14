@@ -66,3 +66,6 @@ services:
 
       - key: LOG_LEVEL
         value: INFO
+
+      - key: DEMO_SEED_PASSWORD
+        sync: false
